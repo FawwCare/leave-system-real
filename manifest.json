@@ -1,7 +1,8 @@
 {
   "name": "FaWW Workspace",
   "short_name": "FaWW",
-  "start_url": "./index.html",
+  "start_url": "/leave-system-real/",
+  "scope": "/leave-system-real/",
   "display": "standalone",
   "background_color": "#F3F4F6",
   "theme_color": "#4F46E5",
