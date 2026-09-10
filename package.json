@@ -9,15 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Ryu303/leave-system.git"
+    "url": "git+https://github.com/fawwcare/leave-system.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Ryu303/leave-system/issues"
+    "url": "https://github.com/fawwcare/leave-system/issues"
   },
-  "homepage": "https://github.com/Ryu303/leave-system#readme",
+  "homepage": "https://github.com/fawwcare/leave-system#readme",
   "description": "",
   "devDependencies": {
     "live-server": "^1.2.2",
