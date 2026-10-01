@@ -205,7 +205,7 @@ initDashboardSortable();
             
             // 신규 사용자 정보 자동 등록 (DB에 프로필이 없는 경우)
             if (!profile) {
-                const isSystemAdmin = ADMIN_UIDS.includes(user.uid);
+                const isSystemAdmin = (ADMIN_UIDS.includes(user.uid) || (typeof ADMIN_EMAILS !== 'undefined' && user.email && ADMIN_EMAILS.includes(user.email)));
                 db.ref('users/' + user.uid).set({
                     displayName: user.displayName || '익명',
                     email: user.email,
@@ -224,7 +224,7 @@ initDashboardSortable();
             
             if (profile && profile.approved) {
                 if (document.getElementById('tab-btn-admin')) {
-                    document.getElementById('tab-btn-admin').style.display = ADMIN_UIDS.includes(user.uid) ? 'flex' : 'none';
+                    document.getElementById('tab-btn-admin').style.display = (ADMIN_UIDS.includes(user.uid) || (typeof ADMIN_EMAILS !== 'undefined' && user.email && ADMIN_EMAILS.includes(user.email))) ? 'flex' : 'none';
                 }
                 listenForUsers();
                 if (typeof startNotificationListener === 'function') startNotificationListener();
@@ -372,7 +372,7 @@ function listenForUsers() {
                                 </div>`;
                 approvalListEl.appendChild(li); pendingCount++;
             } else {
-                const actionBtn = ADMIN_UIDS.includes(uid) ? `<span style="font-size: 0.8rem; color: var(--primary); font-weight: bold;">최고관리자</span>` : `<button class="revoke-btn" onclick="revokeUser('${uid}', '${safeName}')">해제</button>`;
+                const actionBtn = (ADMIN_UIDS.includes(uid) || (typeof ADMIN_EMAILS !== 'undefined' && typeof user !== 'undefined' && user.email && ADMIN_EMAILS.includes(user.email))) ? `<span style="font-size: 0.8rem; color: var(--primary); font-weight: bold;">최고관리자</span>` : `<button class="revoke-btn" onclick="revokeUser('${uid}', '${safeName}')">해제</button>`;
                 li.innerHTML = `<span>${user.displayName} <small style="color: var(--text-muted); font-weight: normal;">(${user.email})</small></span>${actionBtn}`;
                 memberListEl.appendChild(li); memberCount++;
             }

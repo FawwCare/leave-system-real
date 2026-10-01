@@ -4,6 +4,7 @@
 // ----------------------------------------------------
 const APP_VERSION = 'v114';
 const ADMIN_UIDS = ["jaGugunGReXytCgbqYwQUybxyJL2", "hiPMcfj1OvWuq6PjedfPFvOLxlp2"]; 
+const ADMIN_EMAILS = ["contact@faww.co.kr"];
 const ALLOWED_GOOGLE_SYNC_EMAIL = 'contact@faww.co.kr';
 
 
@@ -116,7 +117,7 @@ const AppStore = {
             try { if(typeof renderLeaveUI === 'function') renderLeaveUI(); } catch(e){}
             try { if(typeof renderMyPage === 'function') renderMyPage(); } catch(e){}
             const user = firebase.auth().currentUser;
-            try { if(user && ADMIN_UIDS.includes(user.uid) && typeof renderAdminLeaves === 'function') renderAdminLeaves(); } catch(e){}
+            try { if(user && (ADMIN_UIDS.includes(user.uid) || (user.email && ADMIN_EMAILS.includes(user.email))) && typeof renderAdminLeaves === 'function') renderAdminLeaves(); } catch(e){}
             try {
                 const calTab = document.getElementById('tab-calendar');
                 if (calTab && calTab.style.display !== 'none' && typeof renderTabCalendar === 'function') renderTabCalendar();
@@ -140,7 +141,7 @@ const AppStore = {
         if(typeof renderChatList === 'function') renderChatList();
         if(typeof setupPrivateChatNotificationListeners === 'function') setupPrivateChatNotificationListeners();
         const user = firebase.auth().currentUser;
-        if(user && ADMIN_UIDS.includes(user.uid) && typeof renderAdminLeaves === 'function') renderAdminLeaves();
+        if(user && (ADMIN_UIDS.includes(user.uid) || (user.email && ADMIN_EMAILS.includes(user.email))) && typeof renderAdminLeaves === 'function') renderAdminLeaves();
     },
     getNotices: function() { return this.state.notices; },
     setNotices: function(newData) {
@@ -454,7 +455,7 @@ function switchTab(tabId, element, pushState = true) {
     }
     
     // 탭 전환 시 화면을 강제로 최신화하여 즉각 반영 (F5 방지)
-    if (tabId === 'tab-admin' && auth.currentUser && ADMIN_UIDS.includes(auth.currentUser.uid)) {
+    if (tabId === 'tab-admin' && auth.currentUser && (ADMIN_UIDS.includes(auth.currentUser.uid) || (auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email)))) {
         if (typeof renderAdminLeaves === 'function') renderAdminLeaves();
     } else if (tabId === 'tab-leaves') {
         if (typeof renderLeaveUI === 'function') renderLeaveUI();

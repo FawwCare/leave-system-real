@@ -142,7 +142,7 @@ function openLeaveDetailModal(leaveId) {
         </div>
     `;
 
-    const isAdmin = auth.currentUser && ADMIN_UIDS.includes(auth.currentUser.uid);
+    const isAdmin = auth.currentUser && (ADMIN_UIDS.includes(auth.currentUser.uid) || (typeof ADMIN_EMAILS !== 'undefined' && auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email)));
     const isAuthor = auth.currentUser && auth.currentUser.uid === leave.uid;
 
     if (isAdmin) {
@@ -533,7 +533,7 @@ db.ref('leaves').orderByKey().limitToLast(300).on('value', (s) => {
     const data = s.val() || {};
     for (let key in data) data[key].id = key;
     AppStore.setLeaves(data);
-    if (auth.currentUser && ADMIN_UIDS.includes(auth.currentUser.uid)) {
+    if (auth.currentUser && (ADMIN_UIDS.includes(auth.currentUser.uid) || (typeof ADMIN_EMAILS !== 'undefined' && auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email)))) {
         Object.values(data).forEach(l => { if (l.status === 'pending' && !isFirstLeavesLoad && !previousPendingLeaves.has(l.id)) showToast(`🚨 휴가 신청: ${l.userName}`, 'warning'); previousPendingLeaves.add(l.id); });
     }
     isFirstLeavesLoad = false;
@@ -1242,7 +1242,7 @@ function renderMembersDirectory() {
     });
 
     if (!auth.currentUser) return;
-    const isAdmin = ADMIN_UIDS.includes(auth.currentUser.uid);
+    const isAdmin = (ADMIN_UIDS.includes(auth.currentUser.uid) || (typeof ADMIN_EMAILS !== 'undefined' && auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email)));
     if (document.getElementById('org-admin-guide')) document.getElementById('org-admin-guide').style.display = isAdmin ? 'block' : 'none';
 
     Object.keys(AppStore.getUsers()).forEach(uid => {
@@ -1261,7 +1261,7 @@ function renderMembersDirectory() {
 async function dropMember(ev, newDept) {
     ev.preventDefault(); const uid = ev.dataTransfer.getData("uid");
     if (uid) {
-        if (!ADMIN_UIDS.includes(auth.currentUser.uid)) return await customAlert('최고 관리자만 수정 가능합니다.');
+        if (!(ADMIN_UIDS.includes(auth.currentUser.uid) || (typeof ADMIN_EMAILS !== 'undefined' && auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email)))) return await customAlert('최고 관리자만 수정 가능합니다.');
         db.ref('users/' + uid).update({ department: newDept });
     }
 }
@@ -1560,7 +1560,7 @@ function viewNotice(id) {
 
     // 권한 확인 (작성자 본인 또는 최고 관리자만 가능하게 허용)
     const isAuthor = notice.uid === (auth.currentUser ? auth.currentUser.uid : '');
-    const isAdmin = auth.currentUser && ADMIN_UIDS.includes(auth.currentUser.uid);
+    const isAdmin = auth.currentUser && (ADMIN_UIDS.includes(auth.currentUser.uid) || (typeof ADMIN_EMAILS !== 'undefined' && auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email)));
     const canEdit = isAuthor || isAdmin;
 
     // 버튼 노출 제어
@@ -1605,7 +1605,7 @@ function enableNoticeEdit() {
     document.getElementById('noticeContentInput').readOnly = false;
 
     // 중요 공지 편집 제어 (최고 관리자만 수정 및 상단 고정 제어 가능)
-    const isAdmin = auth.currentUser && ADMIN_UIDS.includes(auth.currentUser.uid);
+    const isAdmin = auth.currentUser && (ADMIN_UIDS.includes(auth.currentUser.uid) || (typeof ADMIN_EMAILS !== 'undefined' && auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email)));
     const importantInput = document.getElementById('noticeImportantInput');
     const isImportantLabel = document.getElementById('noticeImportantLabel');
     if (isImportantLabel) {
@@ -1793,7 +1793,7 @@ function openNoticeModal() {
     document.getElementById('noticeContentInput').value = '';
 
     // 중요 공지 체크박스 초기화 및 활성화 (최고 관리자 전용)
-    const isAdmin = auth.currentUser && ADMIN_UIDS.includes(auth.currentUser.uid);
+    const isAdmin = auth.currentUser && (ADMIN_UIDS.includes(auth.currentUser.uid) || (typeof ADMIN_EMAILS !== 'undefined' && auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email)));
     const importantInput = document.getElementById('noticeImportantInput');
     const isImportantLabel = document.getElementById('noticeImportantLabel');
 
@@ -1895,7 +1895,7 @@ async function linkGoogleCalendar() {
     // [권한 제한] 지정된 대표 계정(contact@faww.co.kr) 또는 최고 관리자만 구글 캘린더 연동 수행 가능
     const targetEmail = typeof ALLOWED_GOOGLE_SYNC_EMAIL !== 'undefined' ? ALLOWED_GOOGLE_SYNC_EMAIL : 'contact@faww.co.kr';
     const isAllowedEmail = user.email === targetEmail;
-    const isAdmin = typeof ADMIN_UIDS !== 'undefined' && ADMIN_UIDS.includes(user.uid);
+    const isAdmin = typeof ADMIN_UIDS !== 'undefined' && (ADMIN_UIDS.includes(user.uid) || (typeof ADMIN_EMAILS !== 'undefined' && user.email && ADMIN_EMAILS.includes(user.email)));
 
     if (!isAllowedEmail && !isAdmin) {
         return await customAlert(`🔒 Google 캘린더 연동은 지정된 대표 계정(${targetEmail})만 가능합니다.\n\n현재 계정: ${user.email}`);
@@ -3073,7 +3073,7 @@ async function deleteMeetingFeed(feedId) {
     if (!feed) return;
 
     const currentUser = auth.currentUser;
-    const isAdmin = typeof ADMIN_UIDS !== 'undefined' && ADMIN_UIDS.includes(currentUser.uid);
+    const isAdmin = typeof ADMIN_UIDS !== 'undefined' && (ADMIN_UIDS.includes(currentUser.uid) || (typeof ADMIN_EMAILS !== 'undefined' && currentUser.email && ADMIN_EMAILS.includes(currentUser.email)));
     const isAuthor = feed.authorUid === currentUser.uid;
 
     if (!isAdmin && !isAuthor) {
@@ -3214,7 +3214,7 @@ function renderMeetingFeedUI() {
         groupedFeeds[dateKey].push(feed);
     });
 
-    const isAdmin = currentUser && typeof ADMIN_UIDS !== 'undefined' && ADMIN_UIDS.includes(currentUser.uid);
+    const isAdmin = currentUser && typeof ADMIN_UIDS !== 'undefined' && (ADMIN_UIDS.includes(currentUser.uid) || (typeof ADMIN_EMAILS !== 'undefined' && currentUser.email && ADMIN_EMAILS.includes(currentUser.email)));
 
     dateKeys.forEach(dateKey => {
         // 날짜 그룹 헤더 생성

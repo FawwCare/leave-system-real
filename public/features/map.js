@@ -218,7 +218,7 @@ function openTripModal(id = null, name = '', date = '', assignee = '', contact =
 
     if (delBtn) {
 
-        const isAdmin = auth.currentUser && ADMIN_UIDS.includes(auth.currentUser.uid);
+        const isAdmin = auth.currentUser && (ADMIN_UIDS.includes(auth.currentUser.uid) || (typeof ADMIN_EMAILS !== 'undefined' && auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email)));
 
         const isAuthor = trip && trip.author === (AppStore.getCurrentUser() ? AppStore.getCurrentUser().displayName : '');
 
