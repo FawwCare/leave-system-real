@@ -48,6 +48,268 @@
     <script src="https://unpkg.com/tippy.js@6"></script>
     <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/animations/scale.css" />
     <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/translucent.css" />
+    <!-- Mobile Calendar Styles (768px 이하에서만 활성) -->
+    <style id="mobile-calendar-styles">
+    @media (max-width: 768px) {
+        /* ── 앱 헤더 숨기고 전용 화면 ── */
+        body.calendar-active .header {
+            display: none !important;
+        }
+        body.calendar-active .main-layout {
+            margin: 0 !important;
+            padding: 0 !important;
+            padding-bottom: 0 !important;
+        }
+        body.calendar-active .container {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        body.calendar-active #tab-calendar {
+            display: flex !important;
+            flex-direction: column !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important; /* 화면 끝까지 채움 */
+            z-index: 100 !important;
+            background: var(--bg-color, #f8fafc) !important;
+            overflow: hidden !important;
+        }
+        /* 내부 리스트가 하단바 영역에서 잘리지 않도록 패딩 추가 */
+        body.calendar-active #mobile-detail-list {
+            padding-bottom: 90px !important;
+        }
+        
+        /* 하단 내비게이션 바 완전 불투명도 처리 (모든 탭 공통) */
+        .nav-sidebar {
+            background: #ffffff !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            border-top: 1px solid var(--border-color, #e5e7eb) !important;
+            z-index: 9999 !important;
+        }
+        body[data-theme='dark'] .nav-sidebar {
+            background: #1e293b !important; /* 다크모드 솔리드 배경 */
+        }
+        /* 기존 필터/내비 바 숨기기 (커스텀 헤더로 대체) */
+        body.calendar-active .premium-top-bar {
+            display: none !important;
+        }
+        body.calendar-active .calendar-expand-footer {
+            display: none !important;
+        }
+        body.calendar-active #tab-calendar > .section.calendar-section-full {
+            flex: 0 0 auto !important;
+            overflow: hidden !important;
+            max-height: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+        }
+        /* ── 커스텀 컴팩트 헤더 ── */
+        #mobile-cal-header {
+            display: none;
+        }
+        body.calendar-active #mobile-cal-header {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 10px 12px !important;
+            background: #ffffff !important;
+            border-bottom: 1px solid var(--border-color, #e5e7eb) !important;
+            flex-shrink: 0 !important;
+            gap: 8px !important;
+        }
+        body[data-theme='dark'].calendar-active #mobile-cal-header {
+            background: #1e293b !important;
+        }
+        .mcal-nav {
+            display: flex !important;
+            align-items: center !important;
+            gap: 4px !important;
+        }
+        .mcal-title {
+            font-size: 1.05rem !important;
+            font-weight: 800 !important;
+            color: var(--text-color, #1e293b) !important;
+            min-width: 100px !important;
+            text-align: center !important;
+        }
+        .mcal-nav-btn {
+            background: none !important;
+            border: none !important;
+            cursor: pointer !important;
+            padding: 4px !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: var(--text-color, #374151) !important;
+            transition: background 0.15s !important;
+        }
+        .mcal-nav-btn:active {
+            background: rgba(79, 70, 229, 0.1) !important;
+        }
+        .mcal-filters {
+            display: flex !important;
+            gap: 4px !important;
+            overflow-x: auto !important;
+            flex-shrink: 1 !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+        .mcal-filters::-webkit-scrollbar { display: none !important; }
+        .mcal-filter-btn {
+            background: var(--bg-color, #f1f5f9) !important;
+            border: 1px solid var(--border-color, #e2e8f0) !important;
+            border-radius: 14px !important;
+            padding: 3px 10px !important;
+            font-size: 0.72rem !important;
+            font-weight: 600 !important;
+            color: var(--text-muted, #64748b) !important;
+            white-space: nowrap !important;
+            cursor: pointer !important;
+            transition: all 0.15s !important;
+            flex-shrink: 0 !important;
+        }
+        .mcal-filter-btn.active {
+            background: var(--primary, #4F46E5) !important;
+            color: #fff !important;
+            border-color: var(--primary, #4F46E5) !important;
+        }
+        /* ── 주(week) 행 높이 통제 ── */
+        body.calendar-active .calendar-week-row {
+            min-height: 44px !important;
+            max-height: 50px !important;
+        }
+        /* PC 바(bar) 숨기고 점(dot)만 표시 */
+        body.calendar-active .calendar-week-row .calendar-task {
+            display: none !important;
+        }
+        body.calendar-active .calendar-day {
+            cursor: pointer !important;
+        }
+        /* 점 컨테이너 */
+        .mobile-dot-wrap {
+            display: none;
+        }
+        body.calendar-active .mobile-dot-wrap {
+            display: flex !important;
+            justify-content: center !important;
+            gap: 2px !important;
+            flex-wrap: wrap !important;
+            margin-top: 1px !important;
+        }
+        .mobile-cal-dot {
+            width: 5px !important;
+            height: 5px !important;
+            border-radius: 50% !important;
+            flex-shrink: 0 !important;
+        }
+        /* 선택된 날짜 표시 */
+        body.calendar-active .calendar-day.mobile-selected {
+            background: rgba(79, 70, 229, 0.12) !important;
+        }
+        body.calendar-active .calendar-day.mobile-selected .calendar-date {
+            color: #4F46E5 !important;
+            font-weight: 900 !important;
+        }
+        /* ── 하단 디테일 패널 ── */
+        #mobile-detail-panel {
+            display: none;
+        }
+        body.calendar-active #mobile-detail-panel {
+            display: flex !important;
+            flex-direction: column !important;
+            flex: 1 1 0 !important;
+            min-height: 0 !important;
+            border-top: 2px solid var(--primary, #4F46E5) !important;
+            background: var(--card-bg, #fff) !important;
+        }
+        #mobile-detail-header {
+            padding: 10px 14px !important;
+            font-weight: 700 !important;
+            font-size: 0.95rem !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            flex-shrink: 0 !important;
+            border-bottom: 1px solid var(--border, #e5e7eb) !important;
+        }
+        #mobile-detail-count {
+            color: var(--primary, #4F46E5) !important;
+            font-size: 0.85rem !important;
+        }
+        #mobile-detail-list {
+            flex: 1 !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            padding: 6px 10px !important;
+        }
+        .mobile-detail-empty {
+            text-align: center !important;
+            padding: 30px !important;
+            color: var(--text-muted, #9ca3af) !important;
+            font-size: 0.85rem !important;
+        }
+        .mobile-detail-item {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            padding: 10px 8px !important;
+            border-bottom: 1px solid var(--border, #f3f4f6) !important;
+            cursor: pointer !important;
+        }
+        .mobile-detail-item:active {
+            background: rgba(79, 70, 229, 0.06) !important;
+        }
+        .mobile-detail-dot {
+            width: 8px !important;
+            height: 8px !important;
+            border-radius: 50% !important;
+            flex-shrink: 0 !important;
+        }
+        .mobile-detail-info {
+            flex: 1 !important;
+            min-width: 0 !important;
+        }
+        .mobile-detail-title {
+            font-size: 0.88rem !important;
+            font-weight: 600 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+        .mobile-detail-meta {
+            font-size: 0.75rem !important;
+            color: var(--text-muted, #9ca3af) !important;
+            margin-top: 2px !important;
+        }
+
+        /* 조직도 모바일 뷰 넘침 현상 수정 (높이 유연화) */
+        .org-board .org-column {
+            height: auto !important;
+            min-height: min-content !important;
+            overflow: visible !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        .org-board .org-list {
+            flex: 1 1 auto !important;
+            height: auto !important;
+            min-height: min-content !important;
+            overflow: visible !important;
+        }
+    }
+    /* PC에서는 모바일 전용 요소 완전 숨김 */
+    @media (min-width: 769px) {
+        #mobile-cal-header { display: none !important; }
+        #mobile-detail-panel { display: none !important; }
+        .mobile-dot-wrap { display: none !important; }
+        .mobile-cal-dot { display: none !important; }
+    }
+    </style>
 </head>
 
 <body>
@@ -2057,6 +2319,34 @@
                 location.reload(true);
             }
         })();
+    </script>
+    <script src="/features/kanban/mobile-calendar.js"></script>
+    <script>
+    // calendar-active 클래스 토글 (모바일 레이아웃 활성화용)
+    (function() {
+        const origSwitchTab = window.switchTab;
+        if (origSwitchTab) {
+            window.switchTab = function(tabId, btn) {
+                origSwitchTab(tabId, btn);
+                if (tabId === 'tab-calendar' && window.innerWidth <= 768) {
+                    document.body.classList.add('calendar-active');
+                } else {
+                    document.body.classList.remove('calendar-active');
+                }
+            };
+        }
+        // Hash 기반 직접 접근 대응
+        function checkHash() {
+            if (location.hash === '#tab-calendar' && window.innerWidth <= 768) {
+                document.body.classList.add('calendar-active');
+            } else {
+                document.body.classList.remove('calendar-active');
+            }
+        }
+        window.addEventListener('hashchange', checkHash);
+        window.addEventListener('resize', checkHash);
+        setTimeout(checkHash, 300);
+    })();
     </script>
 </body>
 

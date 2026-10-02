@@ -2429,7 +2429,8 @@ async function generateAiBriefing() {
         };
 
         const tasks = Object.values(AppStore.getTasks());
-        const myTasks = tasks.filter(t => checkMatch(t.assignee) || checkMatch(t.title || t.name) || checkMatch(t.description));
+        // 제목이나 설명이 아닌 실제 담당자(assignee)에 포함되어 있을 때만 내 업무로 산정
+        const myTasks = tasks.filter(t => checkMatch(t.assignee));
         const activeTasks = myTasks.filter(t => t.status === 'todo' || t.status === 'doing');
 
         const todayStr = getTodayStr();
@@ -2482,7 +2483,7 @@ async function generateAiBriefing() {
                     안녕하세요, <strong style="color: var(--primary); font-weight: 700;">${userProfile.displayName}</strong>님! 오늘 하루도 스마트한 업무 협업을 위한 핵심 요약을 전해드립니다.
                 </p>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 0.8rem;">
-                    <div style="background: rgba(79, 70, 229, 0.05); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(79, 70, 229, 0.1);">
+                    <div style="background: rgba(79, 70, 229, 0.05); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(79, 70, 229, 0.1); cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(79, 70, 229, 0.1)'" onmouseout="this.style.background='rgba(79, 70, 229, 0.05)'" onclick="document.getElementById('searchAssignee').value = '${userNameShort}'; if(typeof filterTasks === 'function') { filterTasks(); if(typeof closeCommonCalendarModal === 'function') closeCommonCalendarModal(); }">
                         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 700; font-size: 0.85rem; color: var(--primary);">
                             <span class="material-symbols-rounded" style="font-size: 1.15rem;">task_alt</span> 내 할당 업무
                         </div>
@@ -2509,7 +2510,7 @@ async function generateAiBriefing() {
                         </div>
                         <div style="font-size: 0.88rem; font-weight: 600;">
                             올해 잔여 연차: <span style="color: #10B981;">${remainLeaves}</span>일<br>
-                            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">• 총 15일 중 ${used.toFixed(1)}일 사용</span>
+                            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">• 총 ${userProfile.leaveTotal || 15}일 중 ${used.toFixed(1)}일 사용</span>
                         </div>
                     </div>
                 </div>

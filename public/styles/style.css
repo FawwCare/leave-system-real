@@ -1,12 +1,12 @@
-:root {
-    /* 메인 테마 색상 (Vibrant HSL) */
+﻿:root {
+    /* 硫붿씤 ?뚮쭏 ?됱긽 (Vibrant HSL) */
     --primary: hsl(235, 86%, 65%);
     --primary-hover: hsl(235, 86%, 60%);
     --primary-glow: hsla(235, 86%, 65%, 0.4);
     --danger: hsl(348, 83%, 55%);
     --danger-hover: hsl(348, 83%, 45%);
     
-    /* 배경 및 텍스트 (Light Glass) */
+    /* 諛곌꼍 諛??띿뒪??(Light Glass) */
     --bg-color: #f0f2f5;
     --bg-gradient: radial-gradient(at 0% 0%, hsla(253,16%,7%,0.05) 0, transparent 50%), 
                    radial-gradient(at 50% 0%, hsla(225,39%,30%,0.05) 0, transparent 50%), 
@@ -19,14 +19,14 @@
     --col-bg: rgba(248, 250, 252, 0.8);
     --glass-blur: blur(16px);
     
-    /* 분리감이 강화된 섀도우 */
+    /* 遺꾨━媛먯씠 媛뺥솕????꾩슦 */
     --shadow-sm: 0 2px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.08);
     --shadow-md: 0 6px 12px rgba(0,0,0,0.08), 0 3px 6px rgba(0,0,0,0.06);
     --shadow-lg: 0 20px 40px rgba(0,0,0,0.12), 0 8px 16px rgba(0,0,0,0.08);
     --shadow-glow: 0 0 20px var(--primary-glow);
 }
 
-/* 다크 모드 색상 (Midnight Glass Theme) */
+/* ?ㅽ겕 紐⑤뱶 ?됱긽 (Midnight Glass Theme) */
 [data-theme="dark"] {
     --bg-color: #0B0F19; /* Deep Space Navy */
     --bg-gradient: radial-gradient(circle at 15% 50%, rgba(79, 70, 229, 0.12), transparent 40%),
@@ -39,7 +39,7 @@
     --text-muted: #94A3B8;
     --border-color: rgba(255, 255, 255, 0.15); 
     
-    /* 다크 모드 전용 강력 그림자 */
+    /* ?ㅽ겕 紐⑤뱶 ?꾩슜 媛뺣젰 洹몃┝??*/
     --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.6);
     --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.7);
     --shadow-lg: 0 25px 50px rgba(0, 0, 0, 0.8);
@@ -70,7 +70,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-/* Material Symbols (紐⑤뜕 ?꾩씠肄? 怨듯넻 ?ㅼ젙 */
+/* Material Symbols (筌뤴뫀???袁⑹뵠?? ?⑤벏????쇱젟 */
 .material-symbols-rounded {
     font-family: 'Material Symbols Rounded' !important;
     font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
@@ -80,7 +80,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ==================== 
-   ?ㅻ뜑 (Header) 
+   ??삳쐭 (Header) 
 ==================== */
 .header {
     background: var(--card-bg);
@@ -100,11 +100,11 @@ h1, h2, h3, h4, h5, h6 {
 .header-titles {
     display: flex;
     align-items: center;
-    gap: 1rem; /* 濡쒓퀬?€ ?띿뒪???ъ씠 媛꾧꺽 */
+    gap: 1rem; /* 嚥≪뮄??????용뮞??????揶쏄쑨爰?*/
 }
 
 .header-logo {
-    height: 48px; /* 濡쒓퀬 ?믪씠 (?먰븯???ш린濡?議곗젅 媛€?? */
+    height: 48px; /* 嚥≪뮄???誘れ뵠 (?癒곕릭????由경에?鈺곌퀣??揶쎻궗?? */
     width: auto;
     object-fit: contain;
 }
@@ -147,7 +147,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ==================== 
-   怨듯넻 ?붿냼 & ?덉씠?꾩썐 
+   ?⑤벏???遺용꺖 & ??됱뵠?袁⑹뜍 
 ==================== */
 .container {
     max-width: 1200px;
@@ -190,7 +190,7 @@ button:hover {
 }
 
 button:disabled {
-    background-color: #D1D5DB; /* 諛앹? ?뚯깋 */
+    background-color: #D1D5DB; /* 獄쏆빘? ???퉳 */
     color: #6B7280;
     cursor: not-allowed;
 }
@@ -202,7 +202,7 @@ button:disabled {
 }
 
 /* ==================== 
-   ??Tab) 硫붾돱
+   ??Tab) 筌롫뗀??
 ==================== */
 
 .tab-menu {
@@ -256,11 +256,11 @@ button:disabled {
     border-bottom-color: var(--card-bg);
 }
 
-/* 모바일 반응형 */
+/* 紐⑤컮??諛섏쓳??*/
 @media (max-width: 768px) {
     .bottom-grid { grid-template-columns: 1fr; }
     
-    /* ?ㅻ뜑 ?덉씠?꾩썐 理쒖쟻??*/
+    /* ??삳쐭 ??됱뵠?袁⑹뜍 筌ㅼ뮇???*/
     .header { 
         flex-direction: column; 
         gap: 0.8rem; 
@@ -272,7 +272,7 @@ button:disabled {
         text-align: center;
     }
     
-    /* 큼직하고 안 어울리는 폰트 크기 반응형 축소 */
+    /* ?쇱쭅?섍퀬 ???댁슱由щ뒗 ?고듃 ?ш린 諛섏쓳??異뺤냼 */
     .header-titles h1 { font-size: 1.15rem !important; }
     h2 { font-size: 1.05rem !important; margin-bottom: 1rem !important; }
     h3 { font-size: 1rem !important; }
@@ -282,7 +282,7 @@ button:disabled {
     .trip-title { font-size: 0.95rem !important; }
     .org-column h3 { font-size: 1rem !important; padding: 0.6rem !important; }
 
-    /* 브리핑 모달 표 초경량 최적화 (가로 스크롤 X, 카드 X) */
+    /* 釉뚮━??紐⑤떖 ??珥덇꼍??理쒖쟻??(媛濡??ㅽ겕濡?X, 移대뱶 X) */
     .briefing-table {
         font-size: 0.75rem !important;
     }
@@ -315,7 +315,7 @@ button:disabled {
         border-radius: 12px !important;
     }
 
-    /* 紐⑤컮????硫붾돱 3???꾨━誘몄뾼 洹몃━???덉씠?꾩썐 媛쒗렪 (媛濡??ㅼ??댄봽 臾몄젣 濡ㅻ갚 諛?蹂댁셿) */
+    /* 筌뤴뫀而????筌롫뗀??3???袁ⓥ봺沃섎챷毓?域밸챶?????됱뵠?袁⑹뜍 揶쏆뮉??(揶쎛嚥??????꾨늄 ?얜챷??嚥▲끇媛?獄?癰귣똻?? */
     .tab-menu {
         display: grid !important;
         grid-template-columns: repeat(3, 1fr) !important;
@@ -363,7 +363,7 @@ button:disabled {
         color: #FFFFFF !important;
     }
 
-    /* 모바일에서의 칸반 보드 스와이프(스냅) 최적화 대신 세로 스크롤로 변경 */
+    /* 紐⑤컮?쇱뿉?쒖쓽 移몃컲 蹂대뱶 ?ㅼ??댄봽(?ㅻ깄) 理쒖쟻??????몃줈 ?ㅽ겕濡ㅻ줈 蹂寃?*/
     .kanban-board {
         flex-direction: column !important;
         overflow-x: hidden !important;
@@ -377,7 +377,7 @@ button:disabled {
     }
 }
 
-    /* [PC ?곗뒪?ы넲 ?꾩뿭 洹쒖튃] 紐⑤컮???꾩슜 罹≪뒓 (+3) 臾댁“嫄?100% ?€??*/
+    /* [PC ?怨쀫뮞?????袁⑸열 域뱀뮇?? 筌뤴뫀而???袁⑹뒠 筌╈돦??(+3) ?얜똻?쒎쳞?100% ????*/
     .task-mobile-capsule,
     .calendar-task .task-mobile-capsule,
     .task-more-badge .task-mobile-capsule,
@@ -399,7 +399,7 @@ button:disabled {
         font-size: 0.72rem !important;
     }
 
-    /* [怨듯넻 +N媛??붾낫湲?諭껋? 湲곕낯 CSS ?ㅽ??? */
+    /* [?⑤벏??+N揶??遺얜궖疫?獄?퍔? 疫꿸퀡??CSS ????? */
     .task-more-badge,
     .calendar-task.task-more-badge {
         background-color: #FFFFFF !important;
@@ -430,7 +430,7 @@ button:disabled {
         vertical-align: middle;
     }
 
-    /* [紐⑤컮??諛섏쓳??洹쒖튃] @media max-width: 768px */
+    /* [筌뤴뫀而??獄쏆꼷???域뱀뮇?? @media max-width: 768px */
     @media (max-width: 768px) {
         .header-text p { display: none !important; }
         .calendar-grid {
@@ -444,7 +444,7 @@ button:disabled {
             border-bottom: 1px solid var(--border-color) !important;
             overflow: hidden !important;
         }
-        /* 紐⑤컮?? ?ㅻ뒛 ? - 諛곌꼍 ?쒓굅濡?移⑤쾾 諛⑹?, overflow??week-row媛 ?대떦 */
+        /* 筌뤴뫀而?? ??삳뮎 ?? - 獄쏄퀗瑗???볤탢嚥?燁삘뫀苡?獄쎻뫗?, overflow??week-row揶쎛 ????*/
         .calendar-week-row .calendar-day.today {
             background-color: transparent !important;
         }
@@ -482,7 +482,7 @@ button:disabled {
         .calendar-date.sun, .calendar-date.holiday { color: #EF4444 !important; font-weight: 800 !important; }
         .calendar-date.sat { color: #3B82F6 !important; font-weight: 800 !important; }
 
-        /* 紐⑤컮?쇱슜 ?붿뒪?뚮젅??諛섏쟾: PC ?쒕ぉ ??? 紐⑤컮??誘몃땲 罹≪뒓 ?몄텧 */
+        /* 筌뤴뫀而??깆뒠 ?遺용뮞???쟿??獄쏆꼷?? PC ??뺛걠 ???? 筌뤴뫀而??沃섎챶??筌╈돦???紐꾪뀱 */
         .task-time-badge,
         .task-desktop-title,
         .task-more-badge .task-desktop-title {
@@ -505,7 +505,7 @@ button:disabled {
             text-align: center !important;
         }
 
-        /* 단일 일자 일정 (Single-day Dot) */
+        /* ?⑥씪 ?쇱옄 ?쇱젙 (Single-day Dot) */
         .calendar-week-row .calendar-task:not([class*="task-span-"]):not(.task-more-badge),
         .calendar-day .calendar-task:not([class*="task-span-"]):not(.task-more-badge),
         .calendar-grid .calendar-task:not([class*="task-span-"]):not(.task-more-badge) {
@@ -526,7 +526,7 @@ button:disabled {
             color: transparent !important;
         }
 
-        /* 장기 연속 일정 (Multi-day Ribbon) */
+        /* ?κ린 ?곗냽 ?쇱젙 (Multi-day Ribbon) */
         .calendar-week-row .calendar-task[class*="task-span-"] {
             display: inline-flex !important;
             align-items: center !important;
@@ -546,11 +546,11 @@ button:disabled {
             color: transparent !important;
         }
         
-        /* 이전/다음 주로 넘어가는 꼬리 처리 */
+        /* ?댁쟾/?ㅼ쓬 二쇰줈 ?섏뼱媛??瑗щ━ 泥섎━ */
         .calendar-week-row .calendar-task[class*="task-span-"].task-span-prev { border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important; }
         .calendar-week-row .calendar-task[class*="task-span-"].task-span-next { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
 
-        /* 텍스트 완벽 숨김 */
+        /* ?띿뒪???꾨꼍 ?④? */
         .calendar-task:not(.task-more-badge) .task-title-text,
         .calendar-task:not(.task-more-badge) .task-mobile-capsule,
         .calendar-task:not(.task-more-badge) .task-time-badge,
@@ -560,7 +560,7 @@ button:disabled {
         }
     }
 
-    /* 모바일 환경 전용 솔리드 컬러 (도트 및 리본용) - !important로 모든 효과 덮어쓰기 */
+    /* 紐⑤컮???섍꼍 ?꾩슜 ?붾━??而щ윭 (?꾪듃 諛?由щ낯?? - !important濡?紐⑤뱺 ?④낵 ??뼱?곌린 */
     @media (max-width: 768px) {
         .calendar-day .calendar-task.task-coupang { background-color: #84CC16 !important; border: none !important; }
         .calendar-day .calendar-task.task-lecture { background-color: #EAB308 !important; border: none !important; }
@@ -577,7 +577,7 @@ button:disabled {
         .calendar-day .calendar-task.task-low { background-color: #6B7280 !important; border: none !important; }
         .calendar-day .calendar-task.task-done-style { background-color: #9CA3AF !important; border: none !important; opacity: 0.5 !important; }
 
-        /* 다크 모드 모바일 환경 전용 솔리드 컬러 */
+        /* ?ㅽ겕 紐⑤뱶 紐⑤컮???섍꼍 ?꾩슜 ?붾━??而щ윭 */
         [data-theme='dark'] .calendar-day .calendar-task.task-coupang { background-color: #a3e635 !important; }
         [data-theme='dark'] .calendar-day .calendar-task.task-lecture { background-color: #fde047 !important; }
         [data-theme='dark'] .calendar-day .calendar-task.task-easyen { background-color: #93c5fd !important; }
@@ -598,7 +598,7 @@ button:disabled {
     [data-theme='dark'] .calendar-day .calendar-task.task-low { background-color: rgba(107, 114, 128, 0.28) !important; color: #9ca3af !important; }
     [data-theme='dark'] .calendar-day .calendar-task.task-done-style { background-color: rgba(75, 85, 99, 0.25) !important; color: #6B7280 !important; }
 
-    /* ?꾨━誘몄뾼 ?щ젰 ?곷떒 諛?諛섏쓳??媛쒗렪 */
+    /* ?袁ⓥ봺沃섎챷毓??????怨룸뼊 獄?獄쏆꼷???揶쏆뮉??*/
     .calendar-section-full {
         padding: 1rem !important;
         gap: 1rem !important;
@@ -649,7 +649,7 @@ button:disabled {
         min-height: auto !important;
     }
 
-    /* ?ㅻ뜑 ?≪뀡 踰꾪듉 媛濡??ъ젙??諛섏쓳??*/
+    /* ??삳쐭 ??る?甕곌쑵??揶쎛嚥??????獄쏆꼷???*/
     .header-action-group {
         display: flex;
         flex-direction: row;
@@ -665,7 +665,7 @@ button:disabled {
         white-space: normal !important; word-break: keep-all !important; line-height: 1.3 !important;
     }
 
-    /* ?낅Т ?깅줉 ?곸뿭 紐⑤컮?????*/
+    /* ??끦??源낆쨯 ?怨몃열 筌뤴뫀而??????*/
     .task-input-area {
         flex-direction: column !important;
         align-items: stretch !important;
@@ -678,7 +678,7 @@ button:disabled {
         min-width: 0 !important;
     }
 
-    /* 罹섎┛??而⑦듃濡?紐⑤컮?????*/
+    /* 筌?꼶????뚢뫂?껅에?筌뤴뫀而??????*/
     .calendar-controls {
         flex-wrap: wrap !important;
         gap: 12px !important;
@@ -713,7 +713,7 @@ button:disabled {
         margin-right: 0 !important;
     }
 
-    /* 紐⑤컮?쇱슜 諛뷀? ?쒗듃 ?덉씠?꾩썐 媛쒗렪 */
+    /* 筌뤴뫀而??깆뒠 獄쏅?? ??쀫뱜 ??됱뵠?袁⑹뜍 揶쏆뮉??*/
     #day-detail-overlay {
         align-items: flex-end !important;
         background-color: rgba(0, 0, 0, 0.4) !important;
@@ -867,7 +867,7 @@ button:disabled {
 }
 
 /* ==================== 
-   移몃컲 蹂대뱶 
+   燁삳챶而?癰귣?諭?
 ==================== */
 .kanban-header {
     display: flex;
@@ -985,26 +985,26 @@ button:disabled {
 }
 
 /* ==================== 
-   而ㅼ뒪? ?쒕∼?ㅼ슫(?좏깮李? ?붿궡???붿옄??==================== */
+   ?뚣끉??? ??뺚댘??쇱뒲(?醫뤾문筌? ?遺욧땀???遺우쁽??==================== */
 select.search-input, #priorityInput {
-    appearance: none; /* OS 湲곕낯 ?붿궡?쒖? ?щ컯???붿옄???쒓굅 */
+    appearance: none; /* OS 疫꿸퀡???遺욧땀??? ??而???遺우쁽????볤탢 */
     -webkit-appearance: none;
-    /* ?몃젴??誘몃땲硫 ?붿궡??SVG ?쎌엯 */
+    /* ?紐껋졃??沃섎챶?뀐쭖? ?遺욧땀??SVG ??뚯뿯 */
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat;
-    background-position: right 0.8rem center; /* ?붿궡???꾩튂 */
+    background-position: right 0.8rem center; /* ?遺욧땀???袁⑺뒄 */
     background-size: 1rem;
-    padding-right: 2.2rem !important; /* 湲?④? ?붿궡?쒕? 移⑤쾾?섏? ?딄쾶 ?щ갚 ?뺣낫 */
+    padding-right: 2.2rem !important; /* 疫꼲??? ?遺욧땀??? 燁삘뫀苡??? ??꾩쓺 ??媛??類ｋ궖 */
 }
-#viewMode { /* ?뚮???踰꾪듉 ?꾩뿉???섏????붿궡???곸슜 */
+#viewMode { /* ?????甕곌쑵???袁⑸퓠????????遺욧땀???怨몄뒠 */
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
 }
 [data-theme="dark"] select.search-input:not(#viewMode), [data-theme="dark"] #priorityInput {
-    /* ?ㅽ겕 紐⑤뱶?먯꽌???붿궡?쒕? 諛앹? ?뚯깋?쇰줈 ?먮룞 諛섏쟾 */
+    /* ??쎄쾿 筌뤴뫀諭?癒?퐣???遺욧땀??? 獄쏆빘? ???퉳??곗쨮 ?癒?짗 獄쏆꼷??*/
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
 }
 
-/* ?쒕∼?ㅼ슫 ?섏쐞 硫붾돱(Option) ?고듃 諛??뚮쭏 ?됱긽 ?곸슜 */
+/* ??뺚댘??쇱뒲 ??륁맄 筌롫뗀??Option) ?怨좊뱜 獄????춳 ??깃맒 ?怨몄뒠 */
 select option {
     background-color: var(--card-bg);
     color: var(--text-main);
@@ -1019,7 +1019,7 @@ select option {
     gap: 1.2rem;
     overflow-x: auto;
     padding-bottom: 0.5rem;
-    -webkit-overflow-scrolling: touch; /* iOS ?깆뿉??遺?쒕윭??愿???ㅽ겕濡?吏??*/
+    -webkit-overflow-scrolling: touch; /* iOS ?源녿퓠???봔??뺤쑎???온????쎄쾿嚥?筌왖??*/
     scroll-behavior: smooth;
 }
 
@@ -1054,13 +1054,13 @@ select option {
 }
 
 .task-list {
-    min-height: 150px; /* ?쒕∼ ?곸뿭???꾪븳 理쒖냼 ?믪씠 */
-    max-height: 400px; /* 移대뱶媛 3-4媛쒕? ?섏뼱媛硫??ㅽ겕濡ㅻ릺?꾨줉 ?ㅼ젙 */
-    overflow-y: auto; /* 移대뱶媛 留롮븘吏硫??몃줈 ?ㅽ겕濡??먮룞 ?쒖떆 */
+    min-height: 150px; /* ??뺚댘 ?怨몃열???袁る립 筌ㅼ뮇???誘れ뵠 */
+    max-height: 400px; /* 燁삳?諭뜹첎? 3-4揶쏆뮆? ??뤿선揶쎛筌???쎄쾿嚥▲끇由?袁⑥쨯 ??쇱젟 */
+    overflow-y: auto; /* 燁삳?諭뜹첎? 筌띾‘釉섓쭪?筌??紐껋쨮 ??쎄쾿嚥??癒?짗 ??뽯뻻 */
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    padding-right: 4px; /* ?ㅽ겕濡ㅻ컮? 移대뱶 ?ъ씠???щ갚 */
+    padding-right: 4px; /* ??쎄쾿嚥▲끇而?? 燁삳?諭????????媛?*/
 }
 
 .task-card {
@@ -1080,7 +1080,7 @@ select option {
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* ?쒕옒洹?以묒씤 移대뱶 (怨좎뒪?멸? ?꾨땶 留덉슦???꾨옒 ?먮낯 ?붿냼) */
+/* ??뺤삋域?餓λ쵐??燁삳?諭?(?⑥쥙??硫? ?袁⑤빒 筌띾뜆????袁⑥삋 ?癒?궚 ?遺용꺖) */
 .task-card.is-dragging {
     opacity: 0.4;
     transform: scale(0.95) rotate(2deg);
@@ -1088,9 +1088,9 @@ select option {
     cursor: grabbing;
 }
 
-/* 留덉슦?ㅺ? ?щ씪媛?吏꾩엯?? 而щ읆 ?섏씠?쇱씠??*/
+/* 筌띾뜆???? ???ゅ첎?筌욊쑴??? ?뚎됱쓥 ??륁뵠??깆뵠??*/
 .column.drag-over {
-    background-color: rgba(99, 102, 241, 0.05); /* Primary ?됱긽??5% ?щ챸??*/
+    background-color: rgba(99, 102, 241, 0.05); /* Primary ??깃맒??5% ??梨??*/
     box-shadow: inset 0 0 0 2px var(--primary);
     transform: scale(1.01);
 }
@@ -1113,7 +1113,7 @@ select option {
     background-color: var(--danger);
 }
 
-/* ?닿? 痍⑥냼 踰꾪듉 (蹂닿린 醫뗪쾶 蹂寃? */
+/* ??? ?띯뫁??甕곌쑵??(癰귣떯由??ル뿪苡?癰궰野? */
 .cancel-btn {
     background-color: var(--card-bg);
     color: var(--text-muted);
@@ -1133,7 +1133,7 @@ select option {
 }
 
 /* ==================== 
-   酉?紐⑤뱶 踰붾? (Legend) & ?쒓컖???ㅽ???==================== */
+   ??筌뤴뫀諭?甕곕뗀? (Legend) & ??볦퍟???????==================== */
 .view-legend {
     display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;
     padding: 0.8rem 1.2rem; background-color: var(--col-bg); border-radius: 8px; border: 1px solid rgba(226, 232, 240, 0.6);
@@ -1141,14 +1141,14 @@ select option {
 .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 600; color: var(--text-main); white-space: nowrap; }
 .legend-color { width: 14px; height: 14px; border-radius: 4px; display: inline-block; box-shadow: var(--shadow-sm); }
 .task-done-style {
-    background-color: #F3F4F6 !important; /* 李⑤텇?섍퀬 諛앹? ?뚯깋 */
-    color: #6B7280 !important; /* 吏꾪븳 ?뚯깋 ?띿뒪?몃줈 媛?낆꽦 ?뺣낫 */
+    background-color: #F3F4F6 !important; /* 筌△뫀???랁?獄쏆빘? ???퉳 */
+    color: #6B7280 !important; /* 筌욊쑵釉????퉳 ??용뮞?紐껋쨮 揶쎛??녾쉐 ?類ｋ궖 */
     text-decoration: line-through;
     border: 1px solid #D1D5DB !important;
 }
 
 /* ==================== 
-   罹섎┛??酉?
+   筌?꼶?????
 ==================== */
 .calendar-controls {
     display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;
@@ -1162,13 +1162,13 @@ select option {
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 12px; /* 媛꾧꺽 ?뺤옣 */
+    gap: 12px; /* 揶쏄쑨爰??類ㅼ삢 */
     background-color: transparent;
     border: none;
-    min-height: 850px; /* ?ш린 ???뺣? */
+    min-height: 850px; /* ??由????類? */
 }
 
-/* --- ?좉퇋: 罹섎┛??二쇨컙 ??湲곕컲 ?덉씠?꾩썐 --- */
+/* --- ?醫됲뇣: 筌?꼶???雅뚯눊而???疫꿸퀡而???됱뵠?袁⑹뜍 --- */
 .weekly-layout-grid {
     display: flex !important;
     flex-direction: column !important;
@@ -1197,9 +1197,9 @@ select option {
     position: relative !important;
     display: grid !important;
     grid-template-columns: repeat(7, 1fr) !important;
-    /* ?쇱젙???섏뼱?섎㈃ ?됱씠 ?좎뿰?섍쾶 ?앷린硫??믪씠媛 ?먮룞 議곗젅??*/
+    /* ??깆젟????뤿선??롢늺 ??깆뵠 ?醫롫염??띿쓺 ??룸┛筌??誘れ뵠揶쎛 ?癒?짗 鈺곌퀣???*/
     grid-auto-rows: minmax(32px, auto) !important;
-    gap: 6px 0 !important; /* 媛濡?媛?? 0 (諛??곌껐???꾪빐), ?몃줈 媛?? 6px */
+    gap: 6px 0 !important; /* 揶쎛嚥?揶?? 0 (獄??怨뚭퍙???袁る퉸), ?紐껋쨮 揶?? 6px */
     border-bottom: 1px solid var(--border-color) !important;
     padding-bottom: 0 !important;
     min-height: 140px !important;
@@ -1211,7 +1211,7 @@ select option {
 }
 
 .calendar-week-row .calendar-day {
-    grid-row: 1 / span 4; /* 諛곌꼍 ? 湲곕낯 ?ㅽ뙩 */
+    grid-row: 1 / span 4; /* 獄쏄퀗瑗??? 疫꿸퀡????쎈솴 */
     border: none !important;
     border-right: 1px solid var(--border-color) !important;
     border-radius: 0 !important;
@@ -1225,18 +1225,18 @@ select option {
     position: relative !important;
 }
 
-/* 二쇨컙 ?덉씠?꾩썐: hover ??transform ??諛⑹? */
+/* 雅뚯눊而???됱뵠?袁⑹뜍: hover ??transform ??獄쎻뫗? */
 .calendar-week-row .calendar-day:hover {
     transform: none !important;
     box-shadow: none !important;
 }
 
-/* ?붿씪蹂?諛곌꼍 ?곗륫 ?뚮몢由??쒓굅 */
+/* ?遺우뵬癰?獄쏄퀗瑗??怨쀫? ???あ????볤탢 */
 .calendar-week-row .calendar-day:nth-child(7) {
     border-right: none !important;
 }
 
-/* ?ㅻ뒛 ?좎쭨 ?€: Google Calendar 諛⑹떇 - 醫뚯륫 ?≪꽱??諛?+ ?섏씠?쒖븘??諛곌꼍 (4硫??뚮몢由??놁쓬) */
+/* ??삳뮎 ?醫롮? ??? Google Calendar 獄쎻뫗??- ?ル슣瑜???り쉽??獄?+ ??륁뵠??뽯툡??獄쏄퀗瑗?(4筌????あ????곸벉) */
 .calendar-week-row .calendar-day.today {
     border: none !important;
 outline: none !important;
@@ -1259,7 +1259,7 @@ background: linear-gradient(to bottom,
         transparent 100%) !important;
 }
 
-/* ?ㅻ쾭?⑸릺???쇱젙 ?ㅽ???*/
+/* ??살쒔??몃┷????깆젟 ?????*/
 .calendar-week-row .calendar-task {
     margin: 2px 4px !important;
     z-index: 2 !important;
@@ -1268,7 +1268,7 @@ background: linear-gradient(to bottom,
     line-height: 24px !important;
 }
 
-/* ?곗냽???쇱젙 ?묐걹 留덉쭊 諛??⑤뵫 蹂댁젙 */
+/* ?怨쀫꺗????깆젟 ?臾먭국 筌띾뜆彛?獄???ㅻ뎃 癰귣똻??*/
 .calendar-week-row .calendar-task.task-span-prev {
     border-top-left-radius: 0 !important;
     border-bottom-left-radius: 0 !important;
@@ -1282,7 +1282,7 @@ background: linear-gradient(to bottom,
     border-bottom-right-radius: 0 !important;
 }
 
-/* 留덉씠?섏씠吏€ 誘몃땲 罹섎┛?붿슜 洹몃━??(?믪씠 異뺤냼) */
+/* 筌띾뜆???륁뵠筌왿궗 沃섎챶??筌?꼶??遺우뒠 域밸챶???(?誘れ뵠 ?곕벡?? */
 .mypage-calendar-grid {
     min-height: 400px !important;
 }
@@ -1303,7 +1303,7 @@ background: linear-gradient(to bottom,
     overflow-y: auto;
 }
 
-/* 留덉씠?섏씠吏€??誘몃땲 ?€ */
+/* 筌띾뜆???륁뵠筌왿궗??沃섎챶?????*/
 .mypage-calendar-day {
     min-height: 60px !important;
     height: 60px !important;
@@ -1357,7 +1357,7 @@ background: linear-gradient(to bottom,
 
 .calendar-day.today .calendar-date::after,
 .mypage-calendar-day.today .calendar-date::after {
-    content: "오늘";
+    content: "?ㅻ뒛";
     font-size: 0.6rem;
     font-weight: 800;
     margin-left: 4px;
@@ -1413,7 +1413,7 @@ background: linear-gradient(to bottom,
 
 .calendar-task {
     font-size: 0.75rem;
-    padding: 2px 6px; /* 뚱뚱함 줄이기 (기존 4px 8px) */
+    padding: 2px 6px; /* ?깅슧??以꾩씠湲?(湲곗〈 4px 8px) */
     border-radius: 6px;
     color: white;
     white-space: nowrap;
@@ -1428,7 +1428,7 @@ background: linear-gradient(to bottom,
     gap: 4px;
 }
 
-/* [조율중] 일정 시각적 분리 (투명도 및 점선) */
+/* [議곗쑉以? ?쇱젙 ?쒓컖??遺꾨━ (?щ챸??諛??먯꽑) */
 .calendar-task.task-tentative, .task-card.task-tentative {
     opacity: 0.5 !important;
     border: 1px dashed currentColor !important;
@@ -1441,7 +1441,7 @@ background: linear-gradient(to bottom,
     );
 }
 
-/* --- ?쇰퀎 ?곸꽭 ?쇱젙 ?⑤꼸 ?붿옄??--- */
+/* --- ??고??怨멸쉭 ??깆젟 ??ㅺ섯 ?遺우쁽??--- */
 .day-detail-panel {
     background-color: var(--card-bg);
     width: 100%;
@@ -1625,13 +1625,13 @@ background: linear-gradient(to bottom,
 .clickable-date { cursor: pointer; display: inline-block; transition: color 0.2s; }
 .clickable-date:hover { color: var(--primary) !important; text-decoration: underline; }
 
-/* --- ?꾨━誘몄뾼 ?쇱젙 ?щ젰 ?꾩슜 ???붿옄??--- */
+/* --- ?袁ⓥ봺沃섎챷毓???깆젟 ?????袁⑹뒠 ???遺우쁽??--- */
 .calendar-section-full {
     padding: 2rem;
     display: flex;
     flex-direction: column;
     gap: 2rem;
-    background-color: #f8fafc; /* 諛앷퀬 源⑤걮??諛곌꼍 */
+    background-color: #f8fafc; /* 獄쏆빓??繹먥뫀嫄??獄쏄퀗瑗?*/
     border-radius: 24px;
 }
 
@@ -1773,7 +1773,7 @@ background: linear-gradient(to bottom,
     background: white;
 }
 
-/* [媛쒖꽑] ?ㅽ겕 紐⑤뱶?먯꽌??援ш? ?곕룞 踰꾪듉 ?됱긽 諛섏쟾 */
+/* [揶쏆뮇苑? ??쎄쾿 筌뤴뫀諭?癒?퐣???닌? ?怨뺣짗 甕곌쑵????깃맒 獄쏆꼷??*/
 [data-theme='dark'] .google-sync-premium {
     background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
     color: #f3f4f6;
@@ -1819,11 +1819,11 @@ background: linear-gradient(to bottom,
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* 罹섎┛???대? ?ㅽ겕濡ㅻ컮 誘몃땲硫€ ?ㅽ??쇰쭅 */
+/* 筌?꼶?????? ??쎄쾿嚥▲끇而?沃섎챶?뀐쭖???????곗춦 */
 .calendar-day::-webkit-scrollbar, .mypage-calendar-day::-webkit-scrollbar { width: 4px; }
 .calendar-day::-webkit-scrollbar-thumb, .mypage-calendar-day::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 4px; }
 
-/* --- ?뺤옣??罹섎┛???붿옄??--- */
+/* --- ?類ㅼ삢??筌?꼶????遺우쁽??--- */
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -1833,7 +1833,7 @@ background: linear-gradient(to bottom,
     min-height: 800px;
 }
 
-/* 留덉씠?섏씠吏€ 誘몃땲 罹섎┛?붿슜 洹몃━??(?믪씠 異뺤냼) */
+/* 筌띾뜆???륁뵠筌왿궗 沃섎챶??筌?꼶??遺우뒠 域밸챶???(?誘れ뵠 ?곕벡?? */
 .mypage-calendar-grid {
     min-height: 400px !important;
 }
@@ -1868,7 +1868,7 @@ background: linear-gradient(to bottom,
     overflow-y: auto;
 }
 
-/* 留덉씠?섏씠吏€??誘몃땲 ?€ */
+/* 筌띾뜆???륁뵠筌왿궗??沃섎챶?????*/
 .mypage-calendar-day {
     min-height: 60px !important;
     height: 60px !important;
@@ -1910,9 +1910,9 @@ background: linear-gradient(to bottom,
 }
 
 /* ==================== 
-   ?ㅼ떆媛?臾몄꽌 & ?뚯씪 ?쒕씪?대툕 
+   ??쇰뻻揶??얜챷苑?& ???뵬 ??뺤뵬????
 ==================== */
-/* Quill ?먮뵒??而ㅼ뒪?€ ?ㅽ???(?뚮쭏 ?곕룞) */
+/* Quill ?癒?탵???뚣끉?????????(???춳 ?怨뺣짗) */
 .ql-toolbar.ql-snow {
     border: 1px solid var(--border-color) !important;
     border-top-left-radius: 12px;
@@ -1933,7 +1933,7 @@ background: linear-gradient(to bottom,
 
 .ql-editor { color: var(--text-main); line-height: 1.6; }
 
-/* ?ㅽ겕 紐⑤뱶?????먮뵒???대컮 ?꾩씠肄??됱긽 ?먮룞 蹂€寃?*/
+/* ??쎄쾿 筌뤴뫀諭?????癒?탵????而??袁⑹뵠????깃맒 ?癒?짗 癰귘궗野?*/
 .ql-snow .ql-stroke { stroke: var(--text-main) !important; }
 .ql-snow .ql-fill { fill: var(--text-main) !important; }
 .ql-snow .ql-picker { color: var(--text-main) !important; }
@@ -1999,7 +1999,7 @@ background: linear-gradient(to bottom,
 }
 .file-list li a { text-decoration: none; color: var(--text-main); font-size: 0.95rem; display: flex; align-items: center; }
 
-/* ?뚯씪 ?쒕옒洹????쒕∼ ?④낵 */
+/* ???뵬 ??뺤삋域?????뺚댘 ??ｋ궢 */
 #drive-drop-zone { position: relative; transition: background-color 0.2s, outline 0.2s; }
 #drive-drop-zone.dragover {
     outline: 2px dashed var(--primary);
@@ -2013,7 +2013,7 @@ background: linear-gradient(to bottom,
 }
 
 /* ==================== 
-   紐⑤떖 李?(Modal) 
+   筌뤴뫀??筌?(Modal) 
 ==================== */
 .modal-overlay {
     position: fixed;
@@ -2095,7 +2095,7 @@ background: linear-gradient(to bottom,
     opacity: 0.8;
 }
 
-/* Flatpickr ?щ젰 ?고듃 諛??붿옄???곕룞 */
+/* Flatpickr ?????怨좊뱜 獄??遺우쁽???怨뺣짗 */
 .flatpickr-calendar { font-family: 'Pretendard Variable', Pretendard, sans-serif !important; box-shadow: var(--shadow-lg) !important; border: 1px solid var(--border-color) !important; }
 .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day.selected:focus, .flatpickr-day.startRange:focus, .flatpickr-day.endRange:focus, .flatpickr-day.selected:hover, .flatpickr-day.startRange:hover, .flatpickr-day.endRange:hover, .flatpickr-day.selected.prevMonthDay, .flatpickr-day.startRange.prevMonthDay, .flatpickr-day.endRange.prevMonthDay, .flatpickr-day.selected.nextMonthDay, .flatpickr-day.startRange.nextMonthDay, .flatpickr-day.endRange.nextMonthDay {
     background: var(--primary) !important; border-color: var(--primary) !important;
@@ -2110,23 +2110,23 @@ background: linear-gradient(to bottom,
 .modal-footer { margin-top: 1rem; text-align: right; }
 
 /* ==================== 
-   而ㅼ뒪? ?ㅽ겕濡ㅻ컮
+   ?뚣끉??? ??쎄쾿嚥▲끇而?
 ==================== */
 .task-list::-webkit-scrollbar {
     width: 8px;
 }
 
 .task-list::-webkit-scrollbar-track {
-    background: transparent; /* ?몃옓 諛곌꼍 ?щ챸 */
+    background: transparent; /* ?紐껋삌 獄쏄퀗瑗???梨?*/
 }
 
 .task-list::-webkit-scrollbar-thumb {
-    background-color: var(--border-color); /* ?ㅽ겕濡ㅻ컮 ?됱긽 */
+    background-color: var(--border-color); /* ??쎄쾿嚥▲끇而???깃맒 */
     border-radius: 4px;
 }
 
 /* ==================== 
-   愿由ъ옄 ?⑤꼸
+   ?온?귐딆쁽 ??ㅺ섯
 ==================== */
 .user-list {
     list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;
@@ -2140,13 +2140,13 @@ background: linear-gradient(to bottom,
     align-items: center;
 }
 .user-list li span { font-weight: 600; }
-.user-list li button { background-color: #10B981; } /* 珥덈줉???뱀씤 踰꾪듉 */
+.user-list li button { background-color: #10B981; } /* ?λ뜄以???諭??甕곌쑵??*/
 .user-list li button:hover { background-color: #059669; }
 .user-list li button.revoke-btn { background-color: #FEE2E2; color: var(--danger); }
 .user-list li button.revoke-btn:hover { background-color: var(--danger); color: white; }
 
 /* ==================== 
-   媛꾪듃 李⑦듃 酉?==================== */
+   揶쏄쑵??筌△뫂????==================== */
 .gantt-container {
     width: 100%;
     background-color: var(--card-bg);
@@ -2157,7 +2157,7 @@ background: linear-gradient(to bottom,
 .gantt-scroll-area {
     width: 100%;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch; /* iOS ?깆뿉??遺?쒕윭??愿???ㅽ겕濡?吏??*/
+    -webkit-overflow-scrolling: touch; /* iOS ?源녿퓠???봔??뺤쑎???온????쎄쾿嚥?筌왖??*/
     scroll-behavior: smooth;
 }
 .gantt-header {
@@ -2205,7 +2205,7 @@ background: linear-gradient(to bottom,
 }
 
 /* ==================== 
-   異쒖옣 ?낅Т 愿由?(Business Trips)
+   ?곗뮇????끦??온??(Business Trips)
 ==================== */
 .trip-grid {
     display: grid;
@@ -2252,7 +2252,7 @@ background: linear-gradient(to bottom,
 }
 
 /* ==================== 
-   ?좎뒪???뚮┝ (Toast)
+   ?醫롫뮞?????뵝 (Toast)
 ==================== */
 .toast-container {
     position: fixed;
@@ -2262,7 +2262,7 @@ background: linear-gradient(to bottom,
     flex-direction: column;
     gap: 10px;
     z-index: 10000;
-    pointer-events: none; /* ?대┃ 諛⑺빐 諛⑹? */
+    pointer-events: none; /* ????獄쎻뫚鍮?獄쎻뫗? */
 }
 .toast {
     background-color: var(--card-bg);
@@ -2276,7 +2276,7 @@ background: linear-gradient(to bottom,
     gap: 12px;
     animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     min-width: 260px;
-    pointer-events: auto; /* ?좎뒪???먯껜???대┃ 媛?ν븯寃?*/
+    pointer-events: auto; /* ?醫롫뮞???癒?퍥??????揶쎛?館釉?칰?*/
 }
 .toast.toast-warning { border-left-color: #F59E0B; }
 .toast.fade-out { animation: fadeOutRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
@@ -2294,7 +2294,7 @@ background: linear-gradient(to bottom,
 }
 
 /* ==================== 
-   ?ㅼ떆媛??щ궡 梨꾪똿 (Mini Messenger)
+   ??쇰뻻揶???沅?筌?쑵??(Mini Messenger)
 ==================== */
 .chat-toggle-btn {
     position: fixed; bottom: 20px; right: 20px; z-index: 999;
@@ -2318,8 +2318,8 @@ background: linear-gradient(to bottom,
 .chat-header {
     background-color: var(--primary); color: white; padding: 1rem;
     display: flex; justify-content: space-between; align-items: center;
-    user-select: none; /* ?쒕옒洹????띿뒪???좏깮 諛⑹? */
-    cursor: grab; /* 留덉슦??而ㅼ꽌瑜??먮컮??紐⑥뼇?쇰줈 */
+    user-select: none; /* ??뺤삋域?????용뮞???醫뤾문 獄쎻뫗? */
+    cursor: grab; /* 筌띾뜆????뚣끉苑뚨몴??癒?뺍??筌뤴뫁堉??곗쨮 */
 }
 .chat-header:active { cursor: grabbing; }
 .chat-header .close-btn { color: white; padding: 0; }
@@ -2361,11 +2361,11 @@ background: linear-gradient(to bottom,
 }
 
 /* ==================== 
-   ?꾩궗 怨듭??ы빆 (Notices)
+   ?袁⑷텢 ?⑤벊???鍮?(Notices)
 ==================== */
-/* 怨듭??ы빆 以묒슂 ?쒖떆 ?ㅽ???*/
+/* ?⑤벊???鍮?餓λ쵐????뽯뻻 ?????*/
 .notice-important {
-    background-color: #fff1f2 !important; /* 留ㅼ슦 ?고븳 遺꾪솉/鍮④컯 諛곌꼍 */
+    background-color: #fff1f2 !important; /* 筌띲끉???怨좊립 ?브쑵????몿而?獄쏄퀗瑗?*/
     border-left: 4px solid var(--danger) !important;
 }
 
@@ -2423,10 +2423,10 @@ background: linear-gradient(to bottom,
     .notice-list-header { display: none !important; }
     .notice-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
     .notice-item-author, .notice-item-date, .notice-item-views { width: auto; text-align: left; display: inline-block; margin-right: 0.5rem; }
-    .notice-item-views::before { content: '議고쉶?? '; }
+    .notice-item-views::before { content: '鈺곌퀬??? '; }
 }
 
-/* ??硫붿떆吏 諛곗? (梨꾪똿 紐⑸줉 ?곗륫) */
+/* ??筌롫뗄?놅쭪? 獄쏄퀣? (筌?쑵??筌뤴뫖以??怨쀫?) */
 .unread-badge {
     background-color: var(--danger);
     color: white;
@@ -2437,7 +2437,7 @@ background: linear-gradient(to bottom,
     margin-left: auto;
     box-shadow: var(--shadow-sm);
 }
-/* ?κ렐 硫붿씤 梨꾪똿 踰꾪듉??遺숇뒗 鍮④컙 ??*/
+/* ?觀??筌롫뗄??筌?쑵??甕곌쑵????븐늾????몿而???*/
 .chat-toggle-badge {
     position: absolute;
     top: 2px; right: 2px;
@@ -2448,7 +2448,7 @@ background: linear-gradient(to bottom,
 }
 
 /* ==================== 
-   議곗쭅??(Organization Chart)
+   鈺곌퀣彛??(Organization Chart)
 ==================== */
 .org-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; padding-bottom: 2rem; }
 .org-column { background: var(--col-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border-radius: 20px; padding: 1.5rem; border: 1px solid var(--border-color); display: flex; flex-direction: column; min-height: 320px; box-shadow: var(--shadow-md); }
@@ -2463,7 +2463,7 @@ background: linear-gradient(to bottom,
 .org-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: var(--shadow-lg); border-color: var(--primary-glow); }
 
 /* ==================== 
-   ?ㅻ쭏???숈꽑 吏??諛?由ъ뒪??
+   ??살춳????덇퐨 筌왖??獄??귐딅뮞??
 ==================== */
 .map-container-grid { 
     display: grid; grid-template-columns: 1fr; gap: 1rem; margin-top: 1rem; 
@@ -2501,7 +2501,7 @@ background: linear-gradient(to bottom,
 .route-team-header {
     margin-top: 1.5rem;
     padding: 0.6rem 1rem;
-    border-left: 5px solid; /* ?됱긽? JS?먯꽌 ?숈쟻?쇰줈 ?ㅼ젙 */
+    border-left: 5px solid; /* ??깃맒?? JS?癒?퐣 ??덉읅??곗쨮 ??쇱젟 */
     font-weight: 700;
     font-size: 1.1rem;
     display: flex;
@@ -2512,7 +2512,7 @@ background: linear-gradient(to bottom,
 }
 
 /* ==================== 
-   誘몃땲寃뚯엫 (?먮뜑吏 ?↔린) ?ㅽ???==================== */
+   沃섎챶?꿨칰??뿫 (?癒?쐭筌왖 ??붾┛) ?????==================== */
 .game-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -2548,7 +2548,7 @@ background: linear-gradient(to bottom,
 }
 
 /* ==================== 
-   ?곗씪由?猷⑦떞 (Daily Tasks)
+   ?怨쀬뵬???룐뫂??(Daily Tasks)
  ==================== */
 .daily-item {
     background-color: var(--card-bg);
@@ -2623,7 +2623,7 @@ background: linear-gradient(to bottom,
 }
 
 /* ==================== 
-   ?대떦??移?(Assignee Chips)
+   ?????燁?(Assignee Chips)
  ==================== */
 .assignee-chip {
     display: inline-flex;
@@ -2654,7 +2654,7 @@ background: linear-gradient(to bottom,
 }
 
 /* ==================== 
-   ?뚮┝ ?쒖뒪??(Notification System)
+   ???뵝 ??뽯뮞??(Notification System)
  ==================== */
 .icon-btn {
     position: relative;
@@ -2951,7 +2951,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb {
     }
 }
 
-/* 留덇컧?꾨컯 (2???대궡) 移대뱶 寃쎄퀬 ?좊땲硫붿씠??*/
+/* 筌띾뜃而?袁⑥뺏 (2????沅? 燁삳?諭?野껋럡???醫딅빍筌롫뗄???*/
 .task-card.deadline-warning {
     animation: blink-red-neon 0.8s infinite alternate;
 }
@@ -2964,11 +2964,11 @@ input[type="range"].premium-slider::-webkit-slider-thumb {
     100% {
         border-color: rgba(239, 68, 68, 1);
         box-shadow: 0 0 12px rgba(239, 68, 68, 0.5), inset 0 0 6px rgba(239, 68, 68, 0.1);
-        background-color: rgba(254, 226, 226, 0.15); /* ?댁쭩 遺됱?鍮?諛곌꼍 */
+        background-color: rgba(254, 226, 226, 0.15); /* ??곸? ?븍맩???獄쏄퀗瑗?*/
     }
 }
 
-/* ?ㅼ떆媛??щ궡 ?낅Т 硫붿씪 ?뚰넻 ?붿빟 Feed ?ㅽ???*/
+/* ??쇰뻻揶???沅???끦?筌롫뗄????곕꽰 ?遺용튋 Feed ?????*/
 .communication-feed-container {
     max-height: 450px;
     overflow-y: auto;
@@ -3052,11 +3052,11 @@ input[type="range"].premium-slider::-webkit-slider-thumb {
     border-radius: 6px;
 }
 
-/* 移댄뀒怨좊━蹂??ㅽ겕紐⑤뱶 ????꾨━誘몄뾼 諛곗? ?ㅽ???*/
-.comm-badge.reporting { background-color: #E0F2FE; color: #0284C7; border: 1px solid #BAE6FD; }      /* ?낅Т蹂닿퀬 */
-.comm-badge.announcement { background-color: #FCE7F3; color: #DB2777; border: 1px solid #FBCFE8; }   /* 怨듭??ы빆 */
-.comm-badge.schedule { background-color: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; }       /* ?쇱젙怨듭쑀 */
-.comm-badge.inquiry { background-color: #F3F4F6; color: #4B5563; border: 1px solid #E5E7EB; }        /* ?쇰컲臾몄쓽 */
+/* 燁삳똾?믤⑥쥓?곮퉪???쎄쾿筌뤴뫀諭??????袁ⓥ봺沃섎챷毓?獄쏄퀣? ?????*/
+.comm-badge.reporting { background-color: #E0F2FE; color: #0284C7; border: 1px solid #BAE6FD; }      /* ??끦?퉪?욱?*/
+.comm-badge.announcement { background-color: #FCE7F3; color: #DB2777; border: 1px solid #FBCFE8; }   /* ?⑤벊???鍮?*/
+.comm-badge.schedule { background-color: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; }       /* ??깆젟?⑤벊? */
+.comm-badge.inquiry { background-color: #F3F4F6; color: #4B5563; border: 1px solid #E5E7EB; }        /* ??곗뺘?얜챷??*/
 
 .comm-category-label {
     font-size: 0.75rem;
@@ -3132,9 +3132,9 @@ input[type="range"].premium-slider::-webkit-slider-thumb {
 }
 
 /* ==================== 
-   罹섎┛???쇱젙 ?ㅺ컖???ㅽ???(Premium Schedule Differentiation)
+   筌?꼶?????깆젟 ??븐퍟???????(Premium Schedule Differentiation)
 ==================== */
-/* 1. ?닿? (Leaves): ?곕끃???뚯뒪??諛곌꼍 + ?쒓렇?덉쿂 ?먮찓?꾨뱶 蹂대뜑 */
+/* 1. ??? (Leaves): ?怨뺣걙?????뮞??獄쏄퀗瑗?+ ??볥젃??됱퓗 ?癒?컭?袁⑤굡 癰귣???*/
 .calendar-task.task-leave {
     background-color: rgba(16, 185, 129, 0.18) !important;
     border: 1px solid rgba(16, 185, 129, 0.4) !important;
@@ -3145,7 +3145,7 @@ color: #047857 !important;
     color: #34d399 !important;
 }
 
-/* 2. 異쒖옣 (Trips): ?곕낫???뚯뒪??諛곌꼍 + ?쒓렇?덉쿂 諛붿씠?щ젢 蹂대뜑 */
+/* 2. ?곗뮇??(Trips): ?怨뺣궖?????뮞??獄쏄퀗瑗?+ ??볥젃??됱퓗 獄쏅뗄?????癰귣???*/
 .calendar-task.task-trip {
     background-color: rgba(139, 92, 246, 0.18) !important;
     border: 1px solid rgba(139, 92, 246, 0.4) !important;
@@ -3156,7 +3156,7 @@ color: #6D28D9 !important;
     color: #a78bfa !important;
 }
 
-/* 3. ?몃? ?곕룞 ?쇱젙 (Google): ?곗껌濡??뚯뒪??諛곌꼍 + ?쒓렇?덉쿂 ?쒖븞 蹂대뜑 */
+/* 3. ?紐? ?怨뺣짗 ??깆젟 (Google): ?怨쀪퍕嚥????뮞??獄쏄퀗瑗?+ ??볥젃??됱퓗 ??뽯툧 癰귣???*/
 .calendar-task.task-external {
     background-color: rgba(6, 182, 212, 0.18) !important;
     border: 1px solid rgba(6, 182, 212, 0.4) !important;
@@ -3168,7 +3168,7 @@ color: #0E7490 !important;
     color: #22d3ee !important;
 }
 
-/* 3.5. ?쇰컲 ?쇱젙 (Schedules): ?곕텇???뚯뒪??諛곌꼍 + 濡쒖쫰 蹂대뜑 */
+/* 3.5. ??곗뺘 ??깆젟 (Schedules): ?怨뺥뀋?????뮞??獄쏄퀗瑗?+ 嚥≪뮇已?癰귣???*/
 .calendar-task.task-schedule {
     background-color: rgba(244, 63, 94, 0.18) !important;
     border: 1px solid rgba(244, 63, 94, 0.4) !important;
@@ -3180,7 +3180,7 @@ color: #BE123C !important;
     color: #fb7185 !important;
 }
 
-/* 4. 以묒슂 ?낅Т (High Priority): ?고솉???뚯뒪??諛곌꼍 + ?쒓렇?덉쿂 ?덈뱶 蹂대뜑 */
+/* 4. 餓λ쵐????끦?(High Priority): ?怨좎냹?????뮞??獄쏄퀗瑗?+ ??볥젃??됱퓗 ??덈굡 癰귣???*/
 .calendar-task.task-high {
     background-color: rgba(239, 68, 68, 0.18) !important;
     border: 1px solid rgba(239, 68, 68, 0.4) !important;
@@ -3192,7 +3192,7 @@ color: #B91C1C !important;
     color: #fca5a5 !important;
 }
 
-/* 5. 蹂댄넻 ?낅Т (Medium Priority): ?고솴???뚯뒪??諛곌꼍 + ?쒓렇?덉쿂 ?곕쾭 蹂대뜑 */
+/* 5. 癰귣똾????끦?(Medium Priority): ?怨좎넺?????뮞??獄쏄퀗瑗?+ ??볥젃??됱퓗 ?怨뺤쒔 癰귣???*/
 .calendar-task.task-medium {
     background-color: rgba(245, 158, 11, 0.18) !important;
     border: 1px solid rgba(245, 158, 11, 0.4) !important;
@@ -3204,7 +3204,7 @@ color: #B45309 !important;
     color: #fcd34d !important;
 }
 
-/* 6. ??쓬 ?낅Т (Low Priority): ?고쉶???뚯뒪??諛곌꼍 + ?쒓렇?덉쿂 ?щ젅?댄듃 蹂대뜑 */
+/* 6. ??????끦?(Low Priority): ?怨좎돳?????뮞??獄쏄퀗瑗?+ ??볥젃??됱퓗 ?????꾨뱜 癰귣???*/
 .calendar-task.task-low {
     background-color: rgba(107, 114, 128, 0.18) !important;
     border: 1px solid rgba(107, 114, 128, 0.4) !important;
@@ -3217,14 +3217,14 @@ color: #4B5563 !important;
 }
 
 /* ==================== 
-   ?뚯냽/嫄곕옒泥섎퀎 ?꾩슜 ?쇱젙 ????됱긽 ?쒖뒪??   - 荑좏뙜: ?곕몢 (Lime Green)
-   - 媛뺤쓽: ?몃옉 (Soft Yellow)
-   - ?댁??? ?뚮옉 (Soft Blue)
-   - ?대끂: 蹂대씪 (Soft Purple)
-   - ?붾윭?ㅽ뿬?? 泥?줉/?먮찓?꾨뱶 (Teal Emerald)
-   - ?먯껜/?대?: 鍮④컯 (Soft Red)
+   ???꺗/椰꾧퀡?믭㎗?롰??袁⑹뒠 ??깆젟 ??????깃맒 ??뽯뮞??   - ?묒쥚?? ?怨뺣あ (Lime Green)
+   - 揶쏅벡?? ?紐껋삂 (Soft Yellow)
+   - ????? ???삂 (Soft Blue)
+   - ???? 癰귣???(Soft Purple)
+   - ?遺얠쑎??쎈연?? 筌?以??癒?컭?袁⑤굡 (Teal Emerald)
+   - ?癒?퍥/???: ??몿而?(Soft Red)
 ==================== */
-/* 1. 荑좏뙜 (?곕몢??- Lime) */
+/* 1. ?묒쥚??(?怨뺣あ??- Lime) */
 .calendar-task.task-coupang {
     background-color: rgba(132, 204, 22, 0.18) !important;
     border: 1px solid rgba(132, 204, 22, 0.4) !important;
@@ -3237,7 +3237,7 @@ color: #4B5563 !important;
     color: #a3e635 !important;
 }
 
-/* 2. 媛뺤쓽 (?몃옉??- Yellow) */
+/* 2. 揶쏅벡??(?紐껋삂??- Yellow) */
 .calendar-task.task-lecture {
     background-color: rgba(234, 179, 8, 0.18) !important;
     border: 1px solid rgba(234, 179, 8, 0.4) !important;
@@ -3250,7 +3250,7 @@ color: #4B5563 !important;
     color: #fde047 !important;
 }
 
-/* 3. ?댁???(?뚮옉??- Blue) */
+/* 3. ?????(???삂??- Blue) */
 .calendar-task.task-easyen {
     background-color: rgba(59, 130, 246, 0.18) !important;
     border: 1px solid rgba(59, 130, 246, 0.4) !important;
@@ -3263,7 +3263,7 @@ color: #4B5563 !important;
     color: #93c5fd !important;
 }
 
-/* 4. ?대끂 (蹂대씪??- Purple) */
+/* 4. ????(癰귣????- Purple) */
 .calendar-task.task-huno {
     background-color: rgba(168, 85, 247, 0.18) !important;
     border: 1px solid rgba(168, 85, 247, 0.4) !important;
@@ -3276,7 +3276,7 @@ color: #4B5563 !important;
     color: #c084fc !important;
 }
 
-/* 5. ?붾윭?ㅽ뿬??(泥?줉/?먮찓?꾨뱶 - Teal) */
+/* 5. ?遺얠쑎??쎈연??(筌?以??癒?컭?袁⑤굡 - Teal) */
 .calendar-task.task-telus {
     background-color: rgba(20, 184, 166, 0.18) !important;
     border: 1px solid rgba(20, 184, 166, 0.4) !important;
@@ -3289,7 +3289,7 @@ color: #4B5563 !important;
     color: #2dd4bf !important;
 }
 
-/* 6. ?먯껜/?대? (鍮④컯??- Red) */
+/* 6. ?癒?퍥/??? (??몿而??- Red) */
 .calendar-task.task-self {
     background-color: rgba(239, 68, 68, 0.18) !important;
     border: 1px solid rgba(239, 68, 68, 0.4) !important;
@@ -3303,7 +3303,7 @@ color: #4B5563 !important;
 }
 
 
-/* 7. ?꾨즺???쇱젙 (Done Tasks): ???蹂대뜑 + 以묒븰??+ ?щ챸??議곗쑉 */
+/* 7. ?袁⑥┷????깆젟 (Done Tasks): ????癰귣???+ 餓λ쵐釉??+ ??梨??鈺곌퀣??*/
 .calendar-task.task-done-style {
     background-color: rgba(243, 244, 246, 0.4) !important;
     border-left: 3px dashed #9CA3AF !important;
@@ -3319,7 +3319,7 @@ color: #4B5563 !important;
     border-left-color: #4B5563 !important;
 }
 
-/* 留덉씠?щ줈 ?곹샇?묒슜: 留덉슦???몃쾭 ??遺?쒕윭???ㅻ┝ 諛?諛쒓킅 ?④낵 */
+/* 筌띾뜆???以??怨뱀깈?臾믪뒠: 筌띾뜆????紐껋쒔 ???봔??뺤쑎????삘뵝 獄?獄쏆뮄????ｋ궢 */
 .calendar-task {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
@@ -3425,7 +3425,7 @@ color: #4B5563 !important;
 }
 
 /* ==================== 
-   ?ㅼ떆媛??뚮┝ ?쇳꽣 (Notification Center Drawer)
+   ??쇰뻻揶????뵝 ??녠숲 (Notification Center Drawer)
 ==================== */
 .nav-icon-btn {
     background: transparent;
@@ -3621,7 +3621,7 @@ color: #4B5563 !important;
 }
 
 /* ==================== 
-   理쒖?媛 二쇱쑀??諛??좊쪟鍮??덈궡 移??ㅽ???==================== */
+   筌ㅼ뮇?揶쎛 雅뚯눘???獄??醫딆첒????덇땀 燁??????==================== */
 .smart-fuel-cost-container {
     margin-top: 0.8rem;
     padding: 0.75rem 1rem;
@@ -3653,7 +3653,7 @@ color: #4B5563 !important;
 .fuel-station-tag.altteul { background-color: #F3E8FF; color: #9333EA; border: 1px solid #E9D5FF; }
 
 /* ==================== 
-   ?ㅻ쭏??AI ?뚯쓽濡?湲고쉷 鍮꾩꽌 紐⑤컮?????붿옄??==================== */
+   ??살춳??AI ???벥嚥?疫꿸퀬????쑴苑?筌뤴뫀而?????遺우쁽??==================== */
 .proposal-mobile-tabs-container {
     display: none;
     background-color: var(--col-bg);
@@ -3692,18 +3692,18 @@ color: #4B5563 !important;
         display: flex !important;
     }
     
-    /* 湲고쉷鍮꾩꽌 ?⑤꼸 ?섏쭅 ?댁젣 諛??⑥씪 ??솕 */
+    /* 疫꿸퀬?룬뜮袁⑷퐣 ??ㅺ섯 ??륁춦 ??곸젫 獄???μ뵬 ????*/
     .pdf-tool-container {
         grid-template-columns: 1fr !important;
         gap: 1rem !important;
     }
     
-    /* 湲곕낯?곸쑝濡?寃곌낵 ?⑤꼸 ?④? (JS濡?input/result 援먯감 ?쒖뼱) */
+    /* 疫꿸퀡??怨몄몵嚥?野껉퀗????ㅺ섯 ??? (JS嚥?input/result ?대Ŋ媛???뽯선) */
     #proposal-result-panel {
         display: none !important;
     }
     
-    /* 紐⑤컮???명똿 洹몃━???쇰젹 諛곗튂 */
+    /* 筌뤴뫀而???紐낅샒 域밸챶?????곗졊 獄쏄퀣??*/
     .settings-grid {
         grid-template-columns: 1fr !important;
         gap: 0.8rem !important;
@@ -3711,7 +3711,7 @@ color: #4B5563 !important;
 }
 
 /* ==================== 
-   吏???곗튂 蹂댄샇 ?ㅻ쾭?덉씠 (Scroll Trap Prevention)
+   筌왖???怨쀭뒄 癰귣똾????살쒔??됱뵠 (Scroll Trap Prevention)
 ==================== */
 .map-scroll-overlay {
     position: absolute;
@@ -3730,7 +3730,7 @@ color: #4B5563 !important;
 .map-scroll-overlay:hover {
     background-color: rgba(0, 0, 0, 0.4);
 }
-/* ?곗뒪?ы깙 ?붾㈃?먯꽌??蹂댄샇留됱쓣 蹂댁씠吏 ?딆쓬 */
+/* ?怨쀫뮞??源??遺얇늺?癒?퐣??癰귣똾?뉛쭕?깆뱽 癰귣똻?좑쭪? ??놁벉 */
 @media (min-width: 768px) {
     .map-scroll-overlay {
         display: none !important;
@@ -3738,7 +3738,7 @@ color: #4B5563 !important;
 }
 
 /* ==================== 
-   吏??& ?뚯쓽 ?쇰뱶 (Directions & Meeting Feed) 
+   筌왖??& ???벥 ??곕굡 (Directions & Meeting Feed) 
 ==================== */
 .feed-card {
     background-color: var(--card-bg);
@@ -3928,7 +3928,7 @@ color: #4B5563 !important;
     background-color: rgba(99, 102, 241, 0.2);
 }
 
-/* 紐⑤컮??酉고룷??理쒖쟻??*/
+/* 筌뤴뫀而???됯퀬猷??筌ㅼ뮇???*/
 @media (max-width: 768px) {
     .feed-card-footer {
         flex-direction: column;
@@ -3977,7 +3977,7 @@ color: #4B5563 !important;
     }
 }
 
-/* 怨듭쑀 ?쒕씪?대툕 釉뚮젅?쒗겕??諛??곸쐞 踰꾪듉 ?쒕옒洹??쇰뱶諛?*/
+/* ?⑤벊? ??뺤뵬?????됰슢???쀪쾿??獄??怨몄맄 甕곌쑵????뺤삋域???곕굡獄?*/
 .breadcrumb-item {
     transition: color 0.2s ease, text-decoration 0.2s ease;
 }
@@ -4001,10 +4001,10 @@ color: #4B5563 !important;
 }
 
 /* ==================== 
-   異붽? 紐⑤컮??諛섏쓳??UI 怨좊룄??
+   ?곕떽? 筌뤴뫀而??獄쏆꼷???UI ?⑥쥓猷??
 ==================== */
 @media (max-width: 768px) {
-    /* 1. ?쇰퀎 ?곸꽭 ?쇱젙 ?앹뾽李쎌쓣 紐⑤컮?쇱슜 ?ㅼ씠?곕툕 諛뷀? ?쒗듃濡?蹂寃?*/
+    /* 1. ??고??怨멸쉭 ??깆젟 ??밸씜筌≪럩??筌뤴뫀而??깆뒠 ??쇱뵠?怨뺥닏 獄쏅?? ??쀫뱜嚥?癰궰野?*/
     #day-detail-overlay {
         align-items: flex-end !important;
     }
@@ -4025,7 +4025,7 @@ color: #4B5563 !important;
         to { transform: translateY(0); }
     }
     
-    /* 2. ?쒕옒洹??ㅼ??댄봽 ?몃뱾 ?몄텧 */
+    /* 2. ??뺤삋域??????꾨늄 ?紐껊굶 ?紐꾪뀱 */
     .bottom-sheet-handle {
         display: block !important;
         width: 40px !important;
@@ -4036,7 +4036,7 @@ color: #4B5563 !important;
         flex-shrink: 0 !important;
     }
 
-    /* 3. ?곸꽭 ?쇱젙 ?≪뀡 踰꾪듉 紐⑤컮?쇱뿉??50/50 ?뺣젹 */
+    /* 3. ?怨멸쉭 ??깆젟 ??る?甕곌쑵??筌뤴뫀而??깅퓠??50/50 ?類ｌ졊 */
     .day-detail-actions {
         padding: 12px 16px !important;
         gap: 8px !important;
@@ -4048,7 +4048,7 @@ color: #4B5563 !important;
         gap: 4px !important;
     }
 
-    /* 4. 紐⑤떖 ?대? ?곗씠???쇱빱 & 異쒖옣 ?뺣낫 flex ???ㅽ깮 泥섎━ */
+    /* 4. 筌뤴뫀????? ?怨쀬뵠????깅묽 & ?곗뮇???類ｋ궖 flex ????쎄문 筌ｌ꼶??*/
     .modal-date-picker {
         flex-direction: column !important;
         gap: 0.5rem !important;
@@ -4069,7 +4069,7 @@ color: #4B5563 !important;
         box-sizing: border-box !important;
     }
 
-    /* 5. ??쒕떂 吏?쒖궗???쇰뱶 ?꾪꽣諛?& 踰꾪듉 紐⑤컮???뺣젹 */
+    /* 5. ????뺣뻷 筌왖??뽮텢????곕굡 ?袁り숲獄?& 甕곌쑵??筌뤴뫀而???類ｌ졊 */
     .feed-filter-bar {
         flex-direction: column !important;
         align-items: stretch !important;
@@ -4085,7 +4085,7 @@ color: #4B5563 !important;
         justify-content: center !important;
     }
     
-    /* 6. 議곗쭅??而щ읆 ?ㅽ깮 */
+    /* 6. 鈺곌퀣彛???뚎됱쓥 ??쎄문 */
     .org-board {
         grid-template-columns: 1fr !important;
         gap: 1rem !important;
@@ -4097,7 +4097,7 @@ color: #4B5563 !important;
 }
 
 /* ==================== 
-   ?뚮え???ш퀬愿由?(Consumables Inventory)
+   ???걟?????ф꽴???(Consumables Inventory)
    ==================== */
 .consumables-grid {
     display: grid;
@@ -4259,7 +4259,7 @@ color: #4B5563 !important;
 }
 
 /* ==================== 
-   Material Symbols ?뱁룿??濡쒕뵫 理쒖쟻??   ==================== */
+   Material Symbols ?諭곷？??嚥≪뮆逾?筌ㅼ뮇???   ==================== */
 .material-symbols-rounded {
     font-family: 'Material Symbols Rounded' !important;
     display: inline-block;
@@ -4273,7 +4273,7 @@ color: #4B5563 !important;
 }
 
 /* ==================== 
-   罹섎┛???섎떒 ?꾩껜 ?쇱젙 ?쇱튂湲??묎린 踰꾪듉 (Expand Toggle)
+   筌?꼶?????롫뼊 ?袁⑷퍥 ??깆젟 ??깊뒄疫??臾롫┛ 甕곌쑵??(Expand Toggle)
    ==================== */
 .calendar-expand-toggle-btn {
     background: #FFFFFF !important;
@@ -4309,7 +4309,7 @@ color: #4B5563 !important;
     background: #0F172A !important;
 }
 
-/* ?곸떆 ?쇱젙 ?낅뜲?댄듃 ?꾨━誘몄뾼 踰꾪듉 ?ㅽ???*/
+/* ?怨몃뻻 ??깆젟 ??낅쑓??꾨뱜 ?袁ⓥ봺沃섎챷毓?甕곌쑵???????*/
 .calendar-refresh-premium {
     background: #FFFFFF !important;
     color: #10B981 !important;
@@ -4341,14 +4341,14 @@ color: #4B5563 !important;
     animation: spinRotation 0.75s linear infinite !important;
 }
 
-/* ===== 紐⑤컮???ㅻ뒛 ?좎쭨 ?ㅻ쾭?쇱씠??(理쒖슦???곸슜) ===== */
+/* ===== 筌뤴뫀而????삳뮎 ?醫롮? ??살쒔??깆뵠??(筌ㅼ뮇????怨몄뒠) ===== */
 @media (max-width: 768px) {
-    /* ?ㅻ뒛 ? 諛곌꼍 ?꾩쟾 ?쒓굅 - 移⑤쾾 諛⑹? */
+    /* ??삳뮎 ?? 獄쏄퀗瑗??袁⑹읈 ??볤탢 - 燁삘뫀苡?獄쎻뫗? */
     .calendar-week-row .calendar-day.today {
         background-color: transparent !important;
     }
 
-    /* ?좎쭨 諛곗?: width:auto濡??뺤텞, ?묒そ ?κ렐 罹≪뒓 ?좎? */
+    /* ?醫롮? 獄쏄퀣?: width:auto嚥??類ㅽ뀧, ?臾믡걹 ?觀??筌╈돦???醫? */
     .calendar-day.today .calendar-date,
     .mypage-calendar-day.today .calendar-date {
         width: auto !important;
@@ -4360,7 +4360,7 @@ color: #4B5563 !important;
         margin: 0 auto !important;
     }
 
-    /* "?ㅻ뒛" ?띿뒪???④? (醫곸? ?€?먯꽌 ?섎┝ 諛⑹?) */
+    /* "??삳뮎" ??용뮞????? (?リ낯? ???癒?퐣 ??롡뵝 獄쎻뫗?) */
     .calendar-day.today .calendar-date::after,
     .mypage-calendar-day.today .calendar-date::after {
         display: none !important;
@@ -4454,7 +4454,7 @@ color: #4B5563 !important;
 }
 
 /* ==================== 
-   Material Symbols ?뱁룿??濡쒕뵫 理쒖쟻??   ==================== */
+   Material Symbols ?諭곷？??嚥≪뮆逾?筌ㅼ뮇???   ==================== */
 .material-symbols-rounded {
     font-family: 'Material Symbols Rounded' !important;
     display: inline-block;
@@ -4468,7 +4468,7 @@ color: #4B5563 !important;
 }
 
 /* ==================== 
-   罹섎┛???섎떒 ?꾩껜 ?쇱젙 ?쇱튂湲??묎린 踰꾪듉 (Expand Toggle)
+   筌?꼶?????롫뼊 ?袁⑷퍥 ??깆젟 ??깊뒄疫??臾롫┛ 甕곌쑵??(Expand Toggle)
    ==================== */
 .calendar-expand-toggle-btn {
     background: #FFFFFF !important;
@@ -4504,7 +4504,7 @@ color: #4B5563 !important;
     background: #0F172A !important;
 }
 
-/* ?곸떆 ?쇱젙 ?낅뜲?댄듃 ?꾨━誘몄뾼 踰꾪듉 ?ㅽ???*/
+/* ?怨몃뻻 ??깆젟 ??낅쑓??꾨뱜 ?袁ⓥ봺沃섎챷毓?甕곌쑵???????*/
 .calendar-refresh-premium {
     background: #FFFFFF !important;
     color: #10B981 !important;
@@ -4536,14 +4536,14 @@ color: #4B5563 !important;
     animation: spinRotation 0.75s linear infinite !important;
 }
 
-/* ===== 紐⑤컮???ㅻ뒛 ?좎쭨 ?ㅻ쾭?쇱씠??(理쒖슦???곸쏀) ===== */
+/* ===== 筌뤴뫀而????삳뮎 ?醫롮? ??살쒔??깆뵠??(筌ㅼ뮇????怨몄?) ===== */
 @media (max-width: 768px) {
-    /* ?ㅻ뒛 ?€ 諛곌꼍 ?꾩쟾 ?쒓굅 - 移⑤쾾 諛⑹? */
+    /* ??삳뮎 ???獄쏄퀗瑗??袁⑹읈 ??볤탢 - 燁삘뫀苡?獄쎻뫗? */
     .calendar-week-row .calendar-day.today {
         background-color: transparent !important;
     }
 
-    /* ?좎쭨 諛곗?: width:auto濡??뺤텞, ?묒そ ?κ렐 罹≪뒓 ?좎? */
+    /* ?醫롮? 獄쏄퀣?: width:auto嚥??類ㅽ뀧, ?臾믡걹 ?觀??筌╈돦???醫? */
     .calendar-day.today .calendar-date,
     .mypage-calendar-day.today .calendar-date {
         width: auto !important;
@@ -4555,7 +4555,7 @@ color: #4B5563 !important;
         margin: 0 auto !important;
     }
 
-    /* "?ㅻ뒛" ?띿뒪???④? (醫곸? ?€?먯꽌 ?섎┝ 諛⑹?) */
+    /* "??삳뮎" ??용뮞????? (?リ낯? ???癒?퐣 ??롡뵝 獄쎻뫗?) */
     .calendar-day.today .calendar-date::after,
     .mypage-calendar-day.today .calendar-date::after {
         display: none !important;
@@ -4765,7 +4765,7 @@ color: #4B5563 !important;
         display: block !important;
     }
     .vertical-menu::-webkit-scrollbar-thumb {
-        background-color: rgba(0,0,0,0.15) !important;
+        background-color: rgba(0, 0, 0, 0.4) !important;
         border-radius: 3px !important;
     }
     .vertical-menu::-webkit-scrollbar-track {
@@ -4812,7 +4812,7 @@ color: #4B5563 !important;
     }
 }
 
-/* 대표님 자리(컬럼) - 모던 프리미엄 우아한 디자인 (Modern Royal) */
+/* ??쒕떂 ?먮━(而щ읆) - 紐⑤뜕 ?꾨━誘몄뾼 ?곗븘???붿옄??(Modern Royal) */
 .org-col-ceo {
     background: linear-gradient(180deg, #FFFCF5 0%, #FFFFFF 100%) !important;
     border: 1px solid rgba(212, 175, 55, 0.3) !important;
@@ -4823,7 +4823,7 @@ color: #4B5563 !important;
     position: relative;
     z-index: 10;
 }
-/* 은은한 상단 후광 효과 */
+/* ?????곷떒 ?꾧킅 ?④낵 */
 .org-col-ceo::before {
     content: '';
     position: absolute;
@@ -4834,7 +4834,7 @@ color: #4B5563 !important;
     border-top-right-radius: 16px;
 }
 .org-col-ceo h3 {
-    /* 우아한 금속 질감 텍스트 */
+    /* ?곗븘??湲덉냽 吏덇컧 ?띿뒪??*/
     background: linear-gradient(90deg, #9C711A, #D4AF37, #9C711A);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -4845,13 +4845,13 @@ color: #4B5563 !important;
     padding-bottom: 12px !important;
     margin-bottom: 16px !important;
     letter-spacing: 1px;
-    text-shadow: none !important; /* 촌스러운 그림자 제거 */
+    text-shadow: none !important; /* 珥뚯뒪?ъ슫 洹몃┝???쒓굅 */
 }
-/* CEO 컬럼 내부의 카드 디자인 (깔끔하고 고급스럽게) */
+/* CEO 而щ읆 ?대???移대뱶 ?붿옄??(源붾걫?섍퀬 怨좉툒?ㅻ읇寃? */
 .org-col-ceo .org-card {
     background: #FFFFFF !important;
     border: 1px solid rgba(212, 175, 55, 0.4) !important;
-    color: var(--text-main) !important; /* 정상적인 텍스트 색상 */
+    color: var(--text-main) !important; /* ?뺤긽?곸씤 ?띿뒪???됱긽 */
     box-shadow: 0 4px 12px rgba(212, 175, 55, 0.08) !important;
     transition: all 0.2s ease !important;
 }
@@ -4862,7 +4862,7 @@ color: #4B5563 !important;
 }
 .org-col-ceo .org-card img {
     border: 2px solid #D4AF37 !important;
-    padding: 2px; /* 고급스러운 여백 */
+    padding: 2px; /* 怨좉툒?ㅻ윭???щ갚 */
     background: #FFF;
 }
 .org-col-ceo .org-card .delete-btn {
@@ -4871,7 +4871,7 @@ color: #4B5563 !important;
 }
 
 /* ==========================================================================
-   반응형 레이아웃 기본 (Zoom 활용한 스케일링) - 1350px 캔버스 유지
+   諛섏쓳???덉씠?꾩썐 湲곕낯 (Zoom ?쒖슜???ㅼ??쇰쭅) - 1350px 罹붾쾭???좎?
 ========================================================================== */
 @media screen and (max-width: 1350px) {
     .main-layout {
@@ -4881,7 +4881,7 @@ color: #4B5563 !important;
 }
 
 /* ==========================================================================
-   출장 관리 화면 가시성 개선 (2-Column Dashboard Layout)
+   異쒖옣 愿由??붾㈃ 媛?쒖꽦 媛쒖꽑 (2-Column Dashboard Layout)
    ========================================================================== */
 .trip-planner-dashboard {
     display: flex;
@@ -5523,7 +5523,7 @@ color: #4B5563 !important;
 [data-theme="dark"] .task-card {
     box-sizing: border-box; border: 1px solid rgba(255, 255, 255, 0.1); }
 
-/* 구글 캘린더 색상 연동 (Red) */
+/* 援ш? 罹섎┛???됱긽 ?곕룞 (Red) */
 .calendar-task.task-red {
     background-color: #E53935 !important;
     color: white !important;
@@ -5704,7 +5704,7 @@ input, select, textarea, [contenteditable] {
 }
 
 /* ========================================================
-   ������ �߰� �����̾� ��Ÿ�� (���ο� �μ�)
+   조직도 추가 프리미엄 스타일 (새로운 부서)
    ======================================================== */
 .org-col-exec-director { border-top-color: #1E3A8A !important; background: linear-gradient(180deg, rgba(30,58,138,0.03) 0%, rgba(255,255,255,0) 100%) !important; }
 .org-col-director { border-top-color: #3B82F6 !important; background: linear-gradient(180deg, rgba(59,130,246,0.03) 0%, rgba(255,255,255,0) 100%) !important; }
@@ -5715,4 +5715,5 @@ input, select, textarea, [contenteditable] {
 .org-col-director h3 { color: #3B82F6 !important; }
 .org-col-team1 h3 { color: #10B981 !important; }
 .org-col-team2 h3 { color: #8B5CF6 !important; }
+
 
