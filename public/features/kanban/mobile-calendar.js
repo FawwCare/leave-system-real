@@ -92,6 +92,10 @@
                             var color = '#4F46E5';
                             if (barEl) {
                                 color = barEl.style.backgroundColor || color;
+                                var rgbMatch2 = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+                                if (rgbMatch2) {
+                                    color = 'rgb(' + rgbMatch2[1] + ', ' + rgbMatch2[2] + ', ' + rgbMatch2[3] + ')';
+                                }
                             }
 
                             // 제목과 메타 추출
@@ -199,6 +203,12 @@
                     try { bgColor = window.getComputedStyle(bar).backgroundColor; } catch (e) { }
                 }
                 if (!bgColor) bgColor = '#4F46E5';
+                
+                // 모바일 점(dot)은 연한 배경색(rgba) 대신 진한 단색(rgb)으로 표시하도록 변환
+                var rgbMatch = bgColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+                if (rgbMatch) {
+                    bgColor = 'rgb(' + rgbMatch[1] + ', ' + rgbMatch[2] + ', ' + rgbMatch[3] + ')';
+                }
 
                 for (var c = startCol; c <= endCol && c < cells.length; c++) {
                     if (c < 0) continue;
