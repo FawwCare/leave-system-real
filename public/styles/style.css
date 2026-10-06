@@ -2027,6 +2027,8 @@ background: linear-gradient(to bottom,
 
 .modal-content {
     background: var(--card-bg);
+    max-height: 90vh;
+    overflow-y: auto;
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     width: 90%;
