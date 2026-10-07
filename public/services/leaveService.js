@@ -9,7 +9,7 @@ async function applyLeave() {
     if (!(await checkAuth('승인된 사용자만 신청할 수 있습니다.'))) return;
     const isRange = document.getElementById('leaveIsRange').checked;
     const start = document.getElementById('leaveStartDate').value, end = document.getElementById('leaveEndDate').value, typeVal = document.getElementById('leaveType').value;
-    let dates = [], deduction = typeVal.startsWith('0.5') ? 0.5 : 1;
+    let dates = [], deduction = (!isRange && typeVal.startsWith('0.5')) ? 0.5 : 1;
 
     if (!isRange) {
         if (!start) return await customAlert('휴가 날짜를 선택해주세요.');
@@ -53,7 +53,7 @@ function renderLeaveUI() {
     if (!auth.currentUser || !currentUserProfile) return;
     let used = 0; const myLeaves = Object.values(AppStore.getLeaves()).filter(l => l.uid === auth.currentUser.uid);
     myLeaves.forEach(l => { if (l.status === 'approved' || l.status === 'pending' || l.status === 'cancel_requested') used += l.type; });
-    document.getElementById('leave-remain').textContent = ((currentUserProfile.leaveTotal || 15) - used).toFixed(1);
+    document.getElementById('leave-remain').textContent = (window.parseTotalLeave(currentUserProfile) - used).toFixed(1);
     document.getElementById('leave-used').textContent = used.toFixed(1);
     const listEl = document.getElementById('leave-history-list'); listEl.innerHTML = '';
 
@@ -182,7 +182,7 @@ function renderAdminLeaves() {
             Object.values(AppStore.getLeaves()).forEach(l => {
                 if (l.uid === uid && (l.status === 'approved' || l.status === 'pending' || l.status === 'cancel_requested')) used += l.type;
             });
-            const total = (u.leaveTotal !== undefined && u.leaveTotal !== null) ? Number(u.leaveTotal) : ((u.totalLeave !== undefined && u.totalLeave !== null) ? Number(u.totalLeave) : 15);
+            const total = window.parseTotalLeave(u);
             const card = document.createElement('div');
             card.style.cssText = 'background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 1rem; border-radius: 8px; box-shadow: var(--shadow-sm);';
             card.innerHTML = `<div style="font-weight: bold; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;"><span>${u.displayName}</span><button onclick="adminEditTotalLeave('${uid}', ${total})" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; background-color: var(--col-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer;">수정</button></div><div style="font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between;"><span>총 연차:</span> <span>${total}일</span></div><div style="font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between;"><span>사용함:</span> <span style="color: var(--danger);">${used.toFixed(1)}일</span></div><div style="font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between; margin-top: 0.3rem; padding-top: 0.3rem; border-top: 1px dashed var(--border-color); font-weight: bold;"><span>잔여:</span> <span style="color: var(--primary);">${(total - used).toFixed(1)}일</span></div>`;
@@ -454,7 +454,7 @@ function downloadLeaveCSV() {
 
     // 사용자별 기본 연차 세팅
     Object.keys(usersData).forEach(uid => {
-        userStats[uid] = { total: usersData[uid].leaveTotal || 15, used: 0 };
+        userStats[uid] = { total: window.parseTotalLeave(usersData[uid]), used: 0 };
     });
 
     // 사용자별 사용 연차 일괄 계산

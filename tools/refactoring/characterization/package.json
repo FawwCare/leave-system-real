@@ -1,0 +1,1 @@
+{"name":"leave-system-characterization","private":true,"version":"0.0.0","description":"Phase2 isolated characterization tests (not part of the app)","scripts":{"test":"node run-tests.mjs"},"devDependencies":{"playwright-core":"1.49.1"}}

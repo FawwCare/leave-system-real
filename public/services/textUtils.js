@@ -46,3 +46,16 @@ function htmlToPlainText(html) {
     text = text.replace(/\n{3,}/g, '\n\n');
     return text.trim();
 }
+
+window.parseTotalLeave = function(userProfile) {
+    if (!userProfile) return 15;
+    const isValidNumber = (val) => {
+        if (val === null || val === undefined || typeof val === 'boolean' || typeof val === 'object') return false;
+        if (typeof val === 'string' && val.trim() === '') return false;
+        const num = Number(val);
+        return !isNaN(num) && isFinite(num);
+    };
+    if (isValidNumber(userProfile.leaveTotal)) return Number(userProfile.leaveTotal);
+    if (isValidNumber(userProfile.totalLeave)) return Number(userProfile.totalLeave);
+    return 15;
+};

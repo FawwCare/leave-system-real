@@ -2465,7 +2465,7 @@ async function generateAiBriefing() {
         let used = 0;
         const myLeaves = Object.values(AppStore.getLeaves()).filter(l => l.uid === auth.currentUser.uid);
         myLeaves.forEach(l => { if (l.status === 'approved' || l.status === 'pending' || l.status === 'cancel_requested') used += l.type; });
-        const remainLeaves = ((userProfile.leaveTotal || 15) - used).toFixed(1);
+        const remainLeaves = (window.parseTotalLeave(userProfile) - used).toFixed(1);
 
         let comms = [];
         try {
@@ -2510,7 +2510,7 @@ async function generateAiBriefing() {
                         </div>
                         <div style="font-size: 0.88rem; font-weight: 600;">
                             올해 잔여 연차: <span style="color: #10B981;">${remainLeaves}</span>일<br>
-                            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">• 총 ${userProfile.leaveTotal || 15}일 중 ${used.toFixed(1)}일 사용</span>
+                            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">• 총 ${window.parseTotalLeave(userProfile)}일 중 ${used.toFixed(1)}일 사용</span>
                         </div>
                     </div>
                 </div>

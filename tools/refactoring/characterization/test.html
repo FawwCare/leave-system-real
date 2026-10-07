@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Page</title>
+    <script src="/services/privateChatUtils.js"></script>
+    <script src="/services/textUtils.js"></script>
+</head>
+<body>
+    <button id="test-btn" onclick="document.getElementById('test-msg').innerText='Clicked!'">Click me</button>
+    <div id="test-msg">Init</div>
+    <div id="fetch-msg"></div>
+    <script>
+        async function doFetch() {
+            try {
+                const res = await fetch('https://example.com/test');
+                document.getElementById('fetch-msg').innerText = 'Fetch success';
+            } catch (err) {
+                document.getElementById('fetch-msg').innerText = 'Fetch failed';
+            }
+        }
+    </script>
+</body>
+</html>

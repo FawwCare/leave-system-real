@@ -134,7 +134,7 @@ server.listen(0, '127.0.0.1', async () => {
         const textUtilsCode = fs.readFileSync(textUtilsPath, 'utf8');
 
         // Node tests (without DOMParser)
-        const textSandbox = {};
+        const textSandbox = { window: {} };
         vm.runInNewContext(textUtilsCode, textSandbox);
         
         const escapeNode = textSandbox.escapeHTML;
@@ -189,6 +189,13 @@ server.listen(0, '127.0.0.1', async () => {
         
         const sandboxLeave = {
             console,
+            window: { parseTotalLeave: (u) => {
+                if (!u) return 15;
+                const isValid = v => v !== null && v !== undefined && typeof v !== 'boolean' && typeof v !== 'object' && !(typeof v === 'string' && v.trim() === '') && !isNaN(Number(v)) && isFinite(Number(v));
+                if (isValid(u.leaveTotal)) return Number(u.leaveTotal);
+                if (isValid(u.totalLeave)) return Number(u.totalLeave);
+                return 15;
+            } },
             document: {
                 getElementById: (id) => dummyElement,
                 querySelector: () => dummyElement,
@@ -199,6 +206,7 @@ server.listen(0, '127.0.0.1', async () => {
             customPrompt: async () => 'reason',
             customAlert: async (m) => { throw new Error('customAlert called: ' + m); },
             sendNotification: () => {},
+            checkAuth: async () => true,
             ADMIN_UIDS: ['admin1'],
             auth: { currentUser: { uid: 'admin1', email: 'admin@admin.com' } },
             AppStore: {
@@ -237,6 +245,89 @@ server.listen(0, '127.0.0.1', async () => {
         assert.equal(onReq?.event, 'value', 'Subscription should listen to "value"');
         
         dbRequests = []; 
+
+        const elements = {
+            'leaveIsRange': { checked: false, style: {} },
+            'leaveStartDate': { value: '', style: {} },
+            'leaveEndDate': { value: '', style: {} },
+            'leaveType': { value: '', style: {} },
+            'applyLeaveBtn': { disabled: false, textContent: '', style: {} },
+            'leaveRangeTilde': { style: {} }
+        };
+        sandboxLeave.document.getElementById = (id) => elements[id] || dummyElement;
+        sandboxLeave.customAlert = async (msg) => { throw new Error('customAlert: ' + msg); };
+
+        elements['leaveIsRange'].checked = false;
+        elements['leaveStartDate'].value = '2026-10-14';
+        elements['leaveType'].value = '1';
+        await sandboxLeave.applyLeave();
+        
+        assert.equal(dbRequests.length, 1);
+        assert.equal(dbRequests[0].data.type, 1);
+        assert.equal(dbRequests[0].data.subType, '1');
+        
+        dbRequests = [];
+        elements['leaveIsRange'].checked = false;
+        elements['leaveStartDate'].value = '2026-10-14';
+        elements['leaveType'].value = '0.5am';
+        await sandboxLeave.applyLeave();
+        
+        assert.equal(dbRequests[0].data.type, 0.5);
+        assert.equal(dbRequests[0].data.subType, '0.5am');
+        
+        dbRequests = [];
+        elements['leaveIsRange'].checked = false;
+        elements['leaveStartDate'].value = '2026-10-14';
+        elements['leaveType'].value = '0.5pm';
+        await sandboxLeave.applyLeave();
+        
+        assert.equal(dbRequests[0].data.type, 0.5);
+        assert.equal(dbRequests[0].data.subType, '0.5pm');
+        
+        dbRequests = [];
+        elements['leaveIsRange'].checked = true;
+        elements['leaveStartDate'].value = '2026-10-15';
+        elements['leaveEndDate'].value = '2026-10-16';
+        elements['leaveType'].value = '0.5am';
+        await sandboxLeave.applyLeave();
+        
+        assert.equal(dbRequests.length, 2);
+        assert.equal(dbRequests[0].data.type, 1);
+        assert.equal(dbRequests[0].data.subType, '1');
+        assert.equal(dbRequests[1].data.type, 1);
+        assert.equal(dbRequests[1].data.subType, '1');
+
+        dbRequests = [];
+        elements['leaveIsRange'].checked = true;
+        elements['leaveStartDate'].value = '2026-10-17'; // Saturday
+        elements['leaveEndDate'].value = '2026-10-18'; // Sunday
+        elements['leaveType'].value = '1';
+        let alertThrown = false;
+        try {
+            await sandboxLeave.applyLeave();
+        } catch(e) {
+            alertThrown = true;
+            assert.ok(e.message.includes('평일'), 'Should throw alert for weekend only');
+        }
+        assert.ok(alertThrown, 'Should block weekend only request');
+        assert.equal(dbRequests.length, 0);
+
+        dbRequests = [];
+        elements['leaveIsRange'].checked = true;
+        elements['leaveStartDate'].value = '2026-10-16'; // Friday
+        elements['leaveEndDate'].value = '2026-10-15'; // Thursday
+        elements['leaveType'].value = '1';
+        let alertThrown2 = false;
+        try {
+            await sandboxLeave.applyLeave();
+        } catch(e) {
+            alertThrown2 = true;
+            assert.ok(e.message.includes('늦을 수 없습니다'), 'Should throw alert for inverted dates');
+        }
+        assert.ok(alertThrown2, 'Should block inverted dates request');
+        assert.equal(dbRequests.length, 0);
+
+        dbRequests = [];
 
         await sandboxLeave.cancelLeave('L1');
         assert.equal(dbRequests[0].type, 'remove');
@@ -442,6 +533,21 @@ server.listen(0, '127.0.0.1', async () => {
         assert.equal(listItemsCount, 2, 'List should update to 2 items without duplicating');
 
         
+        // Test parseTotalLeave logic
+        await page2.evaluate(() => {
+            const pTL = window.parseTotalLeave;
+            if (pTL({ leaveTotal: 0 }) !== 0) throw new Error('leaveTotal 0 should be 0');
+            if (pTL({ leaveTotal: '0' }) !== 0) throw new Error("leaveTotal '0' should be 0");
+            if (pTL({ leaveTotal: 0, totalLeave: 15 }) !== 0) throw new Error('leaveTotal 0 takes precedence over totalLeave 15');
+            if (pTL({ totalLeave: 12 }) !== 12) throw new Error('totalLeave 12 should be 12');
+            if (pTL({ totalLeave: '12' }) !== 12) throw new Error("totalLeave '12' should be 12");
+            if (pTL({ leaveTotal: null, totalLeave: undefined }) !== 15) throw new Error('null/undefined should default to 15');
+            if (pTL({ leaveTotal: '', totalLeave: '  ' }) !== 15) throw new Error('empty string should default to 15');
+            if (pTL({ leaveTotal: NaN, totalLeave: Infinity }) !== 15) throw new Error('NaN/Infinity should default to 15');
+            if (pTL({ leaveTotal: true, totalLeave: [10] }) !== 15) throw new Error('boolean/array should default to 15');
+        });
+        console.log("parseTotalLeave tests passed");
+
         // 6. Modal validation via direct function call (no DOM button rendered by leaveService)
         await page2.evaluate(() => {
             window.openLeaveDetailModal('L1');

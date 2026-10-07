@@ -1248,6 +1248,7 @@ async function linkGoogleCalendar() {
     // [신규] 버튼을 누를 때마다 무조건 기존 연결을 초기화하고 강제 재인증 (자동 로그인 버그 100% 원천 차단)
     googleAccessToken = null;
     localStorage.removeItem('google_access_token');
+    invalidateGoogleSyncSession(); // 진행 중인 이전 동기화 요청의 추가 쓰기·알림 중단
 
     // 1. Google Calendar API 접근을 위한 'scope' 추가 (출장 데이터 자동 쓰기 동기화를 위해 calendar 권한 획득)
     const calendarProvider = new firebase.auth.GoogleAuthProvider();
@@ -1312,45 +1313,220 @@ async function linkGoogleCalendar() {
 
 
 
+let isSyncingGoogleCalendar = false; // 현재 유효한 세션의 동기화 진행 여부 (호환용 표시값)
+
+// [동기화 세션 관리]
+// - googleSyncEpoch: 로그아웃·연동 해제·재연동 시 증가시켜 이전 요청을 무효화한다.
+// - activeGoogleSync: 현재 잠금을 보유한 동기화 세션. finally에서는 자신이 보유한 잠금만 해제한다.
+// - 세션 무효화는 "이후" 쓰기·알림만 막는다. 이미 서버로 전송된 쓰기는 취소하지 못한다.
+let googleSyncEpoch = 0;
+let googleSyncSeq = 0;
+let activeGoogleSync = null;
+const GOOGLE_SYNC_ABORTED = Object.freeze({ name: 'GoogleSyncAborted', message: '동기화 세션이 변경되어 중단되었습니다.' });
+const GOOGLE_SYNC_WRITE_BATCH_SIZE = 10;
+
+function getCurrentFirebaseUid() {
+    return (typeof auth !== 'undefined' && auth && auth.currentUser) ? auth.currentUser.uid : null;
+}
+
+/**
+ * 로그아웃·계정 전환·연동 해제·재연동 시 호출하여
+ * 진행 중인 이전 동기화 요청의 추가 DB 쓰기와 알림을 중단시킨다.
+ */
+function invalidateGoogleSyncSession() {
+    googleSyncEpoch++;
+    activeGoogleSync = null;
+    isSyncingGoogleCalendar = false;
+}
+
+function isGoogleSyncSessionValid(session) {
+    return !!session
+        && !!googleAccessToken
+        && session.epoch === googleSyncEpoch
+        && session.token === googleAccessToken
+        && session.uid === getCurrentFirebaseUid();
+}
+
+function assertGoogleSyncSession(session) {
+    if (!isGoogleSyncSessionValid(session)) throw GOOGLE_SYNC_ABORTED;
+}
+
+function isValidFirebaseKey(key) {
+    return typeof key === 'string' && key.length > 0 && key.length <= 768 && !/[.#$\[\]\/\u0000-\u001F\u007F]/.test(key);
+}
+
+/**
+ * calendarList의 모든 페이지를 순서대로 확인하여 'FAWW' 캘린더를 찾는다.
+ * - 찾으면 즉시 반환하고, 모든 페이지에 없을 때만 null을 반환한다.
+ * - 중간 페이지 조회 실패 시 예외를 던진다. (호출 측에서 캘린더 생성·DB 저장을 하지 않음)
+ * - checkpoint: 각 비동기 응답 직후 호출되는 세션 확인 콜백 (선택)
+ */
+async function findFawwCalendarInList(token, checkpoint) {
+    const seenTokens = new Set();
+    let pageToken = null;
+    do {
+        const params = new URLSearchParams();
+        if (pageToken) params.set('pageToken', pageToken);
+        const qs = params.toString();
+        const url = `https://www.googleapis.com/calendar/v3/users/me/calendarList${qs ? `?${qs}` : ''}`;
+
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (checkpoint) checkpoint();
+        if (res.status === 401) {
+            throw { status: 401, message: 'Google 인증 세션이 만료되었습니다. 다시 연동해주세요.' };
+        }
+        if (!res.ok) {
+            throw new Error(`캘린더 목록을 가져오지 못했습니다. (HTTP ${res.status}, 페이지 토큰: ${pageToken || '없음'})`);
+        }
+        const data = await res.json();
+        if (checkpoint) checkpoint();
+
+        const items = (data && Array.isArray(data.items)) ? data.items : [];
+        const found = items.find(cal => cal && typeof cal.summary === 'string' && cal.summary.toUpperCase() === 'FAWW');
+        if (found) return found;
+
+        const next = (data && data.nextPageToken) ? String(data.nextPageToken) : null;
+        if (next && seenTokens.has(next)) {
+            throw new Error('캘린더 목록 페이지 토큰이 반복되어 조회를 중단합니다.');
+        }
+        if (next) seenTokens.add(next);
+        pageToken = next;
+    } while (pageToken);
+    return null;
+}
+
+/**
+ * Google 일정 1건을 external_events의 Google 관리 필드로 변환한다. (순수 함수)
+ */
+function mapGoogleEventToExternalFields(item) {
+    if (!item || !item.start) return null;
+    let start = null;
+    let end = null;
+    let timeStr = "";
+
+    if (item.start.dateTime) {
+        const dt = new Date(item.start.dateTime);
+        start = item.start.dateTime.split('T')[0];
+        timeStr = ` [${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}]`;
+        if (item.end && item.end.dateTime) {
+            end = item.end.dateTime.split('T')[0];
+        }
+    } else if (item.start.date) {
+        start = item.start.date;
+        if (item.end && item.end.date) {
+            const dtEnd = new Date(item.end.date);
+            dtEnd.setDate(dtEnd.getDate() - 1);
+            const endYear = dtEnd.getFullYear();
+            const endMonth = String(dtEnd.getMonth() + 1).padStart(2, '0');
+            const endDateVal = String(dtEnd.getDate()).padStart(2, '0');
+            end = `${endYear}-${endMonth}-${endDateVal}`;
+        }
+    }
+
+    if (!start) return null;
+    if (!end) end = start;
+    if (new Date(end).getTime() < new Date(start).getTime()) {
+        end = start;
+    }
+
+    return {
+        id: item.id,
+        title: `${timeStr} ${item.summary || '(제목 없음)'}`,
+        description: htmlToPlainText(item.description || ''),
+        location: item.location || '',
+        startDate: start,
+        dueDate: end
+    };
+}
+
+/**
+ * external_events/{id} 트랜잭션 콜백에서 사용하는 순수 함수.
+ * - 알림·외부 API 호출 등 부수 효과 없음 (Firebase가 재시도 시 여러 번 호출할 수 있음)
+ * - 현재 DB 값이 없을 때만 앱 관리 기본값(담당자·상태 등)을 생성한다.
+ * - 이미 존재하면 Google 관리 필드만 갱신하고 앱 관리 필드는 보존한다.
+ * - 세션이 무효화되었으면 undefined를 반환하여 트랜잭션을 중단한다.
+ */
+function buildExternalEventTransactionValue(currentData, data, session) {
+    if (session && !isGoogleSyncSessionValid(session)) return undefined;
+
+    const googleFields = {
+        title: data.title,
+        description: data.description,
+        location: data.location,
+        dueDate: data.dueDate,
+        startDate: data.startDate
+    };
+
+    if (currentData === null || currentData === undefined || typeof currentData !== 'object') {
+        return {
+            id: data.id,
+            title: googleFields.title,
+            description: googleFields.description,
+            location: googleFields.location,
+            dueDate: googleFields.dueDate,
+            startDate: googleFields.startDate,
+            isExternal: true,
+            status: 'todo',
+            priority: 'low',
+            assignee: 'FAWW 연동',
+            type: 'task'
+        };
+    }
+    return Object.assign({}, currentData, googleFields);
+}
+
 /**
  * Google Calendar API로부터 이름이 'FAWW'인 캘린더의 일정만 가져오는 함수
+ *
+ * 처리 순서
+ * 1) 시작 시 Firebase UID · Google 토큰 · 세션 epoch를 캡처한다.
+ * 2) calendarList 전 페이지 확인 → (없을 때만) 캘린더 생성 → 일정 전 페이지 수집 · 검증
+ * 3) 모든 수집 · 검증이 끝난 뒤에만 일정별 transaction으로 DB에 반영한다.
+ * 4) 비동기 응답 직후 · 캘린더 생성 전 · DB 쓰기 직전마다 세션 유효성을 확인한다.
  */
 async function fetchGoogleCalendarEvents() {
-    if (!googleAccessToken) return;
+    const session = {
+        id: ++googleSyncSeq,
+        token: googleAccessToken,
+        uid: getCurrentFirebaseUid(),
+        epoch: googleSyncEpoch
+    };
+    if (!session.token) return;
+
+    // 현재 유효한 세션의 동기화가 진행 중일 때만 중복 실행을 막는다.
+    // 무효화된 이전 세션의 잠금은 새 세션이 넘겨받는다.
+    if (activeGoogleSync && isGoogleSyncSessionValid(activeGoogleSync)) {
+        console.log('이미 동기화가 진행 중입니다.');
+        return;
+    }
+    activeGoogleSync = session;
+    isSyncingGoogleCalendar = true;
+    const checkpoint = () => assertGoogleSyncSession(session);
 
     try {
         const now = new Date();
-        // 이전 3달 전의 1일부터 이후 6달 뒤(7개월 차의 0일)의 말일까지 조회
         const timeMin = new Date(now.getFullYear(), now.getMonth() - 3, 1).toISOString();
         const timeMax = new Date(now.getFullYear(), now.getMonth() + 7, 0).toISOString();
 
-        // 1. 사용자의 모든 캘린더 리스트 가져오기
-        const listResponse = await fetch(`https://www.googleapis.com/calendar/v3/users/me/calendarList`, {
-            headers: { 'Authorization': `Bearer ${googleAccessToken}` }
-        });
-        
-        if (listResponse.status === 401) {
-            throw { status: 401, message: 'Google 인증 세션이 만료되었습니다. 다시 연동해주세요.' };
-        }
-        if (!listResponse.ok) throw new Error('캘린더 목록을 가져오지 못했습니다.');
-        
-        const calendarListData = await listResponse.json();
+        // 1. FAWW 캘린더 찾기 (calendarList 전 페이지 확인)
+        let targetCalendar = await findFawwCalendarInList(session.token, checkpoint);
 
-        // 2. 이름이 'FAWW'인 캘린더 찾기 (대소문자 구분 없이)
-        let targetCalendar = calendarListData.items.find(cal => cal.summary.toUpperCase() === 'FAWW');
-
+        // 모든 페이지에 FAWW 캘린더가 없을 때만 생성
         if (!targetCalendar) {
+            checkpoint(); // 캘린더 생성 직전 세션 확인
+
             console.log('구글 계정에 "FAWW" 캘린더가 존재하지 않아 생성을 시도합니다.');
             showToast('"FAWW" 캘린더 생성 중...', 'info');
-            
+
             const createResponse = await fetch(`https://www.googleapis.com/calendar/v3/calendars`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${googleAccessToken}`,
+                    'Authorization': `Bearer ${session.token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ summary: 'FAWW' })
             });
+            checkpoint();
 
             if (createResponse.status === 401) {
                 throw { status: 401, message: 'Google 인증 세션이 만료되었습니다. 다시 연동해주세요.' };
@@ -1361,109 +1537,144 @@ async function fetchGoogleCalendarEvents() {
             }
 
             targetCalendar = await createResponse.json();
+            checkpoint();
             showToast('"FAWW" 캘린더가 자동으로 생성되었습니다!', 'success');
         }
 
-        const allMappedEvents = {};
-
-        // 3. 'FAWW' 캘린더에서만 일정 가져오기
-        const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendar.id)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`, {
-            headers: { 'Authorization': `Bearer ${googleAccessToken}` }
-        });
-
-        if (response.status === 401) {
-            throw { status: 401, message: 'Google 인증 세션이 만료되었습니다. 다시 연동해주세요.' };
+        if (!targetCalendar || !targetCalendar.id) {
+            throw new Error('FAWW 캘린더 ID를 확인하지 못했습니다.');
         }
-        if (!response.ok) throw new Error('일정 목록을 가져오지 못했습니다.');
 
-        const data = await response.json();
-        if (data.items) {
-            data.items.forEach(item => {
-                if (item.status === 'cancelled') return; // 구글 캘린더에서 삭제된 일정 예외 처리
+        // 2. 'FAWW' 캘린더 일정 전 페이지 수집 (이 단계에서는 DB에 쓰지 않음)
+        const items = [];
+        const seenEventTokens = new Set();
+        let evtPageToken = null;
+        do {
+            const params = new URLSearchParams({
+                timeMin,
+                timeMax,
+                singleEvents: 'true',
+                orderBy: 'startTime'
+            });
+            if (evtPageToken) params.set('pageToken', evtPageToken);
+            const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendar.id)}/events?${params.toString()}`;
 
-                // 시작일 및 시간 정보 추출
-                let start = null;
-                let end = null;
-                let timeStr = "";
+            const response = await fetch(url, { headers: { 'Authorization': `Bearer ${session.token}` } });
+            checkpoint();
 
-                if (item.start.dateTime) {
-                    // 시간 정보가 있는 경우 (예: 2026-05-16T14:30:00Z)
-                    const dt = new Date(item.start.dateTime);
-                    start = item.start.dateTime.split('T')[0];
-                    timeStr = ` [${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}]`;
-                    if (item.end && item.end.dateTime) {
-                        end = item.end.dateTime.split('T')[0];
-                    }
-                } else if (item.start.date) {
-                    // 종일 일정인 경우
-                    start = item.start.date;
-                    if (item.end && item.end.date) {
-                        // 구글 캘린더 종일 일정의 종료일(item.end.date)은 Exclusive(미만)이므로 하루를 빼줘야 Inclusive(이하)가 됨.
-                        const dtEnd = new Date(item.end.date);
-                        dtEnd.setDate(dtEnd.getDate() - 1);
-                        const endYear = dtEnd.getFullYear();
-                        const endMonth = String(dtEnd.getMonth() + 1).padStart(2, '0');
-                        const endDateVal = String(dtEnd.getDate()).padStart(2, '0');
-                        end = `${endYear}-${endMonth}-${endDateVal}`;
-                    }
+            if (response.status === 401) {
+                throw { status: 401, message: 'Google 인증 세션이 만료되었습니다. 다시 연동해주세요.' };
+            }
+            if (!response.ok) throw new Error(`일정 목록 가져오기 실패 (HTTP ${response.status}, 페이지 토큰: ${evtPageToken || '없음'})`);
+
+            const data = await response.json();
+            checkpoint();
+
+            if (data && Array.isArray(data.items)) items.push(...data.items);
+            const next = (data && data.nextPageToken) ? String(data.nextPageToken) : null;
+            if (next && seenEventTokens.has(next)) {
+                throw new Error('일정 목록 페이지 토큰이 반복되어 조회를 중단합니다.');
+            }
+            if (next) seenEventTokens.add(next);
+            evtPageToken = next;
+        } while (evtPageToken);
+
+        // 3. 변환 · 검증 (순수 데이터 처리, DB 쓰기 없음)
+        const byId = new Map();
+        const invalidIds = [];
+        items
+            .filter(item => item && item.status !== 'cancelled')
+            .forEach(item => {
+                const mapped = mapGoogleEventToExternalFields(item);
+                if (!mapped) return;
+                if (!isValidFirebaseKey(mapped.id)) {
+                    invalidIds.push(String(mapped.id));
+                    return;
                 }
+                byId.set(mapped.id, mapped); // 중복 ID는 마지막 값 사용
+            });
+        if (invalidIds.length > 0) {
+            throw new Error(`저장할 수 없는 일정 ID ${invalidIds.length}건이 있어 DB 반영을 시작하지 않았습니다.`);
+        }
+        const processedItems = Array.from(byId.values());
 
-                if (!start) return;
-                if (!end) end = start;
+        if (processedItems.length === 0) {
+            console.log('--- FAWW Google Events Mapped but no updates needed ---');
+            return;
+        }
 
-                // 종료일이 시작일보다 빠른 경우 보정
-                if (new Date(end).getTime() < new Date(start).getTime()) {
-                    end = start;
+        // 4. 일정별 transaction으로 DB 반영 (모든 수집 · 검증 완료 후 시작)
+        checkpoint(); // DB 쓰기 직전 세션 확인
+
+        let committedCount = 0;
+        let abortedDuringWrite = false;
+        const failures = [];
+
+        for (let i = 0; i < processedItems.length; i += GOOGLE_SYNC_WRITE_BATCH_SIZE) {
+            if (!isGoogleSyncSessionValid(session)) { // 각 배치 쓰기 직전 세션 확인
+                abortedDuringWrite = true;
+                break;
+            }
+            const batch = processedItems.slice(i, i + GOOGLE_SYNC_WRITE_BATCH_SIZE);
+            const results = await Promise.allSettled(batch.map(data =>
+                db.ref(`external_events/${data.id}`).transaction(
+                    currentData => buildExternalEventTransactionValue(currentData, data, session),
+                    undefined,
+                    false // 서버 확정 전 기본값이 로컬 화면에 잠시 보이지 않도록 함
+                )
+            ));
+
+            results.forEach((r, idx) => {
+                if (r.status === 'rejected') {
+                    failures.push({ id: batch[idx].id, reason: (r.reason && r.reason.message) || String(r.reason) });
+                } else if (r.value && r.value.committed) {
+                    committedCount++;
+                } else if (!isGoogleSyncSessionValid(session)) {
+                    abortedDuringWrite = true;
+                } else {
+                    failures.push({ id: batch[idx].id, reason: 'transaction not committed' });
                 }
-
-                allMappedEvents[item.id] = {
-                    id: item.id,
-                    title: `${timeStr} ${item.summary || '(제목 없음)'}`,
-                    description: htmlToPlainText(item.description || ''),
-                    location: item.location || '',
-                    dueDate: end,
-                    startDate: start,
-                    isExternal: true,
-                    status: 'todo',
-                    priority: 'low',
-                    assignee: 'FAWW 연동'
-                };
             });
         }
 
-        // 4. AppStore에 저장 및 '공용 DB(Firebase)'에 저장하여 팀 전체 공유
-        const eventCount = Object.keys(allMappedEvents).length;
-        AppStore.setExternalEvents(allMappedEvents);
-
-        try {
-            await db.ref('external_events').set(allMappedEvents);
-            showToast(`✅ 구글 일정 ${eventCount}건이 팀 전체에 공유되었습니다.`, 'success');
-        } catch (dbError) {
-            console.error('Failed to share external events to DB:', dbError);
-            showToast(`⚠️ 일정 공유 실패: ${dbError.message}`, 'error');
+        if (abortedDuringWrite || !isGoogleSyncSessionValid(session)) {
+            console.log(`세션이 변경되어 DB 반영을 중단했습니다. (이미 서버에 반영된 ${committedCount}건은 취소되지 않음)`);
+            return;
         }
 
-        console.log('--- FAWW Google Events Mapped and Stored ---', allMappedEvents);
-
-        // 연도 완료 후, 만약 일정 달력 탭을 보고 있다면 즉시 화면 갱신
-        const calendarTab = document.getElementById('tab-calendar');
-        if (calendarTab && calendarTab.style.display !== 'none') {
-            if (typeof renderTabCalendar === 'function') renderTabCalendar();
+        if (failures.length > 0) {
+            console.error('external_events 저장 실패 목록:', failures);
+            throw new Error(`일정 DB 저장 실패: 전체 ${processedItems.length}건 중 ${failures.length}건 실패 (${committedCount}건은 저장됨). 다음 동기화 때 다시 시도합니다.`);
         }
+
+        showToast(`✅ 구글 일정 ${processedItems.length}건이 성공적으로 연동되었습니다.`, 'success');
 
     } catch (error) {
+        // 세션이 바뀐 이전 요청: 토큰 삭제 · 알림 · 추가 쓰기 없이 종료
+        if (error === GOOGLE_SYNC_ABORTED || !isGoogleSyncSessionValid(session)) {
+            console.log('세션이 변경되어 이전 Google 동기화 요청을 중단했습니다.');
+            return;
+        }
+
         console.error('🔥 Google Events Fetch Error:', error);
-        const errorMsg = error.message || error.toString() || '';
-        const is401 = error.status === 401 || errorMsg.includes('401') || errorMsg.includes('unauthorized') || errorMsg.includes('credentials');
-        
+        const errorMsg = (error && (error.message || error.toString())) || '';
+        const is401 = (error && error.status === 401) || errorMsg.includes('401') || errorMsg.includes('unauthorized') || errorMsg.includes('credentials');
+
         if (is401) {
+            // 이 시점의 세션은 유효하므로 googleAccessToken === session.token (현재 세션의 토큰만 삭제)
             localStorage.removeItem('google_access_token');
             googleAccessToken = null;
+            invalidateGoogleSyncSession();
             updateGoogleSyncUI();
-            // 참고: 토큰이 만료되어도 Firebase Database(external_events)에 저장된 구글 캘린더 일정은 영구 보존되어 전 직원이 계속 볼 수 있습니다.
             console.log('Google token expired, but previously synchronized external_events remain preserved in DB.');
         } else {
             showToast(`구글 동기화 오류: ${errorMsg}`, 'error');
+        }
+    } finally {
+        // 자신이 보유한 잠금만 해제 (다른 세션의 실행 상태는 변경하지 않음)
+        if (activeGoogleSync === session) {
+            activeGoogleSync = null;
+            isSyncingGoogleCalendar = false;
         }
     }
 }
@@ -1755,18 +1966,18 @@ function triggerSystemNotification(noti) {
 // 지메일-구글 캘린더 연동 및 출장-업무 일정 충돌 감지 (아이디어 1 & 4)
 // ----------------------------------------------------
 
-async function getGoogleFawwCalendarId() {
-    if (!googleAccessToken) return null;
-    const response = await fetch(`https://www.googleapis.com/calendar/v3/users/me/calendarList`, {
-        headers: { 'Authorization': `Bearer ${googleAccessToken}` }
-    });
-    if (response.status === 401) {
-        throw { status: 401, message: 'Google 인증 세션이 만료되었습니다.' };
+async function getGoogleFawwCalendarId(token) {
+    const requestToken = token || googleAccessToken;
+    if (!requestToken) return null;
+    try {
+        // calendarList 전 페이지 확인 (nextPageToken 처리)
+        const cal = await findFawwCalendarInList(requestToken);
+        return cal ? cal.id : null;
+    } catch (e) {
+        if (e && e.status === 401) throw e;
+        console.warn('[Sync] calendarList 조회 실패:', e);
+        return null;
     }
-    if (!response.ok) return null;
-    const data = await response.json();
-    const cal = data.items.find(c => c.summary.toUpperCase() === 'FAWW');
-    return cal ? cal.id : null;
 }
 
 async function syncTripToGoogleCalendar(trip) {
@@ -1776,8 +1987,11 @@ async function syncTripToGoogleCalendar(trip) {
     }
     if (!trip || !trip.id || !trip.name || !trip.date) return;
 
+    // 요청 시작 시점의 토큰을 고정해 사용 (도중에 재연동되어도 이전 요청의 401이 새 토큰을 지우지 않도록)
+    const requestToken = googleAccessToken;
+
     try {
-        const calendarId = await getGoogleFawwCalendarId();
+        const calendarId = await getGoogleFawwCalendarId(requestToken);
         if (!calendarId) {
             console.warn('[Sync] "FAWW" calendar not found in user\'s account.');
             return;
@@ -1808,7 +2022,7 @@ async function syncTripToGoogleCalendar(trip) {
         // Check if event already exists using q search
         const queryUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?q=${encodeURIComponent(`[FaWW 출장연동 ID: ${trip.id}]`)}`;
         const searchResponse = await fetch(queryUrl, {
-            headers: { 'Authorization': `Bearer ${googleAccessToken}` }
+            headers: { 'Authorization': `Bearer ${requestToken}` }
         });
 
         if (searchResponse.status === 401) {
@@ -1828,7 +2042,7 @@ async function syncTripToGoogleCalendar(trip) {
             response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${existingEvent.id}`, {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `Bearer ${googleAccessToken}`,
+                    'Authorization': `Bearer ${requestToken}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(eventBody)
@@ -1839,7 +2053,7 @@ async function syncTripToGoogleCalendar(trip) {
             response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${googleAccessToken}`,
+                    'Authorization': `Bearer ${requestToken}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(eventBody)
@@ -1866,9 +2080,13 @@ async function syncTripToGoogleCalendar(trip) {
         const errorMsg = e.message || e.toString() || '';
         const is401 = e.status === 401 || errorMsg.includes('401') || errorMsg.includes('unauthorized') || errorMsg.includes('credentials');
         
-        if (is401) {
+        if (is401 && googleAccessToken !== requestToken) {
+            // 이전 토큰으로 보낸 요청의 401: 현재(새) 토큰은 유지
+            console.log('[Sync] 이전 Google 토큰의 401 응답이므로 현재 연동 상태를 유지합니다.');
+        } else if (is401) {
             localStorage.removeItem('google_access_token');
             googleAccessToken = null;
+            invalidateGoogleSyncSession();
             updateGoogleSyncUI();
             showToast('Google 연동 세션이 만료되었습니다. 다시 연동해 주세요.', 'warning');
         } else {

@@ -95,6 +95,7 @@ async function logout() {
         // 로그아웃 시에만 명시적으로 구글 연동 데이터 파기 (로컬 토큰만)
         localStorage.removeItem('google_access_token');
         if (typeof googleAccessToken !== 'undefined') googleAccessToken = null;
+        if (typeof invalidateGoogleSyncSession === 'function') invalidateGoogleSyncSession(); // 진행 중인 이전 동기화 중단
         if (typeof updateGoogleSyncUI === 'function') updateGoogleSyncUI();
         
         // 주의: 공용 DB의 일정은 삭제하지 않음 (팀 전체 공유 유지)
