@@ -22,7 +22,9 @@ if (!hostPort) {
 const [host, port] = hostPort.split(':');
 
 const ADMIN = 'jaGugunGReXytCgbqYwQUybxyJL2';
-const SECOND_ADMIN_IN_CONFIG = 'hiPMcfj1OvWuq6PjedfPFvOLxlp2'; // config.js ADMIN_UIDS 2번째 (규칙에는 없음)
+const SECOND_ADMIN_IN_CONFIG = 'hiPMcfj1OvWuq6PjedfPFvOLxlp2'; // config.js ADMIN_UIDS 2번째
+const EMAIL_ADMIN_UID = 'uEmailAdmin'; // contact@faww.co.kr 로 로그인한 계정 (UID 는 임의)
+const ADMIN_EMAIL = 'contact@faww.co.kr';
 const APPROVED = 'uApproved';
 const PENDING = 'uPending';
 const LEGACY = 'uLegacy';   // totalLeave 필드를 가진 기존 사용자
@@ -50,6 +52,7 @@ async function seed() {
                 [LEGACY]: { displayName: 'L', approved: true, leaveTotal: 15, totalLeave: 20 },
                 [OTHER]: { displayName: 'O', approved: true, leaveTotal: 15 },
                 [SECOND_ADMIN_IN_CONFIG]: { displayName: 'Admin2', approved: true, leaveTotal: 15 },
+                [EMAIL_ADMIN_UID]: { displayName: 'Company', approved: true, leaveTotal: 15 },
             },
             ...Object.fromEntries(BUSINESS_PATHS.map(p => [p, { seed1: { title: 'fixture', status: 'todo' } }])),
         });
@@ -134,12 +137,17 @@ await check('[관리자] 연차 총량 변경 허용 (leaveService update 형태
 await check('[관리자] 타인 부서 변경 허용', () => assertSucceeds(update(ref(as(ADMIN), `users/${OTHER}`), { department: 'director' })));
 await check('[관리자] 사용자 삭제 허용', () => assertSucceeds(remove(ref(as(ADMIN), `users/${OTHER}`))));
 
-// 9) 관찰 항목 (통과/실패로 집계하지 않음): config.js 2번째 관리자 UID 의 승인 권한
-await seed();
-let secondAdminObservation;
-try { await update(ref(as(SECOND_ADMIN_IN_CONFIG), `users/${PENDING}`), { approved: true }); secondAdminObservation = '허용됨'; }
-catch (e) { secondAdminObservation = '거부됨 (' + (e.code || e.message) + ')'; }
-console.log(`OBSERVE config.js ADMIN_UIDS[1] (${SECOND_ADMIN_IN_CONFIG}) 의 사용자 승인 시도: ${secondAdminObservation}`);
+// 9) 관리자 3명 정책 (config.js ADMIN_UIDS 2개 + ADMIN_EMAILS 1개와 동일)
+const verified = { email: ADMIN_EMAIL, email_verified: true };
+await check('[관리자2 UID] 승인 허용', () => assertSucceeds(update(ref(as(SECOND_ADMIN_IN_CONFIG), `users/${PENDING}`), { approved: true })));
+await check('[관리자2 UID] 연차 총량 변경 허용', () => assertSucceeds(update(ref(as(SECOND_ADMIN_IN_CONFIG), `users/${APPROVED}`), { leaveTotal: 20, totalLeave: 20 })));
+await check('[관리자 이메일·인증됨] 승인 허용', () => assertSucceeds(update(ref(as(EMAIL_ADMIN_UID, verified), `users/${PENDING}`), { approved: true })));
+await check('[관리자 이메일·인증됨] 승인 해제 허용', () => assertSucceeds(update(ref(as(EMAIL_ADMIN_UID, verified), `users/${APPROVED}`), { approved: false })));
+await check('[관리자 이메일·인증됨] 신규 본인 프로필 approved:true 등록 허용', () => assertSucceeds(set(ref(as('uEmailAdminNew', verified), 'users/uEmailAdminNew'), { ...newProfile, approved: true })));
+await check('[관리자 이메일·미인증] 승인 거부', () => assertFails(update(ref(as('uFake', { email: ADMIN_EMAIL, email_verified: false }), `users/${PENDING}`), { approved: true })));
+await check('[관리자 이메일·미인증] 본인 프로필 approved:true 등록 거부', () => assertFails(set(ref(as('uFake2', { email: ADMIN_EMAIL, email_verified: false }), 'users/uFake2'), { ...newProfile, approved: true })));
+await check('[다른 인증 이메일] 승인 거부', () => assertFails(update(ref(as('uOtherMail', { email: 'someone@faww.co.kr', email_verified: true }), `users/${PENDING}`), { approved: true })));
+await check('[대소문자 다른 관리자 이메일] 승인 거부 (정확히 일치만 허용)', () => assertFails(update(ref(as('uCase', { email: 'Contact@faww.co.kr', email_verified: true }), `users/${PENDING}`), { approved: true })));
 
 await testEnv.cleanup();
 const failed = results.filter(r => !r.ok);

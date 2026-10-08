@@ -79,7 +79,7 @@ global.isListenerInitialized = false;
 
 // 3. Load actual config.js
 const configCode = fs.readFileSync('public/js/config.js', 'utf8');
-eval(configCode.replace('const AppStore =', 'global.AppStore ='));
+eval(configCode.replace('const AppStore =', 'global.AppStore =').replace('const ADMIN_UIDS =', 'global.ADMIN_UIDS =').replace('const ADMIN_EMAILS =', 'global.ADMIN_EMAILS ='));
 
 // 4. Load subscription.js
 const subCode = fs.readFileSync('public/js/subscription.js', 'utf8');

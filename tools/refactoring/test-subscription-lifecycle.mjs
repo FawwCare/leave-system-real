@@ -129,9 +129,9 @@ const authApi = {
     setPersistence: () => Promise.resolve(), getRedirectResult: () => Promise.resolve({}), signInWithPopup: () => Promise.resolve(),
     signInWithRedirect: () => Promise.resolve(),
 };
-async function signIn(uid) {
+async function signIn(uid, email) {
     if (auth.currentUser) await authApi.signOut();
-    auth.currentUser = { uid, email: uid + '@example.com', displayName: uid, photoURL: '' };
+    auth.currentUser = { uid, email: email || uid + '@example.com', emailVerified: true, displayName: uid, photoURL: '' };
     propagate(null);
     auth._cbs.forEach(cb => cb(auth.currentUser));
     await settle();
@@ -323,6 +323,15 @@ await db.ref(`users/${ADMIN}`).update({ displayName: 'Admin3' }); await settle()
 check('[관리자 프로필 2회 수정] users 전체 리스너 2건(관리자목록+조직도) 초과 없음', active().filter(r => r.query.path === 'users').length <= 2,
     String(active().filter(r => r.query.path === 'users').length));
 
+// 관리자 3명: 관리자 탭 표시 (config.js ADMIN_UIDS 2개 + ADMIN_EMAILS 1개)
+const adminTab = () => document.getElementById('tab-btn-admin').style.display;
+await db.ref('users/hiPMcfj1OvWuq6PjedfPFvOLxlp2').set({ displayName: 'Admin2', approved: true, leaveTotal: 15 });
+await db.ref('users/uCompany').set({ displayName: 'Company', approved: true, leaveTotal: 15 });
+for (const [uid, email, want] of [[ADMIN, null, 'flex'], ['hiPMcfj1OvWuq6PjedfPFvOLxlp2', null, 'flex'], ['uCompany', 'contact@faww.co.kr', 'flex'], ['uA', null, 'none']]) {
+    await signIn(uid, email);
+    check(`[관리자 탭] ${email || uid} → ${want}`, adminTab() === want, adminTab());
+}
+await signIn(ADMIN);
 // 배차 리스너: 쿠팡 모드 유지
 let briefingMode = null;
 run('window.showBriefingTrips = function(m){ globalThis.__bm = m; }; showBriefingTrips = window.showBriefingTrips;');

@@ -24,4 +24,14 @@ const nested = Object.keys(rules).filter(k => k !== 'users' && Object.keys(rules
 ck('users 외 경로에 하위 규칙으로 권한을 넓히는 항목 없음', nested.length === 0, nested.join(','));
 ck("users .read = 'auth != null' (1차 범위의 의도된 예외로 기록)", rules.users['.read'] === 'auth != null');
 ck('users 노드 자체에 .write 없음 (부모 덮어쓰기 차단)', !('.write' in rules.users));
+// config.js 의 관리자 명단과 규칙의 관리자 조건이 어긋나지 않는지 (명단 불일치 재발 방지)
+const cfg = fs.readFileSync(path.join(ROOT, 'public/js/config.js'), 'utf8');
+const uids = JSON.parse(cfg.match(/const ADMIN_UIDS\s*=\s*(\[[^\]]*\])/)[1]);
+const emails = JSON.parse(cfg.match(/const ADMIN_EMAILS\s*=\s*(\[[^\]]*\])/)[1]);
+const rawRules = fs.readFileSync(path.join(ROOT, 'database.rules.json'), 'utf8');
+const missingAdmins = [...uids.map(u => `auth.uid === '${u}'`), ...emails.map(e => `auth.token.email === '${e}' && auth.token.email_verified === true`)].filter(x => !rawRules.includes(x));
+ck(`config.js 관리자 ${uids.length + emails.length}명(UID ${uids.length}, 이메일 ${emails.length})이 규칙 관리자 조건에 모두 포함`, missingAdmins.length === 0, missingAdmins.join(' | '));
+const adminExprCount = rawRules.split(uids[0]).length - 1;
+const fullExpr = rawRules.match(/\(auth\.uid === '[^)]*email_verified === true\)\)/g) || [];
+ck(`관리자 판정 ${adminExprCount}곳이 모두 동일한 식 사용`, fullExpr.length === adminExprCount && new Set(fullExpr).size === 1, `${fullExpr.length}/${adminExprCount}, 종류 ${new Set(fullExpr).size}`);
 console.log(`\n결과: ${res.filter(Boolean).length}/${res.length} 통과`); process.exit(res.every(Boolean) ? 0 : 1);

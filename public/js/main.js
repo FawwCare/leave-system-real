@@ -226,7 +226,8 @@ initDashboardSortable();
             
             // 신규 사용자 정보 자동 등록 (DB에 프로필이 없는 경우)
             if (!profile) {
-                const isSystemAdmin = (user.uid === 'jaGugunGReXytCgbqYwQUybxyJL2');
+                // 규칙과 동일 기준: 관리자 UID 또는 인증된 관리자 이메일 (미인증 이메일로 approved:true 생성 시 규칙에서 거부됨)
+                const isSystemAdmin = (ADMIN_UIDS.includes(user.uid) || (typeof ADMIN_EMAILS !== 'undefined' && user.email && user.emailVerified && ADMIN_EMAILS.includes(user.email)));
                 db.ref('users/' + user.uid).set({
                     displayName: user.displayName || '익명',
                     email: user.email,
@@ -245,7 +246,7 @@ initDashboardSortable();
             
             if (profile && profile.approved) {
                 if (document.getElementById('tab-btn-admin')) {
-                    document.getElementById('tab-btn-admin').style.display = (user.uid === 'jaGugunGReXytCgbqYwQUybxyJL2') ? 'flex' : 'none';
+                    document.getElementById('tab-btn-admin').style.display = (ADMIN_UIDS.includes(user.uid) || (typeof ADMIN_EMAILS !== 'undefined' && user.email && ADMIN_EMAILS.includes(user.email))) ? 'flex' : 'none';
                 }
                 if(typeof renderMyPage === 'function') renderMyPage();
                 if(typeof renderAdminLeaves === 'function') renderAdminLeaves();
@@ -410,7 +411,7 @@ function listenForUsers() {
                                 </div>`;
                 approvalListEl.appendChild(li); pendingCount++;
             } else {
-                const actionBtn = (uid === 'jaGugunGReXytCgbqYwQUybxyJL2') ? `<span style="font-size: 0.8rem; color: var(--primary); font-weight: bold;">최고관리자</span>` : `<button class="revoke-btn" onclick="revokeUser('${uid}', '${safeName}')">해제</button>`;
+                const actionBtn = (ADMIN_UIDS.includes(uid) || (typeof ADMIN_EMAILS !== 'undefined' && typeof user !== 'undefined' && user.email && ADMIN_EMAILS.includes(user.email))) ? `<span style="font-size: 0.8rem; color: var(--primary); font-weight: bold;">최고관리자</span>` : `<button class="revoke-btn" onclick="revokeUser('${uid}', '${safeName}')">해제</button>`;
                 li.innerHTML = `<span>${user.displayName} <small style="color: var(--text-muted); font-weight: normal;">(${user.email})</small></span>${actionBtn}`;
                 memberListEl.appendChild(li); memberCount++;
             }
