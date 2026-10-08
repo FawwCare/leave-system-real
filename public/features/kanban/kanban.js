@@ -1214,8 +1214,8 @@ function renderTabCalendar() {
 
             const info = parseTaskDisplayInfo(task);
             const conflictHtml = hasConflict ? '<span class="task-conflict-badge">🚨</span>' : '';
-            const timeBadgeHtml = info.time ? `<span class="task-time-badge">${info.time}</span>` : '';
-            el.innerHTML = `${conflictHtml}${timeBadgeHtml}<span class="task-desktop-title"><span class="task-icon">${info.icon}</span> ${info.cleanTitle}</span><span class="task-tablet-title"><span class="task-icon">${info.icon}</span> ${info.shortLabel}</span><span class="task-mobile-capsule">${info.icon}${info.shortLabel}</span>`;
+            const timeBadgeHtml = info.time ? `<span class="task-time-badge">${escapeHTML(info.time)}</span>` : '';
+            el.innerHTML = `${conflictHtml}${timeBadgeHtml}<span class="task-desktop-title"><span class="task-icon">${info.icon}</span> ${escapeHTML(info.cleanTitle)}</span><span class="task-tablet-title"><span class="task-icon">${info.icon}</span> ${info.shortLabel}</span><span class="task-mobile-capsule">${info.icon}${info.shortLabel}</span>`;
 
             // 타입 및 우선순위별 스타일 클래스 바인딩 (인라인 백그라운드 제거)
             const catClass = getCategoryClass(task);
@@ -1469,8 +1469,8 @@ function showDayDetail(dateString) {
             let conflictMsgHtml = '';
             if (hasConflict) {
                 const conflictDetails = getConflictingItems(assignee, dateString);
-                const taskTitles = conflictDetails.tasks.map(t => `"${t.title}"`).join(', ');
-                const tripTitles = conflictDetails.trips.map(t => `"${t.name}"`).join(', ');
+                const taskTitles = conflictDetails.tasks.map(t => `"${escapeHTML(t.title)}"`).join(', ');
+                const tripTitles = conflictDetails.trips.map(t => `"${escapeHTML(t.name)}"`).join(', ');
                 conflictMsgHtml = `<div style="color:var(--danger); font-size:0.75rem; font-weight:bold; margin-top:6px; display:flex; align-items:center; gap:4px; line-height:1.4;"><span class="material-symbols-rounded" style="font-size:1.15rem; vertical-align:middle; color:var(--danger);">warning</span> 일정 충돌 경고: [업무] ${taskTitles} 와(과) [출장] ${tripTitles} 가 겹칩니다!</div>`;
 
                 div.style.border = '1px solid #FCA5A5';
@@ -1487,8 +1487,8 @@ function showDayDetail(dateString) {
                     ${displayIcon}
                 </div>
                 <div class="day-item-info" style="flex:1;">
-                    <div class="day-item-title">${displayTitle}</div>
-                    <div class="day-item-meta">${category} • ${item.assignee || item.userName || '전체'}</div>
+                    <div class="day-item-title">${escapeHTML(displayTitle)}</div>
+                    <div class="day-item-meta">${category} • ${escapeHTML(item.assignee || item.userName || '전체')}</div>
                     ${conflictMsgHtml}
                 </div>
                 <span class="material-symbols-rounded" style="color:var(--border-color);">chevron_right</span>
@@ -1694,8 +1694,8 @@ function renderModalCalendar() {
 
             const info = parseTaskDisplayInfo(task);
             const conflictHtml = hasConflict ? '<span class="task-conflict-badge">🚨</span>' : '';
-            const timeBadgeHtml = info.time ? `<span class="task-time-badge">${info.time}</span>` : '';
-            el.innerHTML = `${conflictHtml}${timeBadgeHtml}<span class="task-desktop-title"><span class="task-icon">${info.icon}</span> ${info.cleanTitle}</span><span class="task-tablet-title"><span class="task-icon">${info.icon}</span> ${info.shortLabel}</span><span class="task-mobile-capsule">${info.icon}${info.shortLabel}</span>`;
+            const timeBadgeHtml = info.time ? `<span class="task-time-badge">${escapeHTML(info.time)}</span>` : '';
+            el.innerHTML = `${conflictHtml}${timeBadgeHtml}<span class="task-desktop-title"><span class="task-icon">${info.icon}</span> ${escapeHTML(info.cleanTitle)}</span><span class="task-tablet-title"><span class="task-icon">${info.icon}</span> ${info.shortLabel}</span><span class="task-mobile-capsule">${info.icon}${info.shortLabel}</span>`;
 
                 // 타입 및 우선순위별 스타일 클래스 바인딩 (인라인 백그라운드 제거)
                 const catClass = getCategoryClass(task);
@@ -1778,8 +1778,8 @@ function renderCalendar(tasksArray) {
 
                 const info = parseTaskDisplayInfo(task);
                 const conflictHtml = hasConflict ? '<span class="task-conflict-badge">🚨</span>' : '';
-                const timeBadgeHtml = info.time ? `<span class="task-time-badge">${info.time}</span>` : '';
-                el.innerHTML = `${conflictHtml}${timeBadgeHtml}<span class="task-desktop-title"><span class="task-icon">${info.icon}</span> ${info.cleanTitle}</span><span class="task-tablet-title"><span class="task-icon">${info.icon}</span> ${info.shortLabel}</span><span class="task-mobile-capsule">${info.icon}${info.shortLabel}</span>`;
+                const timeBadgeHtml = info.time ? `<span class="task-time-badge">${escapeHTML(info.time)}</span>` : '';
+                el.innerHTML = `${conflictHtml}${timeBadgeHtml}<span class="task-desktop-title"><span class="task-icon">${info.icon}</span> ${escapeHTML(info.cleanTitle)}</span><span class="task-tablet-title"><span class="task-icon">${info.icon}</span> ${info.shortLabel}</span><span class="task-mobile-capsule">${info.icon}${info.shortLabel}</span>`;
 
                 // 타입 및 우선순위별 스타일 클래스 바인딩 (인라인 백그라운드 제거)
                 const catClass = getCategoryClass(task);
@@ -1840,14 +1840,14 @@ function openTripGroupModal(titleText, items) {
         
         let subtitle = '';
         if (item.isLeave || item.isTrip) {
-            subtitle = `<span class="material-symbols-rounded" style="font-size:1.1em;">person</span> ${item.assignee || '미지정'} | <span class="material-symbols-rounded" style="font-size:1.1em;">location_on</span> ${item.address || '주소 미입력'}`;
+            subtitle = `<span class="material-symbols-rounded" style="font-size:1.1em;">person</span> ${escapeHTML(item.assignee || '미지정')} | <span class="material-symbols-rounded" style="font-size:1.1em;">location_on</span> ${escapeHTML(item.address || '주소 미입력')}`;
         } else if (item.isExternal) {
-            subtitle = `<span class="material-symbols-rounded" style="font-size:1.1em;">person</span> ${item.assignee || '미지정'} | <span class="material-symbols-rounded" style="font-size:1.1em;">location_on</span> ${item.location || '장소 미입력'}`;
+            subtitle = `<span class="material-symbols-rounded" style="font-size:1.1em;">person</span> ${escapeHTML(item.assignee || '미지정')} | <span class="material-symbols-rounded" style="font-size:1.1em;">location_on</span> ${escapeHTML(item.location || '장소 미입력')}`;
         } else {
-            subtitle = `<span class="material-symbols-rounded" style="font-size:1.1em;">person</span> ${item.assignee || '미정'} | 중요도: ${item.priority === 'high' ? '높음' : (item.priority === 'low' ? '낮음' : '보통')}`;
+            subtitle = `<span class="material-symbols-rounded" style="font-size:1.1em;">person</span> ${escapeHTML(item.assignee || '미정')} | 중요도: ${item.priority === 'high' ? '높음' : (item.priority === 'low' ? '낮음' : '보통')}`;
         }
 
-        li.innerHTML = `<div style="display: flex; flex-direction: column; gap: 0.3rem;"><span style="color: ${color}; font-size: 0.95rem; font-weight: 600; display:flex; align-items:center;"><span class="material-symbols-rounded" style="font-size:1.2em; margin-right:4px;">${icon}</span> ${titleToDisplay}</span><span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">${subtitle}</span></div>`;
+        li.innerHTML = `<div style="display: flex; flex-direction: column; gap: 0.3rem;"><span style="color: ${color}; font-size: 0.95rem; font-weight: 600; display:flex; align-items:center;"><span class="material-symbols-rounded" style="font-size:1.2em; margin-right:4px;">${icon}</span> ${escapeHTML(titleToDisplay)}</span><span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">${subtitle}</span></div>`;
         li.onclick = () => {
             if (item.isLeave) openLeaveDetailModal(item.id);
             else if (item.isTrip) { closeTripGroupModal(); openTripModal(item.id, item.name, item.date, item.assignee, item.contact, item.address, item.scheduleUrl, item.schedulePath, item.qrUrl || '', item.qrPath || '', item.roomType, item.bookedHotel); }
@@ -1933,7 +1933,7 @@ function renderGantt(tasksArray) {
 
         const row = document.createElement('div'); row.className = 'gantt-row'; row.dataset.assignee = '외부 일정';
         const label = document.createElement('div'); label.className = 'gantt-row-label';
-        label.innerHTML = `<span class="material-symbols-rounded" style="font-size:1.1em; margin-right:4px; color:#2DB400;">sync</span> ${task.title}`;
+        label.innerHTML = `<span class="material-symbols-rounded" style="font-size:1.1em; margin-right:4px; color:#2DB400;">sync</span> ${escapeHTML(task.title)}`;
         label.dataset.tippyContent = task.title;
 
         const barArea = document.createElement('div'); barArea.className = 'gantt-bar-area'; barArea.style.width = `${timelineWidth}px`;
@@ -2029,24 +2029,24 @@ function renderTasks() {
         if (task.dueDate) {
             const taskDate = new Date(task.dueDate); taskDate.setHours(0, 0, 0, 0);
             const isOverdue = taskDate < today && task.status !== 'done';
-            dueBadge = `<span style="font-size: 0.75rem; color: ${isOverdue ? 'var(--danger)' : 'var(--text-main)'}; font-weight: 600;">${isOverdue ? '마감지연' : '마감일'} ${task.dueDate}</span>`;
+            dueBadge = `<span style="font-size: 0.75rem; color: ${isOverdue ? 'var(--danger)' : 'var(--text-main)'}; font-weight: 600;">${isOverdue ? '마감지연' : '마감일'} ${escapeHTML(task.dueDate)}</span>`;
         }
 
-        const archiveBtnHtml = (task.status === 'done' && !task.isTrip && !task.isLeave) ? `<button class="archive-btn" onclick="archiveSingleTask(event, '${task.id}')" title="보관함으로 이동" style="padding:0.2rem; background:transparent; border:none; cursor:pointer; color:var(--text-muted);"><span class="material-symbols-rounded" style="font-size:1.1em;">inventory_2</span></button>` : '';
+        const archiveBtnHtml = (task.status === 'done' && !task.isTrip && !task.isLeave) ? `<button class="archive-btn" onclick="archiveSingleTask(event, ${jsAttrArg(task.id)})" title="보관함으로 이동" style="padding:0.2rem; background:transparent; border:none; cursor:pointer; color:var(--text-muted);"><span class="material-symbols-rounded" style="font-size:1.1em;">inventory_2</span></button>` : '';
         const assigneeList = task.assignee ? task.assignee.split(',').map(a => a.trim()).filter(a => a) : ['미지정'];
         const assigneeHtml = assigneeList.map(a => `
             <div class="assignee-chip">
                 <span class="material-symbols-rounded">person</span>
-                ${a}
+                ${escapeHTML(a)}
             </div>
         `).join('');
 
         div.innerHTML = `<div style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <span style="font-weight: 500; font-size: 0.95rem; word-break: break-all;">${task.title}${task.badgesHtml || ''}</span>
+                <span style="font-weight: 500; font-size: 0.95rem; word-break: break-all;">${escapeHTML(task.title)}${task.isTrip ? (task.badgesHtml || '') : ''}</span>
                 <div style="display: flex; gap: 2px; flex-shrink: 0; margin-left: 0.5rem;">
                     ${archiveBtnHtml}
-                    <button class="delete-btn" onclick="deleteTask('${task.id}')" title="삭제" style="padding:0.2rem;"><span class="material-symbols-rounded" style="font-size:1.1em;">close</span></button>
+                    <button class="delete-btn" onclick="deleteTask(${jsAttrArg(task.id)})" title="삭제" style="padding:0.2rem;"><span class="material-symbols-rounded" style="font-size:1.1em;">close</span></button>
                 </div>
             </div>
             ${(descIcon || dueBadge) ? `<div style="display: flex; align-items: center; margin-top: -0.2rem;">${descIcon}${dueBadge}</div>` : ''}
@@ -2204,13 +2204,13 @@ function openArchiveModal() {
             li.style.borderBottom = '1px dashed var(--border-color)';
 
             li.innerHTML = `
-                <div style="flex:1; cursor:pointer;" onclick="openModal('${task.id}', '${task.title.replace(/'/g, "\\'")}', '${(task.description || '').replace(/'/g, "\\'")}', '${task.dueDate || ''}', '${task.startDate || ''}')">
-                    <div style="font-weight:600; color:var(--text-main);">${task.title}</div>
-                    <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.2rem;">담당: ${task.assignee || '미지정'} | 마감: ${task.dueDate || '미정'}</div>
+                <div style="flex:1; cursor:pointer;" onclick="openModal(${jsAttrArg(task.id)}, ${jsAttrArg(task.title)}, ${jsAttrArg(task.description || '')}, ${jsAttrArg(task.dueDate || '')}, ${jsAttrArg(task.startDate || '')})">
+                    <div style="font-weight:600; color:var(--text-main);">${escapeHTML(task.title)}</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.2rem;">담당: ${escapeHTML(task.assignee || '미지정')} | 마감: ${escapeHTML(task.dueDate || '미정')}</div>
                 </div>
                 <div style="display:flex; gap:0.5rem; flex-shrink:0;">
-                    <button onclick="restoreArchivedTask('${task.id}')" title="칸반보드 완료 컬럼으로 복구" style="background:var(--col-bg); color:var(--primary); border:1px solid var(--border-color); padding:0.3rem 0.6rem; font-size:0.8rem;"><span class="material-symbols-rounded" style="font-size:1.1em; vertical-align:middle;">restore</span> 복구</button>
-                    <button onclick="deleteArchivedTask('${task.id}')" title="영구 삭제" style="background:var(--danger); padding:0.3rem 0.6rem; font-size:0.8rem;"><span class="material-symbols-rounded" style="font-size:1.1em; vertical-align:middle;">delete</span> 삭제</button>
+                    <button onclick="restoreArchivedTask(${jsAttrArg(task.id)})" title="칸반보드 완료 컬럼으로 복구" style="background:var(--col-bg); color:var(--primary); border:1px solid var(--border-color); padding:0.3rem 0.6rem; font-size:0.8rem;"><span class="material-symbols-rounded" style="font-size:1.1em; vertical-align:middle;">restore</span> 복구</button>
+                    <button onclick="deleteArchivedTask(${jsAttrArg(task.id)})" title="영구 삭제" style="background:var(--danger); padding:0.3rem 0.6rem; font-size:0.8rem;"><span class="material-symbols-rounded" style="font-size:1.1em; vertical-align:middle;">delete</span> 삭제</button>
                 </div>
             `;
             listEl.appendChild(li);
@@ -2291,11 +2291,11 @@ function renderDailyTasks() {
         const div = document.createElement('div');
         div.className = `daily-item ${isDone ? 'completed' : ''}`;
         div.innerHTML = `
-            <div class="daily-checkbox" onclick="toggleDailyTask('${task.id}')">
+            <div class="daily-checkbox" onclick="toggleDailyTask(${jsAttrArg(task.id)})">
                 ${isDone ? '<span class="material-symbols-rounded" style="font-size:1.2rem;">check</span>' : ''}
             </div>
-            <div class="daily-title" onclick="toggleDailyTask('${task.id}')">${task.title}</div>
-            <button class="daily-delete-btn" onclick="deleteDailyTask('${task.id}')">
+            <div class="daily-title" onclick="toggleDailyTask(${jsAttrArg(task.id)})">${escapeHTML(task.title)}</div>
+            <button class="daily-delete-btn" onclick="deleteDailyTask(${jsAttrArg(task.id)})">
                 <span class="material-symbols-rounded" style="font-size:1.1rem;">delete</span>
             </button>
         `;
@@ -2363,7 +2363,7 @@ function renderAssigneeTags() {
         const tag = document.createElement('div');
         tag.className = 'assignee-tag';
         tag.style = 'display:flex; align-items:center; gap:4px; background:var(--primary); color:white; padding:2px 8px; border-radius:12px; font-size:0.8rem; font-weight:600; margin: 2px 0;';
-        tag.innerHTML = `${name} <span class="material-symbols-rounded" style="font-size:1rem; cursor:pointer;" onclick="removeAssigneeTag('${name}')">close</span>`;
+        tag.innerHTML = `${escapeHTML(name)} <span class="material-symbols-rounded" style="font-size:1rem; cursor:pointer;" onclick="removeAssigneeTag(${jsAttrArg(name)})">close</span>`;
         container.insertBefore(tag, selectEl);
     });
 }
@@ -2394,7 +2394,7 @@ function renderModalAssigneeTags() {
         const tag = document.createElement('div');
         tag.className = 'assignee-tag';
         tag.style = 'display:flex; align-items:center; gap:4px; background:var(--primary); color:white; padding:2px 8px; border-radius:12px; font-size:0.8rem; font-weight:600; margin: 2px 0;';
-        tag.innerHTML = `${name} <span class="material-symbols-rounded" style="font-size:1rem; cursor:pointer;" onclick="removeModalAssigneeTag('${name}')">close</span>`;
+        tag.innerHTML = `${escapeHTML(name)} <span class="material-symbols-rounded" style="font-size:1rem; cursor:pointer;" onclick="removeModalAssigneeTag(${jsAttrArg(name)})">close</span>`;
         container.insertBefore(tag, selectEl);
     });
 }
@@ -2495,10 +2495,10 @@ async function generateAiBriefing() {
         let htmlContent = `
             <div style="font-size: 0.92rem; line-height: 1.7; color: var(--text-main);">
                 <p style="margin-bottom: 0.8rem; font-size: 1.02rem;">
-                    안녕하세요, <strong style="color: var(--primary); font-weight: 700;">${userProfile.displayName}</strong>님! 오늘 하루도 스마트한 업무 협업을 위한 핵심 요약을 전해드립니다.
+                    안녕하세요, <strong style="color: var(--primary); font-weight: 700;">${escapeHTML(userProfile.displayName)}</strong>님! 오늘 하루도 스마트한 업무 협업을 위한 핵심 요약을 전해드립니다.
                 </p>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 0.8rem;">
-                    <div style="background: rgba(79, 70, 229, 0.05); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(79, 70, 229, 0.1); cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(79, 70, 229, 0.1)'" onmouseout="this.style.background='rgba(79, 70, 229, 0.05)'" onclick="document.getElementById('searchAssignee').value = '${userNameShort}'; if(typeof filterTasks === 'function') { filterTasks(); if(typeof closeCommonCalendarModal === 'function') closeCommonCalendarModal(); }">
+                    <div style="background: rgba(79, 70, 229, 0.05); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(79, 70, 229, 0.1); cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(79, 70, 229, 0.1)'" onmouseout="this.style.background='rgba(79, 70, 229, 0.05)'" onclick="document.getElementById('searchAssignee').value = ${jsAttrArg(userNameShort)}; if(typeof filterTasks === 'function') { filterTasks(); if(typeof closeCommonCalendarModal === 'function') closeCommonCalendarModal(); }">
                         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 700; font-size: 0.85rem; color: var(--primary);">
                             <span class="material-symbols-rounded" style="font-size: 1.15rem;">task_alt</span> 내 할당 업무
                         </div>
@@ -2921,15 +2921,15 @@ window.showBriefingTrips = function(mode = 'my') {
                             
                             let dateTd = '';
                             if (parsed.rowspan > 0) {
-                                dateTd = `<td rowspan="${parsed.rowspan}" style="border: 1px solid #000; border-bottom: 3px solid #000; padding: 4px; font-weight: 500; background-color: #FFF9C4; text-align: center;">${parsed.displayDate}</td>`;
+                                dateTd = `<td rowspan="${parsed.rowspan}" style="border: 1px solid #000; border-bottom: 3px solid #000; padding: 4px; font-weight: 500; background-color: #FFF9C4; text-align: center;">${escapeHTML(parsed.displayDate)}</td>`;
                             }
                             
                             return `
-                                <tr style="cursor: pointer;" onclick="window.handleBriefingTripClick('${safeDateStr}')">
-                                    <td style="border: 1px solid #000; border-bottom: ${borderBottom}; padding: 4px; font-weight: 700; text-align: center; background-color: ${parsed.bgColor};">${parsed.company}</td>
+                                <tr style="cursor: pointer;" onclick="window.handleBriefingTripClick(${jsAttrArg(safeDateStr)})">
+                                    <td style="border: 1px solid #000; border-bottom: ${borderBottom}; padding: 4px; font-weight: 700; text-align: center; background-color: ${escapeHTML(parsed.bgColor)};">${escapeHTML(parsed.company)}</td>
                                     ${dateTd}
-                                    <td style="border: 1px solid #000; border-bottom: ${borderBottom}; padding: 4px; font-weight: 600;">${parsed.location}</td>
-                                    <td style="border: 1px solid #000; border-bottom: ${borderBottom}; padding: 4px; font-weight: 500; text-align: center; background-color: #FFF9C4;">${parsed.assignees}</td>
+                                    <td style="border: 1px solid #000; border-bottom: ${borderBottom}; padding: 4px; font-weight: 600;">${escapeHTML(parsed.location)}</td>
+                                    <td style="border: 1px solid #000; border-bottom: ${borderBottom}; padding: 4px; font-weight: 500; text-align: center; background-color: #FFF9C4;">${escapeHTML(parsed.assignees)}</td>
                                     ${isTeam ? `<td style="border: 1px solid #000; border-bottom: ${borderBottom}; padding: 2px; text-align: center;" onclick="event.stopPropagation();">
                                         <div class="vehicle-desktop-view">
                                             <select onchange="window.handleTripVehicleToggle(${idx}, this.value, event)"

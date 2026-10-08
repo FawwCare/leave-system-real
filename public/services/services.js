@@ -46,21 +46,21 @@ function listenForCommunications() {
             li.innerHTML = `
                 <div class="comm-header">
                     <div class="comm-meta-left">
-                        <span class="comm-badge ${categoryClass}">${categoryEmoji} ${item.category || '일반문의'}</span>
-                        <span class="comm-category-label">${item.categoryLabel || '업무소통'}</span>
+                        <span class="comm-badge ${categoryClass}">${categoryEmoji} ${escapeHTML(item.category || '일반문의')}</span>
+                        <span class="comm-category-label">${escapeHTML(item.categoryLabel || '업무소통')}</span>
                         <div class="comm-sender-chip">
                             <span class="material-symbols-rounded">person</span>
-                            ${item.sender || '미상'}
+                            ${escapeHTML(item.sender || '미상')}
                         </div>
                     </div>
-                    <span class="comm-meta-right">${dateStr}</span>
+                    <span class="comm-meta-right">${escapeHTML(dateStr)}</span>
                 </div>
                 <div class="comm-body">
-                    ${item.summary}
+                    ${escapeHTML(item.summary)}
                 </div>
                 <div class="comm-footer">
-                    <span class="comm-subject-title" title="${item.title}">원본: ${item.title}</span>
-                    <a href="${gmailUrl}" target="_blank" class="comm-gmail-link" title="지메일 앱에서 원본 메일 열기">
+                    <span class="comm-subject-title" title="${escapeHTML(item.title)}">원본: ${escapeHTML(item.title)}</span>
+                    <a href="${safeUrl(gmailUrl)}" rel="noopener noreferrer" target="_blank" class="comm-gmail-link" title="지메일 앱에서 원본 메일 열기">
                         <span class="material-symbols-rounded">mail</span> Gmail로 이동
                     </a>
                 </div>
@@ -499,11 +499,11 @@ function renderFiles() {
             dropFileIntoFolder(e, f.id);
         });
         li.innerHTML = `
-            <div draggable="false" style="display:flex; align-items:center; gap:8px; flex:1; cursor:pointer;" onclick="event.stopPropagation(); openFolder('${f.id}', '${safeName}')" title="클릭하여 진입">
+            <div draggable="false" style="display:flex; align-items:center; gap:8px; flex:1; cursor:pointer;" onclick="event.stopPropagation(); openFolder(${jsAttrArg(f.id)}, ${jsAttrArg(f.name)})" title="클릭하여 진입">
                 <span draggable="false" class="material-symbols-rounded" style="color:#F59E0B; font-size:1.5em;">folder</span>
-                <span draggable="false" style="font-weight:600; color:var(--text-main); font-size:0.95rem;">${f.name}</span>
+                <span draggable="false" style="font-weight:600; color:var(--text-main); font-size:0.95rem;">${escapeHTML(f.name)}</span>
             </div>
-            <button draggable="false" class="delete-btn" onclick="event.stopPropagation(); deleteFile('${f.id}', null, true)">삭제</button>
+            <button draggable="false" class="delete-btn" onclick="event.stopPropagation(); deleteFile(${jsAttrArg(f.id)}, null, true)">삭제</button>
         `;
         list.appendChild(li);
     });
@@ -523,11 +523,11 @@ function renderFiles() {
             li.style.opacity = '';
         });
         li.innerHTML = `
-            <div draggable="false" style="display:flex; align-items:center; gap:8px; flex:1; text-decoration:none; color:var(--text-main); font-size:0.95rem; font-weight:600; word-break:break-all; cursor:pointer;" onclick="event.stopPropagation(); openDriveFile('${f.id}');" title="업로드: ${f.uploader || '알 수 없음'}">
+            <div draggable="false" style="display:flex; align-items:center; gap:8px; flex:1; text-decoration:none; color:var(--text-main); font-size:0.95rem; font-weight:600; word-break:break-all; cursor:pointer;" onclick="event.stopPropagation(); openDriveFile(${jsAttrArg(f.id)});" title="업로드: ${escapeHTML(f.uploader || '알 수 없음')}">
                 <span draggable="false" class="material-symbols-rounded" style="color:var(--text-muted); font-size:1.5em;">description</span>
-                <span style="flex:1;">${f.name}</span>
+                <span style="flex:1;">${escapeHTML(f.name)}</span>
             </div>
-            <button draggable="false" class="delete-btn" onclick="event.stopPropagation(); deleteFile('${f.id}', '${f.path || ''}', false)">삭제</button>
+            <button draggable="false" class="delete-btn" onclick="event.stopPropagation(); deleteFile(${jsAttrArg(f.id)}, ${jsAttrArg(f.path || '')}, false)">삭제</button>
         `;
         list.appendChild(li);
     });
@@ -614,8 +614,8 @@ function renderMembersDirectory() {
         const card = document.createElement('div'); card.className = 'org-card' + (isAdmin ? ' draggable' : '');
         if (isAdmin) { card.draggable = true; card.ondragstart = (e) => e.dataTransfer.setData("uid", uid); }
 
-        const unreadBadge = uid !== auth.currentUser.uid ? `<div id="org-badge-${uid}" class="unread-badge" style="display:none; position:absolute; top:-5px; right:-5px; z-index:10; border:2px solid var(--card-bg);">0</div>` : '';
-        card.innerHTML = `<div style="position:relative; display:inline-block; width:54px; height:54px;"><img src="${u.photoURL || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect width='1' height='1' fill='%23E5E7EB'/%3E%3C/svg%3E"}" style="width: 54px; height: 54px; border-radius: 50%; object-fit: cover;">${unreadBadge}</div><div style="flex:1;font-weight:800;font-size:1.1rem; margin-left:1rem;">${u.displayName}</div>${uid !== auth.currentUser.uid ? `<button onclick="openPrivateChat('${uid}', '${u.displayName}')" class="delete-btn" style="background:var(--col-bg);color:var(--text-muted);"><span class="material-symbols-rounded">chat</span></button>` : ''}`;
+        const unreadBadge = uid !== auth.currentUser.uid ? `<div id="org-badge-${escapeHTML(uid)}" class="unread-badge" style="display:none; position:absolute; top:-5px; right:-5px; z-index:10; border:2px solid var(--card-bg);">0</div>` : '';
+        card.innerHTML = `<div style="position:relative; display:inline-block; width:54px; height:54px;"><img src="${safeUrl(u.photoURL || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect width='1' height='1' fill='%23E5E7EB'/%3E%3C/svg%3E")}" style="width: 54px; height: 54px; border-radius: 50%; object-fit: cover;">${unreadBadge}</div><div style="flex:1;font-weight:800;font-size:1.1rem; margin-left:1rem;">${escapeHTML(u.displayName)}</div>${uid !== auth.currentUser.uid ? `<button onclick="openPrivateChat(${jsAttrArg(uid)}, ${jsAttrArg(u.displayName)})" class="delete-btn" style="background:var(--col-bg);color:var(--text-muted);"><span class="material-symbols-rounded">chat</span></button>` : ''}`;
         const validDepts = ['ceo', 'executive_director', 'director', 'team1_leader', 'team1_member', 'team2_leader', 'team2_member', 'unassigned'];
         const uDept = validDepts.includes(u.department) ? u.department : 'unassigned';
         const target = document.getElementById('list-' + uDept); if (target) target.appendChild(card);
@@ -772,7 +772,7 @@ function renderChatList() {
         if (uid === auth.currentUser.uid) return;
         const u = AppStore.getUsers()[uid]; if (!u.approved) return;
         const item = document.createElement('div'); item.className = 'chat-list-item'; item.onclick = () => openPrivateChat(uid, u.displayName);
-        item.innerHTML = `<img src="${u.photoURL || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect width='1' height='1' fill='%23E5E7EB'/%3E%3C/svg%3E"}" style="width:48px;height:48px;border-radius:18px;margin-right:12px; object-fit: cover;"><div style="flex:1;font-weight:600;">${u.displayName}</div><div id="badge-${uid}" class="unread-badge" style="display:none;">0</div>`; listBody.appendChild(item);
+        item.innerHTML = `<img src="${safeUrl(u.photoURL || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect width='1' height='1' fill='%23E5E7EB'/%3E%3C/svg%3E")}" style="width:48px;height:48px;border-radius:18px;margin-right:12px; object-fit: cover;"><div style="flex:1;font-weight:600;">${escapeHTML(u.displayName)}</div><div id="badge-${escapeHTML(uid)}" class="unread-badge" style="display:none;">0</div>`; listBody.appendChild(item);
     });
     updateChatBadges(); // 렌더링 즉시 배지 상태 점검
 }
@@ -886,10 +886,10 @@ function renderNotices() {
         const importantBadge = notice.isImportant ? `<span class="notice-badge-important">필독</span>` : '';
 
         li.innerHTML = `
-            <div class="notice-item-title">${importantBadge}${notice.title}</div>
-            <div class="notice-item-author">${notice.author}</div>
+            <div class="notice-item-title">${importantBadge}${escapeHTML(notice.title)}</div>
+            <div class="notice-item-author">${escapeHTML(notice.author)}</div>
             <div class="notice-item-date">${new Date(notice.timestamp).toLocaleDateString()}</div>
-            <div class="notice-item-views">${notice.views || 0}</div>
+            <div class="notice-item-views">${escapeHTML(notice.views || 0)}</div>
         `;
         li.onclick = () => viewNotice(notice.id);
         listEl.appendChild(li);
@@ -1027,7 +1027,7 @@ function renderComments(comments) {
         div.style.cssText = `display:flex; flex-direction:column; gap:4px; padding: 10px 14px; background:var(--card-bg); border-radius:12px; border:1px solid var(--border-color); position:relative; animation: fadeIn 0.3s ease; ${isReply ? 'margin-left: 24px; background:#F9FAFB;' : ''}`;
 
         const isMyComment = currentUid && c.uid === currentUid;
-        const deleteBtn = isMyComment ? `<button onclick="deleteComment('${c.id}')" style="position:absolute; right:8px; top:8px; background:transparent; color:var(--text-muted); border:none; padding:4px; cursor:pointer;" title="댓글 삭제"><span class="material-symbols-rounded" style="font-size:1.1rem;">close</span></button>` : '';
+        const deleteBtn = isMyComment ? `<button onclick="deleteComment(${jsAttrArg(c.id)})" style="position:absolute; right:8px; top:8px; background:transparent; color:var(--text-muted); border:none; padding:4px; cursor:pointer;" title="댓글 삭제"><span class="material-symbols-rounded" style="font-size:1.1rem;">close</span></button>` : '';
 
         const likesObj = c.likes || {};
         const likesCount = Object.keys(likesObj).length;
@@ -1037,17 +1037,17 @@ function renderComments(comments) {
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span style="font-weight:700; font-size:0.85rem; color:var(--primary);">
                     ${isReply ? '<span class="material-symbols-rounded" style="font-size:1.1rem; color:var(--text-muted); vertical-align:middle; margin-right:4px;">subdirectory_arrow_right</span>' : ''}
-                    ${c.author}
+                    ${escapeHTML(c.author)}
                 </span>
                 <span style="font-size:0.7rem; color:var(--text-muted); margin-right: 25px;">${new Date(c.timestamp).toLocaleString([], { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
             </div>
-            <div style="font-size:0.9rem; color:var(--text-main); word-break:break-all; line-height:1.5; ${isReply ? 'margin-left:22px;' : ''}">${c.content}</div>
+            <div style="font-size:0.9rem; color:var(--text-main); word-break:break-all; line-height:1.5; ${isReply ? 'margin-left:22px;' : ''}">${escapeHTML(c.content)}</div>
             <div style="display:flex; gap: 12px; margin-top: 4px; align-items:center; ${isReply ? 'margin-left:22px;' : ''}">
-                <button onclick="toggleCommentLike('${c.id}')" style="background:transparent; border:none; padding:0; cursor:pointer; display:flex; align-items:center; gap:4px; font-size:0.8rem; font-weight:600; color:${hasLiked ? 'var(--danger)' : 'var(--text-muted)'}; transition:color 0.2s;">
+                <button onclick="toggleCommentLike(${jsAttrArg(c.id)})" style="background:transparent; border:none; padding:0; cursor:pointer; display:flex; align-items:center; gap:4px; font-size:0.8rem; font-weight:600; color:${hasLiked ? 'var(--danger)' : 'var(--text-muted)'}; transition:color 0.2s;">
                     <span class="material-symbols-rounded" style="font-size:1.05rem; ${hasLiked ? "font-variation-settings: 'FILL' 1;" : ''}">favorite</span>
                     ${likesCount}
                 </button>
-                ${!isReply ? `<button onclick="setReplyTo('${c.id}', '${c.author}')" style="background:transparent; border:none; padding:0; cursor:pointer; display:flex; align-items:center; gap:2px; font-size:0.8rem; font-weight:600; color:var(--text-muted); transition:color 0.2s;"><span class="material-symbols-rounded" style="font-size:1.1rem;">reply</span> 답글 달기</button>` : ''}
+                ${!isReply ? `<button onclick="setReplyTo(${jsAttrArg(c.id)}, ${jsAttrArg(c.author)})" style="background:transparent; border:none; padding:0; cursor:pointer; display:flex; align-items:center; gap:2px; font-size:0.8rem; font-weight:600; color:var(--text-muted); transition:color 0.2s;"><span class="material-symbols-rounded" style="font-size:1.1rem;">reply</span> 답글 달기</button>` : ''}
             </div>
             ${deleteBtn}
         `;
@@ -1833,10 +1833,10 @@ function renderNotifications() {
 
         item.innerHTML = `
             <div class="notif-title-row">
-                <span>${n.title}</span>
+                <span>${escapeHTML(n.title)}</span>
                 <span class="notif-date">${timeStr}</span>
             </div>
-            <div class="notif-message">${n.message}</div>
+            <div class="notif-message">${escapeHTML(n.message)}</div>
         `;
         listEl.appendChild(item);
     });
@@ -2251,12 +2251,12 @@ function renderProposalHistory() {
             const timeStr = new Date(prop.timestamp).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
 
             chip.innerHTML = `
-                <span onclick="loadSavedProposal('${id}')" style="display:flex; align-items:center; gap:4px;">
+                <span onclick="loadSavedProposal(${jsAttrArg(id)})" style="display:flex; align-items:center; gap:4px;">
                     <span>${emoji}</span>
-                    <span style="color: var(--text-main); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${prop.title}</span>
+                    <span style="color: var(--text-main); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(prop.title)}</span>
                     <small style="color: var(--text-muted); font-weight: normal;">(${timeStr})</small>
                 </span>
-                <span class="material-symbols-rounded" onclick="deleteSavedProposal(event, '${id}')" style="font-size: 1rem; color: var(--text-muted); cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'">close</span>
+                <span class="material-symbols-rounded" onclick="deleteSavedProposal(event, ${jsAttrArg(id)})" style="font-size: 1rem; color: var(--text-muted); cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'">close</span>
             `;
 
             chip.onmouseenter = () => { chip.style.borderColor = 'var(--primary)'; chip.style.transform = 'translateY(-1px)'; };
@@ -2439,7 +2439,7 @@ Markdown 포맷을 활용하여 논리 구조가 눈에 띄게 문서를 작성�
     } catch (e) {
         console.error(e);
         await customAlert('기획서 생성 중 오류 발생: ' + e.message);
-        outputContainer.innerHTML = `<span style="color:var(--danger); font-weight:bold;">오류 발생: ${e.message}</span>`;
+        outputContainer.innerHTML = `<span style="color:var(--danger); font-weight:bold;">오류 발생: ${escapeHTML(e && e.message)}</span>`;
     } finally {
         btn.disabled = false;
         btn.innerHTML = originalHtml;
@@ -2783,7 +2783,7 @@ function renderMeetingFeedUI() {
         groupHeader.className = 'feed-date-header';
         groupHeader.innerHTML = `
             <span class="material-symbols-rounded" style="font-size: 1.15rem; vertical-align: middle;">calendar_today</span>
-            <span style="vertical-align: middle;">${dateKey}</span>
+            <span style="vertical-align: middle;">${escapeHTML(dateKey)}</span>
         `;
         container.appendChild(groupHeader);
 
@@ -2799,7 +2799,7 @@ function renderMeetingFeedUI() {
             const acks = feed.acknowledgments ? Object.values(feed.acknowledgments) : [];
             let ackListHtml = '';
             if (acks.length > 0) {
-                ackListHtml = acks.map(ack => `<span class="feed-ack-badge confirmed">${ack.name}</span>`).join('');
+                ackListHtml = acks.map(ack => `<span class="feed-ack-badge confirmed">${escapeHTML(ack.name)}</span>`).join('');
             } else {
                 ackListHtml = `<span style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">아직 확인한 팀원이 없습니다.</span>`;
             }
@@ -2811,14 +2811,14 @@ function renderMeetingFeedUI() {
             let kanbanActionHtml = '';
             if (feed.linkedTaskId) {
                 kanbanActionHtml = `
-                    <div class="feed-kanban-linked" onclick="const t = AppStore.getTasks()['${feed.linkedTaskId}']; if(t) openModal(t.id, t.title, t.description || '', t.dueDate || '', t.startDate || ''); else showToast('업무 정보를 불러올 수 없습니다.', 'warning');">
+                    <div class="feed-kanban-linked" onclick="const t = AppStore.getTasks()[${jsAttrArg(feed.linkedTaskId)}]; if(t) openModal(t.id, t.title, t.description || '', t.dueDate || '', t.startDate || ''); else showToast('업무 정보를 불러올 수 없습니다.', 'warning');">
                         <span class="material-symbols-rounded" style="font-size: 1.15rem;">link</span>
                         업무 등록 완료
                     </div>
                 `;
             } else {
                 kanbanActionHtml = `
-                    <button class="feed-kanban-btn" onclick="convertFeedToKanbanTask('${feed.id}')">
+                    <button class="feed-kanban-btn" onclick="convertFeedToKanbanTask(${jsAttrArg(feed.id)})">
                         <span class="material-symbols-rounded" style="font-size: 1.15rem;">add_task</span>
                         칸반 등록
                     </button>
@@ -2837,7 +2837,7 @@ function renderMeetingFeedUI() {
                     `;
                 } else {
                     ackButtonHtml = `
-                        <button class="feed-ack-btn" onclick="acknowledgeFeed('${feed.id}')">
+                        <button class="feed-ack-btn" onclick="acknowledgeFeed(${jsAttrArg(feed.id)})">
                             <span class="material-symbols-rounded" style="font-size: 1.1rem;">check</span>
                             읽음 확인
                         </button>
@@ -2849,7 +2849,7 @@ function renderMeetingFeedUI() {
             const isAuthor = currentUser && feed.authorUid === currentUser.uid;
             const showDelete = isAdmin || isAuthor;
             const deleteButtonHtml = showDelete ? `
-                <button class="feed-delete-btn" onclick="deleteMeetingFeed('${feed.id}')" title="지시사항 삭제" style="background: none; border: none; color: var(--danger); cursor: pointer; padding: 4px; display: flex; align-items: center; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'">
+                <button class="feed-delete-btn" onclick="deleteMeetingFeed(${jsAttrArg(feed.id)})" title="지시사항 삭제" style="background: none; border: none; color: var(--danger); cursor: pointer; padding: 4px; display: flex; align-items: center; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'">
                     <span class="material-symbols-rounded" style="font-size: 1.25rem;">delete</span>
                 </button>
             ` : '';
@@ -2860,13 +2860,13 @@ function renderMeetingFeedUI() {
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span class="feed-author-info" style="display: flex; align-items: center; gap: 4px; font-weight: bold; color: var(--primary);">
                             <span class="material-symbols-rounded" style="font-size: 1.2rem;">person</span>
-                            ${feed.author}
+                            ${escapeHTML(feed.author)}
                         </span>
                         <span style="font-size: 0.8rem; color: var(--text-muted);">${timeStr}</span>
                     </div>
                     ${deleteButtonHtml}
                 </div>
-                <div class="feed-card-body" style="font-size: 0.95rem; line-height: 1.6; word-break: break-all; white-space: pre-wrap; margin-bottom: 1rem; color: var(--text-main);">${feed.description}</div>
+                <div class="feed-card-body" style="font-size: 0.95rem; line-height: 1.6; word-break: break-all; white-space: pre-wrap; margin-bottom: 1rem; color: var(--text-main);">${escapeHTML(feed.description)}</div>
                 <div class="feed-card-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 0.8rem; font-size: 0.85rem;">
                     <div class="feed-ack-section" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; flex: 1; min-width: 200px;">
                         <span class="feed-ack-label" style="font-weight: 600; color: var(--text-muted);">👀 확인인:</span>
@@ -3068,23 +3068,23 @@ function renderConsumables() {
         card.className = 'consumable-card';
         card.innerHTML = `
             <div class="consumable-header">
-                <span class="consumable-name">${item.name}</span>
+                <span class="consumable-name">${escapeHTML(item.name)}</span>
                 <span class="consumable-badge ${statusClass}">${statusText}</span>
             </div>
             <div class="consumable-stock-section">
-                <span class="consumable-stock-num">${current}</span>
-                <span class="consumable-stock-unit">${item.unit || '개'}</span>
+                <span class="consumable-stock-num">${escapeHTML(current)}</span>
+                <span class="consumable-stock-unit">${escapeHTML(item.unit || '개')}</span>
             </div>
             <div class="consumable-progress-bar">
                 <div class="consumable-progress-fill ${statusClass}" style="width: ${progressPercent}%"></div>
             </div>
             <div class="consumable-actions">
-                <button onclick="adjustStock('${item.id}', -5)" class="stock-btn" ${!isApproved ? 'disabled' : ''}>-5</button>
-                <button onclick="adjustStock('${item.id}', -1)" class="stock-btn" ${!isApproved ? 'disabled' : ''}>-1</button>
+                <button onclick="adjustStock(${jsAttrArg(item.id)}, -5)" class="stock-btn" ${!isApproved ? 'disabled' : ''}>-5</button>
+                <button onclick="adjustStock(${jsAttrArg(item.id)}, -1)" class="stock-btn" ${!isApproved ? 'disabled' : ''}>-1</button>
                 <span style="width: 1px; height: 16px; background-color: var(--border-color); margin: 0 2px;"></span>
-                <button onclick="adjustStock('${item.id}', 1)" class="stock-btn" ${!isApproved ? 'disabled' : ''}>+1</button>
-                <button onclick="adjustStock('${item.id}', 5)" class="stock-btn" ${!isApproved ? 'disabled' : ''}>+5</button>
-                <button onclick="openEditConsumableModal('${item.id}')" class="stock-settings-btn" title="품목 수정" ${!isApproved ? 'disabled' : ''}>
+                <button onclick="adjustStock(${jsAttrArg(item.id)}, 1)" class="stock-btn" ${!isApproved ? 'disabled' : ''}>+1</button>
+                <button onclick="adjustStock(${jsAttrArg(item.id)}, 5)" class="stock-btn" ${!isApproved ? 'disabled' : ''}>+5</button>
+                <button onclick="openEditConsumableModal(${jsAttrArg(item.id)})" class="stock-settings-btn" title="품목 수정" ${!isApproved ? 'disabled' : ''}>
                     <span class="material-symbols-rounded" style="font-size:1.1rem;">settings</span>
                 </button>
             </div>
@@ -3313,12 +3313,12 @@ async function openConsumablesLogModal() {
             
             li.innerHTML = `
                 <div>
-                    <div style="font-weight:700; color:var(--text-main); font-size:0.95rem;">${log.itemName || '알 수 없는 품목'}</div>
-                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">작업자: ${log.operator || '익명'} | ${timeStr}</div>
+                    <div style="font-weight:700; color:var(--text-main); font-size:0.95rem;">${escapeHTML(log.itemName || '알 수 없는 품목')}</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">작업자: ${escapeHTML(log.operator || '익명')} | ${timeStr}</div>
                 </div>
                 <div style="text-align:right;">
-                    <span style="font-size:0.8rem; font-weight:800; color:${badgeColor}; background-color:${badgeBg}; padding:2px 8px; border-radius:6px; display:inline-block;">${changeText}</span>
-                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">현재고: ${log.newStock || 0}개</div>
+                    <span style="font-size:0.8rem; font-weight:800; color:${badgeColor}; background-color:${badgeBg}; padding:2px 8px; border-radius:6px; display:inline-block;">${escapeHTML(changeText)}</span>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">현재고: ${escapeHTML(log.newStock || 0)}개</div>
                 </div>
             `;
             listEl.appendChild(li);

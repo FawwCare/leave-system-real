@@ -401,18 +401,20 @@ function listenForUsers() {
         Object.keys(users).forEach(uid => {
             const user = users[uid];
             const li = document.createElement('li');
-            const safeName = user.displayName ? user.displayName.replace(/'/g, "\\'") : '사용자';
+            // 이름·이메일은 가입자가 정하는 값이므로 화면에는 글자로만, onclick 인자는 JS 문자열로 인코딩해 넣는다
+            const nameText = escapeHTML(user.displayName), emailText = escapeHTML(user.email);
+            const nameArg = jsAttrArg(user.displayName || '사용자'), uidArg = jsAttrArg(uid);
             
             if (!user.approved) {
-                li.innerHTML = `<span>${user.displayName} <small style="color: var(--text-muted); font-weight: normal;">(${user.email})</small></span>
+                li.innerHTML = `<span>${nameText} <small style="color: var(--text-muted); font-weight: normal;">(${emailText})</small></span>
                                 <div style="display:flex; gap:0.5rem;">
-                                    <button onclick="approveUser('${uid}', '${safeName}')">승인</button>
-                                    <button class="revoke-btn" onclick="deleteUser('${uid}', '${safeName}')">거절</button>
+                                    <button onclick="approveUser(${uidArg}, ${nameArg})">승인</button>
+                                    <button class="revoke-btn" onclick="deleteUser(${uidArg}, ${nameArg})">거절</button>
                                 </div>`;
                 approvalListEl.appendChild(li); pendingCount++;
             } else {
-                const actionBtn = (ADMIN_UIDS.includes(uid) || (typeof ADMIN_EMAILS !== 'undefined' && typeof user !== 'undefined' && user.email && ADMIN_EMAILS.includes(user.email))) ? `<span style="font-size: 0.8rem; color: var(--primary); font-weight: bold;">최고관리자</span>` : `<button class="revoke-btn" onclick="revokeUser('${uid}', '${safeName}')">해제</button>`;
-                li.innerHTML = `<span>${user.displayName} <small style="color: var(--text-muted); font-weight: normal;">(${user.email})</small></span>${actionBtn}`;
+                const actionBtn = (ADMIN_UIDS.includes(uid) || (typeof ADMIN_EMAILS !== 'undefined' && typeof user !== 'undefined' && user.email && ADMIN_EMAILS.includes(user.email))) ? `<span style="font-size: 0.8rem; color: var(--primary); font-weight: bold;">최고관리자</span>` : `<button class="revoke-btn" onclick="revokeUser(${uidArg}, ${nameArg})">해제</button>`;
+                li.innerHTML = `<span>${nameText} <small style="color: var(--text-muted); font-weight: normal;">(${emailText})</small></span>${actionBtn}`;
                 memberListEl.appendChild(li); memberCount++;
             }
         });

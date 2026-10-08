@@ -73,8 +73,8 @@ function renderLeaveUI() {
         const li = document.createElement('li');
         let statusText = l.status === 'approved' ? '승인됨' : (l.status === 'pending' ? '승인 대기중' : (l.status === 'cancel_requested' ? '취소 대기중' : (l.status === 'rejected' ? '반려됨' : '취소됨')));
         let color = l.status === 'approved' ? '#10B981' : (l.status === 'rejected' || l.status === 'cancel_requested' ? 'var(--danger)' : '#F59E0B');
-        let btnHtml = (l.status === 'pending' || l.status === 'approved') ? `<button class="cancel-btn" onclick="cancelLeave('${l.id}')">취소</button>` : '';
-        li.innerHTML = `<div><div style="font-weight:600;">${l.date}</div><div style="font-size:0.8rem; color:${color}">${statusText}</div></div>${btnHtml}`;
+        let btnHtml = (l.status === 'pending' || l.status === 'approved') ? `<button class="cancel-btn" onclick="cancelLeave(${jsAttrArg(l.id)})">취소</button>` : '';
+        li.innerHTML = `<div><div style="font-weight:600;">${escapeHTML(l.date)}</div><div style="font-size:0.8rem; color:${color}">${statusText}</div></div>${btnHtml}`;
         listEl.appendChild(li);
     });
 }
@@ -126,11 +126,11 @@ function openLeaveDetailModal(leaveId) {
     body.innerHTML = `
         <div>
             <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">신청자</label>
-            <p style="margin: 0.3rem 0 0 0; font-weight: 600;">${leave.userName}</p>
+            <p style="margin: 0.3rem 0 0 0; font-weight: 600;">${escapeHTML(leave.userName)}</p>
         </div>
         <div>
             <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">휴가일</label>
-            <p style="margin: 0.3rem 0 0 0; font-weight: 600;">${leave.date}</p>
+            <p style="margin: 0.3rem 0 0 0; font-weight: 600;">${escapeHTML(leave.date)}</p>
         </div>
         <div>
             <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">상태</label>
@@ -185,7 +185,7 @@ function renderAdminLeaves() {
             const total = window.parseTotalLeave(u);
             const card = document.createElement('div');
             card.style.cssText = 'background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 1rem; border-radius: 8px; box-shadow: var(--shadow-sm);';
-            card.innerHTML = `<div style="font-weight: bold; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;"><span>${u.displayName}</span><button onclick="adminEditTotalLeave('${uid}', ${total})" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; background-color: var(--col-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer;">수정</button></div><div style="font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between;"><span>총 연차:</span> <span>${total}일</span></div><div style="font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between;"><span>사용함:</span> <span style="color: var(--danger);">${used.toFixed(1)}일</span></div><div style="font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between; margin-top: 0.3rem; padding-top: 0.3rem; border-top: 1px dashed var(--border-color); font-weight: bold;"><span>잔여:</span> <span style="color: var(--primary);">${(total - used).toFixed(1)}일</span></div>`;
+            card.innerHTML = `<div style="font-weight: bold; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;"><span>${escapeHTML(u.displayName)}</span><button onclick="adminEditTotalLeave(${jsAttrArg(uid)}, ${Number(total) || 0})" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; background-color: var(--col-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer;">수정</button></div><div style="font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between;"><span>총 연차:</span> <span>${escapeHTML(total)}일</span></div><div style="font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between;"><span>사용함:</span> <span style="color: var(--danger);">${used.toFixed(1)}일</span></div><div style="font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between; margin-top: 0.3rem; padding-top: 0.3rem; border-top: 1px dashed var(--border-color); font-weight: bold;"><span>잔여:</span> <span style="color: var(--primary);">${(total - used).toFixed(1)}일</span></div>`;
             listEl.appendChild(card);
         });
     }
@@ -202,14 +202,14 @@ function renderAdminLeaves() {
             return `<li style="background-color: var(--card-bg); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);">
                 <div style="display:flex; flex-direction:column; gap:4px;">
                     <div style="font-weight:600; display:flex; align-items:center; gap:6px;">
-                        ${l.userName} <span style="font-size:0.8rem; padding:2px 6px; border-radius:4px; background-color:var(--bg-color); color:${isCancel ? 'var(--danger)' : 'var(--text-muted)'};">${isCancel ? '취소 요청' : typeText}</span>
+                        ${escapeHTML(l.userName)} <span style="font-size:0.8rem; padding:2px 6px; border-radius:4px; background-color:var(--bg-color); color:${isCancel ? 'var(--danger)' : 'var(--text-muted)'};">${isCancel ? '취소 요청' : typeText}</span>
                     </div>
-                    <div style="font-size:0.85rem; color:var(--primary); font-weight:bold;">${l.date}</div>
+                    <div style="font-size:0.85rem; color:var(--primary); font-weight:bold;">${escapeHTML(l.date)}</div>
                 </div>
                 <div style="display:flex; gap:6px;">
-                    <button onclick="adminResolveLeave('${l.id}', 'approved', '${l.status}')" style="background-color: #10B981; padding: 0.4rem 0.8rem; font-size: 0.8rem;">승인</button>
-                    <button onclick="adminResolveLeave('${l.id}', 'rejected', '${l.status}')" style="background-color: #F59E0B; padding: 0.4rem 0.8rem; font-size: 0.8rem;">반려</button>
-                    <button onclick="adminDeleteLeave('${l.id}')" style="background-color: var(--danger); padding: 0.4rem 0.8rem; font-size: 0.8rem;">삭제</button>
+                    <button onclick="adminResolveLeave(${jsAttrArg(l.id)}, 'approved', ${jsAttrArg(l.status)})" style="background-color: #10B981; padding: 0.4rem 0.8rem; font-size: 0.8rem;">승인</button>
+                    <button onclick="adminResolveLeave(${jsAttrArg(l.id)}, 'rejected', ${jsAttrArg(l.status)})" style="background-color: #F59E0B; padding: 0.4rem 0.8rem; font-size: 0.8rem;">반려</button>
+                    <button onclick="adminDeleteLeave(${jsAttrArg(l.id)})" style="background-color: var(--danger); padding: 0.4rem 0.8rem; font-size: 0.8rem;">삭제</button>
                 </div>
             </li>`;
         }).join('');
@@ -245,16 +245,16 @@ function renderAdminLeaves() {
                 return `<li style="background-color: var(--card-bg); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);">
                     <div style="display:flex; flex-direction:column; gap:4px;">
                         <div style="font-weight:600; display:flex; align-items:center; gap:6px;">
-                            ${l.userName} 
+                            ${escapeHTML(l.userName)} 
                             <span style="font-size:0.75rem; padding:2px 6px; border-radius:4px; background-color:var(--bg-color); color:var(--text-main);">${typeText}</span>
                             <span style="font-size:0.75rem; padding:2px 6px; border-radius:4px; background-color:var(--bg-color); color:${statusColor}; font-weight:bold;">${statusBadge}</span>
                         </div>
-                        <div style="font-size:0.85rem; color:var(--primary); font-weight:bold;">${l.date} ${l.rejectReason ? `<span style="font-size:0.75rem; color:var(--danger); font-weight:normal;">(사유: ${l.rejectReason})</span>` : ''}</div>
+                        <div style="font-size:0.85rem; color:var(--primary); font-weight:bold;">${escapeHTML(l.date)} ${l.rejectReason ? `<span style="font-size:0.75rem; color:var(--danger); font-weight:normal;">(사유: ${escapeHTML(l.rejectReason)})</span>` : ''}</div>
                     </div>
                     <div style="display:flex; gap:4px; align-items:center;">
-                        ${l.status !== 'approved' ? `<button onclick="adminResolveLeave('${l.id}', 'approved', '${l.status}')" style="background-color: #10B981; padding: 0.3rem 0.6rem; font-size: 0.75rem;">승인</button>` : ''}
-                        ${l.status !== 'rejected' ? `<button onclick="adminResolveLeave('${l.id}', 'rejected', '${l.status}')" style="background-color: #F59E0B; padding: 0.3rem 0.6rem; font-size: 0.75rem;">반려</button>` : ''}
-                        <button onclick="adminDeleteLeave('${l.id}')" style="background-color: var(--danger); padding: 0.3rem 0.6rem; font-size: 0.75rem;">강제삭제</button>
+                        ${l.status !== 'approved' ? `<button onclick="adminResolveLeave(${jsAttrArg(l.id)}, 'approved', ${jsAttrArg(l.status)})" style="background-color: #10B981; padding: 0.3rem 0.6rem; font-size: 0.75rem;">승인</button>` : ''}
+                        ${l.status !== 'rejected' ? `<button onclick="adminResolveLeave(${jsAttrArg(l.id)}, 'rejected', ${jsAttrArg(l.status)})" style="background-color: #F59E0B; padding: 0.3rem 0.6rem; font-size: 0.75rem;">반려</button>` : ''}
+                        <button onclick="adminDeleteLeave(${jsAttrArg(l.id)})" style="background-color: var(--danger); padding: 0.3rem 0.6rem; font-size: 0.75rem;">강제삭제</button>
                     </div>
                 </li>`;
             }).join('');

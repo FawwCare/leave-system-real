@@ -32,7 +32,7 @@ function renderMyPage() {
         const statusText = t.status === 'todo' ? '해야 할 일' : (t.status === 'doing' ? '진행 중' : '완료');
         const statusColor = t.status === 'todo' ? 'var(--text-muted)' : (t.status === 'doing' ? '#F59E0B' : '#10B981');
 
-        li.innerHTML = `<div style="flex:1; cursor:pointer;" class="mypage-task-info"><div style="font-weight:600;">${t.title}</div><div style="font-size:0.8rem;">마감: ${t.dueDate || '미정'}</div></div><button class="status-cycle-btn" style="background-color: ${statusColor}15; color: ${statusColor}; border: 1px solid ${statusColor}; padding: 0.3rem 0.6rem; font-size: 0.75rem; border-radius: 4px; box-shadow: none; flex-shrink: 0; margin-left: 0.5rem;" title="클릭하여 상태 변경">${statusText}</button>`;
+        li.innerHTML = `<div style="flex:1; cursor:pointer;" class="mypage-task-info"><div style="font-weight:600;">${escapeHTML(t.title)}</div><div style="font-size:0.8rem;">마감: ${escapeHTML(t.dueDate || '미정')}</div></div><button class="status-cycle-btn" style="background-color: ${statusColor}15; color: ${statusColor}; border: 1px solid ${statusColor}; padding: 0.3rem 0.6rem; font-size: 0.75rem; border-radius: 4px; box-shadow: none; flex-shrink: 0; margin-left: 0.5rem;" title="클릭하여 상태 변경">${statusText}</button>`;
 
         li.querySelector('.mypage-task-info').onclick = () => openModal(t.id, t.title, t.description, t.dueDate, t.startDate);
         li.querySelector('.status-cycle-btn').onclick = (e) => {
@@ -51,7 +51,7 @@ function renderMyPage() {
             else if (t.category && t.category.toUpperCase().startsWith('VIP')) categoryBadge = `<span style="font-size:0.7rem; background-color:#FFFBEB; color:#F59E0B; padding:2px 4px; border-radius:4px; margin-left:4px; font-weight:bold; vertical-align:middle; border:1px solid #FEF3C7;">⭐ VIP</span>`;
         }
 
-        const li = document.createElement('li'); li.innerHTML = `<div style="font-weight:600;">${t.name}${categoryBadge}</div><div style="font-size:0.8rem;">날짜: ${t.date || '미정'}</div>`; li.onclick = () => openTripModal(t.id, t.name, t.date, t.assignee, t.contact, t.address, t.scheduleUrl, t.schedulePath, t.qrUrl || '', t.qrPath || '', t.roomType, t.bookedHotel); tripsList.appendChild(li);
+        const li = document.createElement('li'); li.innerHTML = `<div style="font-weight:600;">${escapeHTML(t.name)}${categoryBadge}</div><div style="font-size:0.8rem;">날짜: ${escapeHTML(t.date || '미정')}</div>`; li.onclick = () => openTripModal(t.id, t.name, t.date, t.assignee, t.contact, t.address, t.scheduleUrl, t.schedulePath, t.qrUrl || '', t.qrPath || '', t.roomType, t.bookedHotel); tripsList.appendChild(li);
     });
 
     // 마이페이지의 내 휴가 결재 섹션에는 '승인된(approved)' 휴가만 노출되도록 필터링
@@ -62,8 +62,8 @@ function renderMyPage() {
             const li = document.createElement('li');
             let statusText = '승인됨';
             let color = '#10B981';
-            let reasonHtml = l.rejectReason ? `<div style="font-size:0.75rem; color:var(--danger); margin-top:2px;">사유: ${l.rejectReason}</div>` : '';
-            li.innerHTML = `<div><div style="font-weight:600; font-size:0.9rem;">${l.date}</div><div style="font-size:0.75rem; color:${color}">${statusText} (${l.type}일)</div>${reasonHtml}</div>`;
+            let reasonHtml = l.rejectReason ? `<div style="font-size:0.75rem; color:var(--danger); margin-top:2px;">사유: ${escapeHTML(l.rejectReason)}</div>` : '';
+            li.innerHTML = `<div><div style="font-weight:600; font-size:0.9rem;">${escapeHTML(l.date)}</div><div style="font-size:0.75rem; color:${color}">${statusText} (${escapeHTML(l.type)}일)</div>${reasonHtml}</div>`;
             leavesList.appendChild(li);
         });
     }

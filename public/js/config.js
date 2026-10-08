@@ -427,8 +427,10 @@ function showToast(message, type = 'info') {
     
     toast.innerHTML = `
         <span class="material-symbols-rounded" style="color: ${iconColor}; font-size: 1.8rem;">${icon}</span>
-        <span style="font-size: 0.95rem; font-weight: 600; line-height: 1.5; white-space: pre-wrap;">${message}</span>
+        <span class="toast-message" style="font-size: 0.95rem; font-weight: 600; line-height: 1.5; white-space: pre-wrap;"></span>
     `;
+    // 메시지에는 다른 사용자가 입력한 글자(알림 제목·품목명 등)가 들어가므로 HTML 로 해석하지 않고 글자로만 넣는다
+    toast.querySelector('.toast-message').textContent = (message === null || message === undefined) ? '' : String(message);
     
     container.appendChild(toast);
     
