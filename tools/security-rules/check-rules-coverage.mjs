@@ -30,6 +30,10 @@ const lv = rules.leaves || {}; const lw = (lv.$leaveId || {})['.write'] || '';
 ck('leaves: 읽기=승인, 최상위 쓰기 없음, 건별 쓰기 규칙 존재', lv['.read'] === APPROVED && !('.write' in lv) && !!lw);
 ck("leaves: 직원 신규 신청은 본인 uid + 'pending' 만", lw.includes("!data.exists() && newData.child('uid').val() === auth.uid && newData.child('status').val() === 'pending'"));
 ck("leaves: 직원 상태 변경은 approved → cancel_requested 만", lw.includes("data.child('status').val() === 'approved' && newData.child('status').val() === 'cancel_requested'"));
+const uu = rules.users.$uid;
+const XSS_RE = '!newData.val().matches(/[<>"\\\\`]/)';
+ck('users 이름·이메일·부서에 코드 삽입 문자 금지 규칙 존재', ['displayName', 'email', 'department'].every(k => uu[k] && uu[k]['.validate'].includes(XSS_RE) && uu[k]['.validate'].startsWith('newData.isString()')),
+    ['displayName', 'email', 'department'].map(k => k + ':' + (uu[k] && uu[k]['.validate'])).join(' | '));
 const nested = Object.keys(rules).filter(k => !SPECIAL.includes(k) && Object.keys(rules[k]).some(c => !c.startsWith('.')));
 ck('users·privateChats·leaves 외 경로에 하위 규칙으로 권한을 넓히는 항목 없음', nested.length === 0, nested.join(','));
 ck('users 전체 .read 가 승인 조건 포함 (2차-1: 미승인 명단 열람 차단)', rules.users['.read'].includes("root.child('users/' + auth.uid + '/approved').val() === true") && rules.users['.read'] !== 'auth != null');

@@ -162,6 +162,23 @@ await check('[연차·관리자 이메일] 취소 요청 승인(삭제) 허용',
 await check('[연차·관리자] 대리 등록(approved) 허용 (앱 submitAdminAddLeave 형태)', () => assertSucceeds(set(ref(as(ADMIN), 'leaves/n5'), newLeave(OTHER, 'approved'))));
 await check('[연차·관리자] 강제 삭제 허용', () => assertSucceeds(remove(ref(as(ADMIN), 'leaves/lr'))));
 
+const newProfileBase = { displayName: '신규', email: 'new@example.com', approved: false, leaveTotal: 15, department: 'unassigned' };
+// 3-e) 화면 코드 삽입(XSS) 방지: 이름·이메일·부서에 < > " \ ` 금지 (작은따옴표는 허용)
+const BAD_NAMES = ['<img src=x onerror=alert(1)>', 'x" onmouseover="alert(1)', "a\\');alert(1);//", '`${alert(1)}`'];
+for (const bad of BAD_NAMES) {
+    await check(`[XSS] 미승인 본인 이름에 ${JSON.stringify(bad).slice(0, 24)} 저장 거부`, () => assertFails(update(ref(as(PENDING), `users/${PENDING}`), { displayName: bad })));
+}
+await check('[XSS] 신규 가입 시 위험한 이름으로 프로필 생성 거부', () => assertFails(set(ref(as('uX1'), 'users/uX1'), { ...newProfileBase, displayName: '<b>x</b>' })));
+await check('[XSS] 본인 이메일 필드에 태그 저장 거부', () => assertFails(update(ref(as(APPROVED), `users/${APPROVED}`), { email: '<svg onload=alert(1)>@x.com' })));
+await check('[XSS] 본인 부서 필드에 따옴표 삽입 거부', () => assertFails(update(ref(as(APPROVED), `users/${APPROVED}`), { department: 'a" onclick="x' })));
+await check('[XSS] 관리자도 위험한 이름 저장 거부', () => assertFails(update(ref(as(ADMIN), `users/${OTHER}`), { displayName: '<script>' })));
+await check('[XSS] 숫자 등 문자열 아닌 이름 거부', () => assertFails(update(ref(as(APPROVED), `users/${APPROVED}`), { displayName: 123 })));
+await check('[XSS] 100자 초과 이름 거부', () => assertFails(update(ref(as(APPROVED), `users/${APPROVED}`), { displayName: 'a'.repeat(101) })));
+for (const ok of ['홍길동', "O'Brien", 'Kim Min-su (팀장)', '대장 👑']) {
+    await check(`[XSS] 정상 이름 ${JSON.stringify(ok)} 허용`, () => assertSucceeds(update(ref(as(APPROVED), `users/${APPROVED}`), { displayName: ok })));
+}
+await check('[XSS] 정상 기본값 신규 프로필 생성 허용 (앞 항목과 동일 조건 재확인)', () => assertSucceeds(set(ref(as('uX2'), 'users/uX2'), { ...newProfileBase, displayName: 'New User' })));
+
 // 4) 신규 프로필 등록 (main.js 의 실제 기본값과 동일한 형태)
 const newProfile = { displayName: '신규', email: 'new@example.com', approved: false, leaveTotal: 15, department: 'unassigned' };
 await check('[신규] 정상 기본값 프로필 등록 허용', () => assertSucceeds(set(ref(as(NEWBIE), `users/${NEWBIE}`), newProfile)));
