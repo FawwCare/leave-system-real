@@ -2230,7 +2230,7 @@ function renderProposalHistory() {
         return;
     }
 
-    db.ref(`users/${user.uid}/savedProposals`).once('value', (snapshot) => {
+    migrateLegacyProposals(user.uid).then(() => db.ref(`savedProposals/${user.uid}`).once('value')).then((snapshot) => {
         const data = snapshot.val();
         if (!data) {
             listEl.innerHTML = '<span style="color: var(--text-muted); font-size: 0.82rem; font-style: italic;">저장된 기획서가 없습니다. 기획서 생성 후 \'저장\'을 누르면 이곳에 보관됩니다.</span>';
@@ -2264,6 +2264,26 @@ function renderProposalHistory() {
 
             listEl.appendChild(chip);
         });
+    }).catch(err => {
+        console.error('[기획서 보관함] 조회 실패:', err);
+        listEl.innerHTML = '<span style="color: var(--text-muted); font-size: 0.82rem; font-style: italic;">저장 내역을 불러오지 못했습니다.</span>';
+    });
+}
+
+// [보안 2차-3] 기획서는 본인만 읽을 수 있는 savedProposals/{uid} 에 보관한다.
+// 예전 위치(users/{uid}/savedProposals)는 승인된 직원 전체가 읽을 수 있으므로,
+// 남아 있으면 새 위치로 옮기고 예전 위치를 지운다. 한 번의 다중 경로 업데이트라 중간 실패 시 아무것도 바뀌지 않는다.
+function migrateLegacyProposals(uid) {
+    return db.ref(`users/${uid}/savedProposals`).once('value').then((snap) => {
+        const legacy = snap.val();
+        if (!legacy || typeof legacy !== 'object') return;
+        const updates = {};
+        Object.keys(legacy).forEach(id => { updates[`savedProposals/${uid}/${id}`] = legacy[id]; });
+        updates[`users/${uid}/savedProposals`] = null;
+        return db.ref().update(updates);
+    }).catch(err => {
+        // 이전 실패는 다음 로그인 때 다시 시도한다. 새 위치 조회는 계속 진행.
+        console.error('[기획서 보관함] 예전 위치 이전 실패:', err);
     });
 }
 
@@ -2271,7 +2291,7 @@ function loadSavedProposal(proposalId) {
     const user = auth.currentUser;
     if (!user) return;
 
-    db.ref(`users/${user.uid}/savedProposals/${proposalId}`).once('value', (snapshot) => {
+    db.ref(`savedProposals/${user.uid}/${proposalId}`).once('value', (snapshot) => {
         const prop = snapshot.val();
         if (prop) {
             const outEl = document.getElementById('proposalOutputContainer');
@@ -2291,7 +2311,7 @@ async function deleteSavedProposal(event, proposalId) {
     if (!user) return;
 
     if (await customConfirm('이 기획서 저장 내역을 완전히 삭제하시겠습니까?')) {
-        db.ref(`users/${user.uid}/savedProposals/${proposalId}`).remove()
+        db.ref(`savedProposals/${user.uid}/${proposalId}`).remove()
             .then(() => {
                 showToast('기획서가 삭제되었습니다.', 'info');
                 renderProposalHistory();
@@ -2504,7 +2524,7 @@ async function saveProposalToDatabase() {
 
     const finalTitle = titleInput.trim() || '무제 기획서';
 
-    const ref = db.ref(`users/${user.uid}/savedProposals`).push();
+    const ref = db.ref(`savedProposals/${user.uid}`).push();
     ref.set({
         id: ref.key,
         title: finalTitle,

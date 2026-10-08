@@ -17,6 +17,12 @@
         }
       }
     },
+    "savedProposals": {
+      "$uid": {
+        ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true && auth.uid === $uid",
+        ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true && auth.uid === $uid"
+      }
+    },
     "leaves": {
       ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
       ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"

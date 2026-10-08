@@ -49,7 +49,7 @@ async function seed() {
         await set(ref(db), {
             users: {
                 [ADMIN]: { displayName: 'Admin', approved: true, leaveTotal: 15 },
-                [APPROVED]: { displayName: 'A', approved: true, leaveTotal: 15, department: 'team1_member' },
+                [APPROVED]: { displayName: 'A', approved: true, leaveTotal: 15, department: 'team1_member', savedProposals: { old1: { title: '예전 기획서', text: '<p>x</p>', timestamp: 1 } } },
                 [PENDING]: { displayName: 'P', approved: false, leaveTotal: 15, department: 'unassigned' },
                 [LEGACY]: { displayName: 'L', approved: true, leaveTotal: 15, totalLeave: 20 },
                 [OTHER]: { displayName: 'O', approved: true, leaveTotal: 15 },
@@ -57,6 +57,7 @@ async function seed() {
                 [EMAIL_ADMIN_UID]: { displayName: 'Company', approved: true, leaveTotal: 15 },
             },
             ...Object.fromEntries(BUSINESS_PATHS.map(p => [p, { seed1: { title: 'fixture', status: 'todo' } }])),
+            savedProposals: { [OTHER]: { p1: { title: 'O의 기획서', text: '<p>비밀</p>', timestamp: 1 } } },
             privateChats: {
                 [chatIdOf(APPROVED, OTHER)]: { m1: { uid: OTHER, sender: 'O', text: '안녕', timestamp: 1, read: false } },
             },
@@ -126,6 +127,27 @@ await check('[채팅·우회] 방 ID에 내 UID를 끼운 가짜 방은 상대�
     await assertFails(get(ref(as(APPROVED), `privateChats/${fake}`)));                     // 무관한 제3자는 읽기 불가
 });
 await check('[채팅·우회] 루트 다중 경로로 남의 대화 쓰기 거부', () => assertFails(update(ref(as(LEGACY)), { [`privateChats/${CAO}/m8`]: msg(LEGACY), 'tasks/z': { a: 1 } })));
+
+// 3-c) 보안 2차-3: 기획서 보관함은 본인만
+const prop = { title: 't', text: '<p>b</p>', template: 'business', timestamp: 3 };
+await check('[기획서·본인] 본인 보관함 읽기 허용', () => assertSucceeds(get(ref(as(OTHER), `savedProposals/${OTHER}`))));
+await check('[기획서·본인] 본인 보관함 저장 허용 (앱 push 형태)', () => assertSucceeds(set(ref(as(APPROVED), `savedProposals/${APPROVED}/n1`), { id: 'n1', ...prop })));
+await check('[기획서·본인] 본인 기획서 삭제 허용', () => assertSucceeds(remove(ref(as(OTHER), `savedProposals/${OTHER}/p1`))));
+await check('[기획서·타인] 승인된 직원이라도 남의 보관함 읽기 거부', () => assertFails(get(ref(as(APPROVED), `savedProposals/${OTHER}`))));
+await check('[기획서·타인] 남의 보관함에 쓰기 거부', () => assertFails(set(ref(as(APPROVED), `savedProposals/${OTHER}/x`), prop)));
+await check('[기획서·타인] 남의 기획서 삭제 거부', () => assertFails(remove(ref(as(APPROVED), `savedProposals/${OTHER}/p1`))));
+await check('[기획서] 보관함 전체 읽기 거부 (관리자 포함)', async () => { await assertFails(get(ref(as(APPROVED), 'savedProposals'))); await assertFails(get(ref(as(ADMIN), 'savedProposals'))); });
+await check('[기획서·미승인] 본인 보관함이라도 거부', () => assertFails(get(ref(as(PENDING), `savedProposals/${PENDING}`))));
+await check('[기획서·이전] 예전 위치→새 위치 다중 경로 이전 허용 (앱 migrateLegacyProposals 형태)', async () => {
+    await assertSucceeds(update(ref(as(APPROVED)), { [`savedProposals/${APPROVED}/old1`]: { title: '예전 기획서', text: '<p>x</p>', timestamp: 1 }, [`users/${APPROVED}/savedProposals`]: null }));
+    await testEnv.withSecurityRulesDisabled(async (c) => {
+        const d = c.database();
+        if ((await get(ref(d, `users/${APPROVED}/savedProposals`))).exists()) throw new Error('예전 위치가 남아 있음');
+        if (!(await get(ref(d, `savedProposals/${APPROVED}/old1`))).exists()) throw new Error('새 위치에 없음');
+        if ((await get(ref(d, `users/${APPROVED}/approved`))).val() !== true) throw new Error('프로필 손상');
+    });
+});
+await check('[기획서·이전] 이전 과정에서 남의 보관함 끼워넣기 거부', () => assertFails(update(ref(as(APPROVED)), { [`savedProposals/${OTHER}/z`]: prop, [`users/${APPROVED}/savedProposals`]: null })));
 
 // 4) 신규 프로필 등록 (main.js 의 실제 기본값과 동일한 형태)
 const newProfile = { displayName: '신규', email: 'new@example.com', approved: false, leaveTotal: 15, department: 'unassigned' };

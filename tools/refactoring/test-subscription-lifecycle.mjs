@@ -49,7 +49,7 @@ const isEmptyDom = (id) => { const e = document.getElementById(id); return e.inn
 // ---------------------------------------------------------------- RTDB mock
 const store = {};
 const regs = new Set();          // 활성 등록 {query, cb, errCb}
-const counters = { on: 0, off: 0, denied: 0, deniedPaths: [], revoked: 0, onPaths: [] };
+const counters = { on: 0, off: 0, denied: 0, deniedPaths: [], revoked: 0, onPaths: [], onceDenied: 0 };
 const auth = { currentUser: null, _cbs: [] };
 
 const seg = (p) => p.split('/').filter(Boolean);
@@ -67,6 +67,9 @@ function canRead(p) {
             || (auth.currentUser.email === 'contact@faww.co.kr' && auth.currentUser.emailVerified === true);
         if (approvedOrAdmin) return true;
         return seg(p)[1] === auth.currentUser.uid;
+    }
+    if (top === 'savedProposals') {   // 보안 2차-3: 승인 + 본인만
+        return getAt(`users/${auth.currentUser.uid}/approved`) === true && seg(p)[1] === auth.currentUser.uid;
     }
     if (top === 'privateChats') {   // 보안 2차-2: 승인 + 당사자만 (방 ID = 작은UID_큰UID)
         const id = seg(p)[1]; const me = auth.currentUser.uid;
@@ -124,7 +127,10 @@ class Query {
     off(ev, cb) {
         for (const r of [...regs]) if (r.query.sameSpec(this) && (!cb || r.cb === cb)) { regs.delete(r); counters.off++; }
     }
-    once() { return Promise.resolve(canRead(this.path) ? snapshotOf(this) : (() => { throw new Error('permission_denied'); })()); }
+    once(ev, cb) {
+        if (!canRead(this.path)) { counters.denied++; counters.onceDenied++; counters.deniedPaths.push('once:' + this.path); return Promise.reject(Object.assign(new Error('permission_denied'), { code: 'PERMISSION_DENIED' })); }
+        const snap = snapshotOf(this); if (typeof cb === 'function') cb(snap); return Promise.resolve(snap);
+    }
     async set(v) { setAt(this.path, v); propagate(this.path); }
     async update(o) { for (const k of Object.keys(o)) setAt(this.path + '/' + k, o[k]); propagate(this.path); }
     async remove() { setAt(this.path, null); propagate(this.path); }
@@ -200,7 +206,7 @@ function seedData() {
     Object.assign(store, JSON.parse(JSON.stringify({
         users: {
             [ADMIN]: { displayName: 'Admin', email: 'admin@example.com', approved: true, leaveTotal: 15 },
-            uA: { displayName: 'A', email: 'a@example.com', approved: true, leaveTotal: 15, department: 'team1_member' },
+            uA: { displayName: 'A', email: 'a@example.com', approved: true, leaveTotal: 15, department: 'team1_member', savedProposals: { old1: { title: '예전기획서', text: '<p>x</p>', template: 'business', timestamp: 1 } } },
             uB: { displayName: 'B', email: 'b@example.com', approved: true, leaveTotal: 15, department: 'team2_member' },
             uP: { displayName: 'P', email: 'p@example.com', approved: false, leaveTotal: 15, department: 'unassigned' },
         },
@@ -245,6 +251,11 @@ check('[A 로그인] 업무 데이터 수신: 연차', Object.keys(AppStore.getL
 check('[A 로그인] 업무 데이터 수신: 파일', Object.keys(run('allFilesData')).includes('f1'));
 check('[A 로그인] 업무 데이터 수신: 소모품', Object.keys(run('allConsumablesData')).includes('c1'));
 check('[A 로그인] 본인 알림만 구독 (tasks/notifications/uA)', activePaths().includes('tasks/notifications/uA'));
+check('[기획서 이전] 로그인 후 예전 위치(users/uA/savedProposals) 제거', getAt('users/uA/savedProposals') === null);
+check('[기획서 이전] 새 위치(savedProposals/uA)로 내용 그대로 이동', getAt('savedProposals/uA/old1/title') === '예전기획서');
+check('[기획서 이전] 프로필 승인·연차 값 보존', getAt('users/uA/approved') === true && getAt('users/uA/leaveTotal') === 15);
+check('[기획서] 보관함 목록에 이전된 기획서 표시', document.getElementById('proposalHistoryList')._children.length === 1);
+check('[기획서] 다른 직원 보관함 조회 시도 0건', !counters.deniedPaths.some(x => x.includes('savedProposals')), counters.deniedPaths.join(','));
 const baselineApproved = active().length;
 const baselinePaths = activePaths().join('|');
 
@@ -334,7 +345,7 @@ check('[소모품 이력 2회 열기] consumablesLog 리스너 1건', active().f
 run('closeConsumablesLogModal()'); await settle();
 check('[소모품 이력 닫기] consumablesLog 리스너 0건', !active().some(r => r.query.path === 'consumablesLog'));
 await authApi.signOut(); await settle();
-check('[최종 로그아웃] on 누적 = off 누적 + 서버취소 + 최초거부 (등록 추적 일관성), 활성 0', counters.on === counters.off + counters.revoked + counters.denied && active().length === 0, `on=${counters.on} off=${counters.off} revoked=${counters.revoked} denied=${counters.denied} active=${active().length}`);
+check('[최종 로그아웃] on 누적 = off 누적 + 서버취소 + 최초거부 (등록 추적 일관성), 활성 0', counters.on === counters.off + counters.revoked + (counters.denied - counters.onceDenied) && active().length === 0, `on=${counters.on} off=${counters.off} revoked=${counters.revoked} denied=${counters.denied} onceDenied=${counters.onceDenied} active=${active().length}`);
 
 // 관리자: 사용자 목록 리스너 중복 여부
 await signIn(ADMIN);
