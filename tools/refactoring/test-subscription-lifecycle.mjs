@@ -432,6 +432,30 @@ briefingMode = run('globalThis.__bm');
 check('[배차 갱신] 쿠팡 모드 화면이면 쿠팡 모드로 다시 그림', briefingMode === 'coupang', String(briefingMode));
 await authApi.signOut(); await settle();
 
+// ---------------------------------------------------------------- 2글자 이름(민홍) 인식: 팀 현황 사이드바
+{
+    await signIn(ADMIN);
+    const d = new Date(); const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    await db.ref('users/uHong').set({ displayName: '민홍', email: 'h@x.com', approved: true, leaveTotal: 15 });
+    const statusOf = (name) => {
+        run('renderTeamStatusSidebar()');
+        const card = document.getElementById('team-status-list')._children.slice().reverse()
+            .find(c => (c._children[0] && c._children[0]._children || []).some(x => x.textContent === name));
+        return card ? card._children[1].innerHTML : '(카드 없음)';
+    };
+    await db.ref('businessTrips/tH').set({ name: '텔러스 강의', assignee: '홍', date: today }); await settle();
+    check("[이름] 출장 담당자가 '홍' → 민홍 '출장'", statusOf('민홍').includes('출장'), statusOf('민홍'));
+    await db.ref('businessTrips/tH').set({ name: '텔러스 강의', assignee: '성진, 홍', date: today }); await settle();
+    check("[이름] 담당자가 '성진, 홍' → 민홍 '출장'", statusOf('민홍').includes('출장'), statusOf('민홍'));
+    await db.ref('businessTrips/tH').set(null);
+    await db.ref('businessTrips/tP').set({ name: '홍보 행사', assignee: '홍보팀', date: today }); await settle();
+    check("[이름] 담당자가 '홍보팀' → 민홍 오인 안 함(사무실)", statusOf('민홍').includes('사무실'), statusOf('민홍'));
+    await db.ref('businessTrips/tP').set(null);
+    await db.ref('external_events/eH').set({ title: '[출장] 홍 부산', startDate: today, dueDate: today }); await settle();
+    check("[이름] 캘린더 일정 제목 '[출장] 홍 부산' → 민홍 '출장'", statusOf('민홍').includes('출장'), statusOf('민홍'));
+    await db.ref('external_events/eH').set(null); await db.ref('users/uHong').set(null); await settle();
+}
+
 // ---------------------------------------------------------------- XSS 회귀 테스트
 // 사용자가 쓸 수 있는 모든 필드에 공격 문자열을 넣고 실제 렌더 함수를 돌린 뒤, 앱이 만든 모든 요소의 innerHTML 에
 // 날것의 공격 문자열이 남아 있는지 검사한다. (태그 / 속성 탈출 / JS 문자열 탈출 3종)

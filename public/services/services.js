@@ -3356,14 +3356,16 @@ window.loginAndSendKakaoBriefing = function() {
 
 window.sendKakaoDailyBriefing = function() {
     const todayStr = new Date().toISOString().split('T')[0];
-    const myName = (typeof firebase !== 'undefined' && firebase.auth().currentUser) ? firebase.auth().currentUser.displayName : '나';
+    // 구글 계정 이름이 아니라 앱 프로필 이름을 쓴다 (AppStore 에서 이름 정규화가 적용된 값)
+    const myProfile = AppStore.getCurrentUser();
+    const myName = (myProfile && myProfile.displayName) || ((typeof firebase !== 'undefined' && firebase.auth().currentUser) ? firebase.auth().currentUser.displayName : '나');
     
     // 오늘의 출장자 파악
     const trips = Object.values(AppStore.getTrips()).filter(t => {
         const parsed = typeof parseTripDateRange === 'function' ? parseTripDateRange(t.date) : { startDate: t.date, endDate: t.date };
         return todayStr >= (parsed.startDate || t.date) && todayStr <= (parsed.endDate || t.date);
     });
-    const myTrips = trips.filter(t => t.assignee && t.assignee.includes(myName));
+    const myTrips = trips.filter(t => textMentionsMember(t.assignee, myName));
     const tripNames = myTrips.length > 0 ? myTrips.map(t => {
         let title = t.name || t.destination || '출장';
         if (typeof parseTripDisplayInfo === 'function') {
@@ -3377,7 +3379,7 @@ window.sendKakaoDailyBriefing = function() {
     const leaveNames = leaves.length > 0 ? '연차휴가' : '없음';
     
     // 내 칸반 업무 파악
-    const myTasks = Object.values(AppStore.getTasks() || {}).filter(t => t.assignee && t.assignee.includes(myName) && t.status !== 'done');
+    const myTasks = Object.values(AppStore.getTasks() || {}).filter(t => textMentionsMember(t.assignee, myName) && t.status !== 'done');
     const taskNames = myTasks.length > 0 ? myTasks.map(t => {
         let title = t.title || t.name;
         if (typeof parseTaskDisplayInfo === 'function') {

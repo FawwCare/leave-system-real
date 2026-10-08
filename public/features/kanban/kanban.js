@@ -2432,14 +2432,14 @@ async function generateAiBriefing() {
         const checkMatch = (str) => {
             if (!str) return false;
             const lowerStr = str.toLowerCase();
-            let isMatch = lowerStr.includes(userNameLower) || lowerStr.includes(userNameShort);
+            let isMatch = lowerStr.includes(userNameLower) || lowerStr.includes(userNameShort) || textMentionsMember(str, userProfile.displayName);
             if (userNameLower === 'min suk kim' && (lowerStr.includes('대장') || lowerStr.includes('min suk kim'))) {
                 isMatch = true;
             }
             if ((userNameLower === 'sungjin j' || userNameLower === '장성진') && (lowerStr.includes('성진') || lowerStr.includes('장성진') || lowerStr.includes('sungjin j'))) {
                 isMatch = true;
             }
-            if ((userNameLower === 'hong min' || userNameLower === '민홍') && (lowerStr.includes('홍') || lowerStr.includes('민홍') || lowerStr.includes('hong min'))) {
+            if ((userNameLower === 'hong min' || userNameLower === '민홍') && (textMentionsMember(str, '민홍') || lowerStr.includes('hong min'))) {
                 isMatch = true;
             }
             return isMatch;
@@ -2689,14 +2689,14 @@ window.showBriefingTrips = function(mode = 'my') {
             const checkMatch = (str) => {
                 if (!str) return false;
                 const lowerStr = str.toLowerCase();
-                let isMatch = lowerStr.includes(userNameLower) || lowerStr.includes(userNameShort);
+                let isMatch = lowerStr.includes(userNameLower) || lowerStr.includes(userNameShort) || textMentionsMember(str, currentUser.displayName);
                 if (userNameLower === 'min suk kim' && (lowerStr.includes('대장') || lowerStr.includes('min suk kim'))) {
                     isMatch = true;
                 }
                 if ((userNameLower === 'sungjin j' || userNameLower === '장성진') && (lowerStr.includes('성진') || lowerStr.includes('장성진') || lowerStr.includes('sungjin j'))) {
                     isMatch = true;
                 }
-                if ((userNameLower === 'hong min' || userNameLower === '민홍') && (lowerStr.includes('홍') || lowerStr.includes('민홍') || lowerStr.includes('hong min'))) {
+                if ((userNameLower === 'hong min' || userNameLower === '민홍') && (textMentionsMember(str, '민홍') || lowerStr.includes('hong min'))) {
                     isMatch = true;
                 }
                 return isMatch;
@@ -2766,8 +2766,8 @@ window.showBriefingTrips = function(mode = 'my') {
                 
                 allMembers.forEach(fullName => {
                     const shortName = fullName.length >= 3 ? fullName.substring(1) : fullName;
-                    let idx = originalSearchStr.indexOf(fullName);
-                    if (idx === -1) idx = originalSearchStr.indexOf(shortName);
+                    let idx = memberMentionIndex(originalSearchStr, fullName); // 2글자 이름의 한 글자는 독립 단어일 때만
+                    if (idx === -1 && !/^[가-힣]+$/.test(fullName)) idx = originalSearchStr.indexOf(shortName); // 한글 이외 이름은 기존 방식 유지
                     
                     if (idx !== -1) {
                         if (!foundAssigneesMap.find(x => x.name === shortName)) {
@@ -2787,7 +2787,7 @@ window.showBriefingTrips = function(mode = 'my') {
                 
                 let idxH = searchStr.indexOf('hong min');
                 if (idxH === -1) idxH = searchStr.indexOf('민홍');
-                if (idxH === -1) idxH = searchStr.indexOf('홍');
+                if (idxH === -1) idxH = memberMentionIndex(rawTitle, '민홍');
                 if (idxH !== -1 && !foundAssigneesMap.find(x => x.name === '민홍')) foundAssigneesMap.push({ name: '민홍', index: idxH, fullName: '민홍' });
                 
                 foundAssigneesMap.sort((a, b) => a.index - b.index);
@@ -3080,15 +3080,8 @@ window.renderTeamStatusSidebar = function() {
             statusColor = '#3B82F6'; // Blue
             statusIcon = 'beach_access';
         } else {
-            // 이름 매칭 로직: 성을 제외한 이름(예: '동현')으로도 매칭되도록 처리
-            let givenName = member.displayName;
-            if (/^[가-힣]{3}$/.test(member.displayName)) {
-                givenName = member.displayName.substring(1);
-            }
-            const isMatch = (text) => {
-                if (!text) return false;
-                return text.includes(member.displayName) || text.includes(givenName);
-            };
+            // 이름 매칭: 전체 이름 + 성을 뺀 이름 (2글자 이름의 한 글자는 독립된 단어일 때만) — textUtils.js 공통 규칙
+            const isMatch = (text) => textMentionsMember(text, member.displayName);
 
             // 출장 및 연동 일정 체크 (당일 일정 기준) - 쿠팡 외 일정 우선 표시
             const myTrips = trips.filter(t => isMatch(t.assignee) && (t.date || t.startDate) <= todayStr && (t.date || t.endDate || t.startDate) >= todayStr);
