@@ -526,6 +526,8 @@ function downloadLeaveCSV() {
 let previousPendingLeaves = new Set(), isFirstLeavesLoad = true;
 // 휴가 데이터 최적화: 최신 300개만 로드
 window.startLeaveSubscriptions = function() {
+// 세션(구독)이 새로 시작될 때 첫 수신분은 알림 대상에서 제외한다 (계정 전환 시 이전 상태 미사용).
+previousPendingLeaves = new Set(); isFirstLeavesLoad = true;
 window.AppSubscriptionManager.subscribe('leaves', db.ref('leaves').orderByKey().limitToLast(300), (s) => {
     const data = s.val() || {};
     for (let key in data) data[key].id = key;

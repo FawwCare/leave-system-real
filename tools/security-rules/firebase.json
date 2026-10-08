@@ -1,0 +1,3 @@
+{
+  "emulators": { "database": { "host": "127.0.0.1", "port": 9000 }, "hub": { "host": "127.0.0.1" }, "logging": { "host": "127.0.0.1" }, "ui": { "enabled": false } }
+}

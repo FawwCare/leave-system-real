@@ -664,7 +664,10 @@ document.getElementById('tripModal').addEventListener('keydown', (e) => {
 
 // 출장 데이터 최적화: 최신 300개만 로드
 
-db.ref('businessTrips').orderByKey().limitToLast(300).on('value', (s) => {
+// [보안 1차] 승인된 사용자에게만 구독을 시작하도록 main.js에서 호출한다.
+// (페이지 로드 시점에 비로그인 상태로 구독하면 규칙에 의해 거부·취소되어 다시 붙지 않음)
+window.startMapSubscriptions = function() {
+window.AppSubscriptionManager.subscribe('businessTrips', db.ref('businessTrips').orderByKey().limitToLast(300), (s) => {
 
     const data = s.val() || {};
 
@@ -697,6 +700,7 @@ db.ref('businessTrips').orderByKey().limitToLast(300).on('value', (s) => {
     }, 50);
 
 });
+};
 
 
 

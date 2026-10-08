@@ -19,6 +19,8 @@ window.clearAllAppStoreData = function() {
     if (document.getElementById('doing-list')) document.getElementById('doing-list').innerHTML = '';
     if (document.getElementById('done-list')) document.getElementById('done-list').innerHTML = '';
     if (document.getElementById('notification-list')) document.getElementById('notification-list').innerHTML = '';
+    if (document.getElementById('user-approval-list')) document.getElementById('user-approval-list').innerHTML = '';
+    if (document.getElementById('user-member-list')) document.getElementById('user-member-list').innerHTML = '';
     if (typeof window.clearServicesData === 'function') window.clearServicesData();
 };
 
@@ -212,6 +214,7 @@ initDashboardSortable();
         requestNotificationPermission(); // 로그인 시 시스템 알림 권한 승인 유도
         
         // 계정 전환 시 이전 계정의 데이터와 구독 완전 초기화
+        window.isListenerInitialized = false;
         window.AppSubscriptionManager.unsubscribeAllExcept([]);
         if (typeof window.clearAllAppStoreData === 'function') window.clearAllAppStoreData();
         AppStore.setCurrentUser(null);
@@ -244,12 +247,17 @@ initDashboardSortable();
                 if (document.getElementById('tab-btn-admin')) {
                     document.getElementById('tab-btn-admin').style.display = (user.uid === 'jaGugunGReXytCgbqYwQUybxyJL2') ? 'flex' : 'none';
                 }
-                listenForUsers();
-                if (typeof startNotificationListener === 'function') startNotificationListener();
                 if(typeof renderMyPage === 'function') renderMyPage();
                 if(typeof renderAdminLeaves === 'function') renderAdminLeaves();
                 if(typeof initPdfToolSettings === 'function') initPdfToolSettings();
                 if(typeof loadProposalSettings === 'function') loadProposalSettings();
+
+                // 업무 구독은 '미승인 → 승인' 전환 시 한 번만 시작한다.
+                // (프로필 값이 바뀔 때마다 전체 구독을 재등록·재다운로드하지 않도록 함)
+                if (!window.isListenerInitialized) {
+                window.isListenerInitialized = true;
+                listenForUsers();
+                if (typeof startNotificationListener === 'function') startNotificationListener();
                 if (typeof startKanbanSubscriptions === 'function') startKanbanSubscriptions();
                 if (typeof startLeaveSubscriptions === 'function') startLeaveSubscriptions();
                 if (typeof startMapSubscriptions === 'function') startMapSubscriptions();
@@ -269,10 +277,13 @@ initDashboardSortable();
                     if (typeof showBriefingTrips === 'function' && document.getElementById('briefingTripsModal') && document.getElementById('briefingTripsModal').style.display !== 'none') {
                         let currentMode = 'my';
                         const teamBtn = document.getElementById('btnTeamTrips');
+                        const coupangBtn = document.getElementById('btnCoupangTrips');
                         if (teamBtn && teamBtn.style.background === 'var(--primary)') currentMode = 'team';
+                        else if (coupangBtn && coupangBtn.style.background === 'var(--primary)') currentMode = 'coupang';
                         showBriefingTrips(currentMode);
                     }
                 });
+                }
             } else {
                 if (document.getElementById('tab-btn-admin')) document.getElementById('tab-btn-admin').style.display = 'none';
                 window.AppSubscriptionManager.unsubscribeAllExcept(['userProfile']);
@@ -370,7 +381,7 @@ function updateFileName(inputId, displayId) {
 }
 
 function listenForUsers() {
-    db.ref('users').on('value', (snapshot) => {
+    window.AppSubscriptionManager.subscribe('adminUsers', db.ref('users'), (snapshot) => {
         const approvalListEl = document.getElementById('user-approval-list');
         const memberListEl = document.getElementById('user-member-list');
         if (!approvalListEl || !memberListEl) return;
