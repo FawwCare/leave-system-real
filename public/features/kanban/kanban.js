@@ -2405,7 +2405,8 @@ async function generateAiBriefing() {
     const userProfile = AppStore.getCurrentUser();
     const container = document.getElementById('ai-briefing-container');
     const textEl = document.getElementById('briefing-text');
-    if (!userProfile || !container || !textEl) {
+    // 미승인 사용자는 업무 데이터 접근 권한이 없으므로 브리핑을 만들지 않는다 (규칙에 막히는 조회 방지)
+    if (!userProfile || !userProfile.approved || !container || !textEl) {
         if (container) container.style.display = 'none';
         return;
     }

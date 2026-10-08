@@ -31,8 +31,9 @@ const LEGACY = 'uLegacy';   // totalLeave 필드를 가진 기존 사용자
 const NEWBIE = 'uNew';      // 프로필이 아직 없는 사용자
 const OTHER = 'uOther';
 
-const BUSINESS_PATHS = ['tasks', 'leaves', 'businessTrips', 'files', 'consumables', 'consumablesLog',
+const BUSINESS_PATHS = ['tasks', 'businessTrips', 'files', 'consumables', 'consumablesLog',
     'external_events', 'tripVehicles', 'businessCommunications', 'chatMessages', 'notices'];
+// leaves 는 보안 2차-4 에서 본인 신청·취소 / 관리자 처리로 세분화 → 아래 전용 항목에서 검사
 // 1:1 채팅방 ID 형식: 작은UID_큰UID (privateChatUtils.js getPrivateChatId 와 동일)
 const chatIdOf = (a, b) => (a < b ? `${a}_${b}` : `${b}_${a}`);
 
@@ -57,6 +58,12 @@ async function seed() {
                 [EMAIL_ADMIN_UID]: { displayName: 'Company', approved: true, leaveTotal: 15 },
             },
             ...Object.fromEntries(BUSINESS_PATHS.map(p => [p, { seed1: { title: 'fixture', status: 'todo' } }])),
+            leaves: {
+                lp: { id: 'lp', uid: APPROVED, userName: 'A', date: '2026-11-02', type: 1, subType: '1', status: 'pending', timestamp: 1 },
+                la: { id: 'la', uid: APPROVED, userName: 'A', date: '2026-11-03', type: 1, subType: '1', status: 'approved', timestamp: 1 },
+                lo: { id: 'lo', uid: OTHER, userName: 'O', date: '2026-11-04', type: 1, subType: '1', status: 'pending', timestamp: 1 },
+                lr: { id: 'lr', uid: APPROVED, userName: 'A', date: '2026-11-05', type: 1, subType: '1', status: 'rejected', rejectReason: 'x', timestamp: 1 },
+            },
             privateChats: {
                 [chatIdOf(APPROVED, OTHER)]: { m1: { uid: OTHER, sender: 'O', text: '안녕', timestamp: 1, read: false } },
             },
@@ -126,6 +133,34 @@ await check('[채팅·우회] 방 ID에 내 UID를 끼운 가짜 방은 상대�
     await assertFails(get(ref(as(APPROVED), `privateChats/${fake}`)));                     // 무관한 제3자는 읽기 불가
 });
 await check('[채팅·우회] 루트 다중 경로로 남의 대화 쓰기 거부', () => assertFails(update(ref(as(LEGACY)), { [`privateChats/${CAO}/m8`]: msg(LEGACY), 'tasks/z': { a: 1 } })));
+
+// 3-d) 보안 2차-4: 연차 — 직원은 본인 신청·취소만, 승인·반려·삭제는 관리자
+const newLeave = (uid, status = 'pending') => ({ id: 'n', uid, userName: 'A', date: '2026-12-01', type: 1, subType: '1', status, timestamp: 5 });
+for (const who of [null, PENDING]) await check(`[연차·${who ? '미승인' : '비로그인'}] 연차 읽기 거부`, () => assertFails(get(ref(as(who), 'leaves'))));
+await check('[연차·직원] 전체 연차 현황 읽기 허용 (달력·팀 현황)', () => assertSucceeds(get(ref(as(OTHER), 'leaves'))));
+await check('[연차·직원] 본인 승인대기 신청 허용 (앱 applyLeave 형태)', () => assertSucceeds(set(ref(as(APPROVED), 'leaves/n1'), newLeave(APPROVED))));
+await check('[연차·직원] 처음부터 approved 로 신청 거부', () => assertFails(set(ref(as(APPROVED), 'leaves/n2'), newLeave(APPROVED, 'approved'))));
+await check('[연차·직원] 남의 이름(uid)으로 신청 거부', () => assertFails(set(ref(as(APPROVED), 'leaves/n3'), newLeave(OTHER))));
+await check('[연차·직원] 본인 승인대기 건 스스로 승인 거부', () => assertFails(update(ref(as(APPROVED), 'leaves/lp'), { status: 'approved' })));
+await check('[연차·직원] 본인 승인대기 건 날짜·일수 변경 거부', () => assertFails(update(ref(as(APPROVED), 'leaves/lp'), { type: 0.5 })));
+await check('[연차·직원] 본인 승인대기 건 취소(삭제) 허용 (앱 cancelLeave 형태)', () => assertSucceeds(remove(ref(as(APPROVED), 'leaves/lp'))));
+await check('[연차·직원] 본인 승인 건 취소 요청 허용 (앱 cancelLeave 형태)', () => assertSucceeds(update(ref(as(APPROVED), 'leaves/la'), { status: 'cancel_requested' })));
+await check('[연차·직원] 취소 요청하면서 날짜 바꾸기 거부', async () => {
+    await testEnv.withSecurityRulesDisabled(async (c) => update(ref(c.database(), 'leaves/la'), { status: 'approved' }));
+    await assertFails(update(ref(as(APPROVED), 'leaves/la'), { status: 'cancel_requested', date: '2026-12-25' }));
+});
+await check('[연차·직원] 승인 건 직접 삭제 거부 (일수 복구 우회)', () => assertFails(remove(ref(as(APPROVED), 'leaves/la'))));
+await check('[연차·직원] 반려 건 상태 변경 거부', () => assertFails(update(ref(as(APPROVED), 'leaves/lr'), { status: 'pending' })));
+await check('[연차·직원] 남의 승인대기 건 승인 거부', () => assertFails(update(ref(as(APPROVED), 'leaves/lo'), { status: 'approved' })));
+await check('[연차·직원] 남의 신청 삭제 거부', () => assertFails(remove(ref(as(APPROVED), 'leaves/lo'))));
+await check('[연차·직원] leaves 전체 덮어쓰기 거부', () => assertFails(set(ref(as(APPROVED), 'leaves'), {})));
+await check('[연차·직원] 루트 다중 경로로 본인 건 승인 거부', () => assertFails(update(ref(as(APPROVED)), { 'leaves/lo/status': 'approved', 'tasks/q': { a: 1 } })));
+await check('[연차·미승인] 본인 신청 거부', () => assertFails(set(ref(as(PENDING), 'leaves/n4'), newLeave(PENDING))));
+await check('[연차·관리자] 승인 허용 (앱 adminResolveLeave 형태)', () => assertSucceeds(update(ref(as(ADMIN), 'leaves/lo'), { status: 'approved', rejectReason: null })));
+await check('[연차·관리자] 반려 허용', () => assertSucceeds(update(ref(as(SECOND_ADMIN_IN_CONFIG), 'leaves/lo'), { status: 'rejected', rejectReason: '사유' })));
+await check('[연차·관리자 이메일] 취소 요청 승인(삭제) 허용', () => assertSucceeds(remove(ref(as(EMAIL_ADMIN_UID, { email: ADMIN_EMAIL, email_verified: true }), 'leaves/la'))));
+await check('[연차·관리자] 대리 등록(approved) 허용 (앱 submitAdminAddLeave 형태)', () => assertSucceeds(set(ref(as(ADMIN), 'leaves/n5'), newLeave(OTHER, 'approved'))));
+await check('[연차·관리자] 강제 삭제 허용', () => assertSucceeds(remove(ref(as(ADMIN), 'leaves/lr'))));
 
 // 4) 신규 프로필 등록 (main.js 의 실제 기본값과 동일한 형태)
 const newProfile = { displayName: '신규', email: 'new@example.com', approved: false, leaveTotal: 15, department: 'unassigned' };

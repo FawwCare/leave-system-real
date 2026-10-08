@@ -19,7 +19,9 @@
     },
     "leaves": {
       ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
-      ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
+      "$leaveId": {
+        ".write": "(auth.uid === 'jaGugunGReXytCgbqYwQUybxyJL2' || auth.uid === 'hiPMcfj1OvWuq6PjedfPFvOLxlp2' || (auth.token.email === 'contact@faww.co.kr' && auth.token.email_verified === true)) || (auth != null && root.child('users/' + auth.uid + '/approved').val() === true && ((!data.exists() && newData.child('uid').val() === auth.uid && newData.child('status').val() === 'pending') || (data.exists() && !newData.exists() && data.child('uid').val() === auth.uid && data.child('status').val() === 'pending') || (data.exists() && newData.exists() && data.child('uid').val() === auth.uid && data.child('status').val() === 'approved' && newData.child('status').val() === 'cancel_requested' && newData.child('uid').val() === data.child('uid').val() && newData.child('userName').val() === data.child('userName').val() && newData.child('date').val() === data.child('date').val() && newData.child('type').val() === data.child('type').val() && newData.child('subType').val() === data.child('subType').val() && newData.child('timestamp').val() === data.child('timestamp').val() && newData.child('id').val() === data.child('id').val() && newData.child('rejectReason').val() === data.child('rejectReason').val())))"
+      }
     },
     "tasks": {
       ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",

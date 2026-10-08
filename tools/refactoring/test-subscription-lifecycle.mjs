@@ -104,6 +104,31 @@ function propagate(changed) {
         if (b === null || a === b || a.startsWith(b + '/') || b.startsWith(a + '/')) deliver(r);
     }
 }
+const writeLog = [];   // {path, ok}
+function isAdminUser(u) { return !!u && (ADMIN_UIDS_RULE.includes(u.uid) || (u.email === 'contact@faww.co.kr' && u.emailVerified === true)); }
+function leaveWriteAllowed(leaveId, before, after) {
+    const u = auth.currentUser; if (!u) return false;
+    if (isAdminUser(u)) return true;
+    if (getAt(`users/${u.uid}/approved`) !== true) return false;
+    const d = before, n = after;
+    if (!d) return !!n && n.uid === u.uid && n.status === 'pending';
+    if (!n) return d.uid === u.uid && d.status === 'pending';
+    const same = ['uid', 'userName', 'date', 'type', 'subType', 'timestamp', 'id', 'rejectReason'].every(k => (n[k] ?? null) === (d[k] ?? null));
+    return d.uid === u.uid && d.status === 'approved' && n.status === 'cancel_requested' && same;
+}
+function guardWrite(path, apply) {
+    const sg = seg(path);
+    if (sg[0] === 'leaves' && sg[1]) {
+        const snapshotStore = JSON.stringify(store); const before = JSON.parse(JSON.stringify(getAt(`leaves/${sg[1]}`)));   // 깊은 복사 (쓰기 전 상태)
+        apply(); const after = getAt(`leaves/${sg[1]}`);
+        const ok = leaveWriteAllowed(sg[1], before, after === null ? null : JSON.parse(JSON.stringify(after)));
+        writeLog.push({ path, ok, who: auth.currentUser && auth.currentUser.uid, before, after });
+        if (!ok) { const restored = JSON.parse(snapshotStore); for (const k of Object.keys(store)) delete store[k]; Object.assign(store, restored);
+            return Promise.reject(Object.assign(new Error('permission_denied'), { code: 'PERMISSION_DENIED' })); }
+        return null;
+    }
+    apply(); return null;
+}
 class Query {
     constructor(p, spec = {}) { this.path = seg(p).join('/'); Object.assign(this, spec); }
     _with(extra) { return new Query(this.path, { _oc: this._oc, _eq: this._eq, _lim: this._lim, ...extra }); }
@@ -125,9 +150,9 @@ class Query {
         for (const r of [...regs]) if (r.query.sameSpec(this) && (!cb || r.cb === cb)) { regs.delete(r); counters.off++; }
     }
     once() { return Promise.resolve(canRead(this.path) ? snapshotOf(this) : (() => { throw new Error('permission_denied'); })()); }
-    async set(v) { setAt(this.path, v); propagate(this.path); }
-    async update(o) { for (const k of Object.keys(o)) setAt(this.path + '/' + k, o[k]); propagate(this.path); }
-    async remove() { setAt(this.path, null); propagate(this.path); }
+    async set(v) { const e = guardWrite(this.path, () => setAt(this.path, v)); if (e) return e; propagate(this.path); }
+    async update(o) { const e = guardWrite(this.path, () => { for (const k of Object.keys(o)) setAt(this.path + '/' + k, o[k]); }); if (e) return e; propagate(this.path); }
+    async remove() { const e = guardWrite(this.path, () => setAt(this.path, null)); if (e) return e; propagate(this.path); }
     push(v) { const k = 'k' + Math.random().toString(36).slice(2); const q = this.child(k); if (v !== undefined) q.set(v); return Object.assign(q, { then: (f) => Promise.resolve().then(f) }); }
     transaction(fn) { const cur = getAt(this.path); const nv = fn(cur); if (nv !== undefined) setAt(this.path, nv); propagate(this.path); return Promise.resolve({ committed: true, snapshot: snapshotOf(this) }); }
 }
@@ -154,7 +179,10 @@ const activeBusiness = () => active().filter(r => BUSINESS_TOP.has(seg(r.query.p
 // ---------------------------------------------------------------- context
 const noop = () => {};
 const appErrors = [];
-process.on('uncaughtException', (e) => { appErrors.push('uncaught: ' + (e && e.stack || e)); });
+process.on('uncaughtException', (e) => { console.log('FAIL 처리되지 않은 예외: ' + (e && e.stack || e)); process.exit(1); });
+process.on('unhandledRejection', (e) => { console.log('FAIL 처리되지 않은 거부: ' + (e && e.stack || e)); process.exit(1); });
+let __finished = false;
+process.on('exit', () => { if (!__finished) { console.log('\nFAIL 테스트가 끝까지 실행되지 않음 (중간 중단)\n' + appErrors.slice(-3).join('\n')); process.exitCode = 1; } });
 const anyFn = new Proxy(function () {}, { get: (t, k) => (k === Symbol.toPrimitive ? () => '' : anyFn), apply: () => anyFn, construct: () => anyFn });
 const firebaseStub = {
     apps: [{}], initializeApp: () => ({}), app: () => ({ functions: () => anyFn }),
@@ -343,6 +371,45 @@ await db.ref(`users/${ADMIN}`).update({ displayName: 'Admin3' }); await settle()
 check('[관리자 프로필 2회 수정] users 전체 리스너 2건(관리자목록+조직도) 초과 없음', active().filter(r => r.query.path === 'users').length <= 2,
     String(active().filter(r => r.query.path === 'users').length));
 
+// 연차: 실제 앱 함수가 만드는 쓰기가 규칙 모델을 통과하는지 (보안 2차-4)
+// config.js 의 customConfirm/customPrompt 는 const 라 교체하지 않고, 실제 모달의 확인 버튼을 누르는 방식으로 응답한다
+const dialogLog = [];
+const autoClicker = setInterval(() => {
+    const modal = document.getElementById('alertModal'); const btn = document.getElementById('alertConfirmBtn');
+    if (modal.style.display === 'flex' && typeof btn.onclick === 'function') {
+        dialogLog.push(document.getElementById('alertMessage').textContent);
+        if (document.getElementById('alertInput').style.display === 'block') document.getElementById('alertInput').value = '사유';
+        btn.onclick();
+    }
+}, 5);
+await signIn('uA');
+document.getElementById('leaveIsRange').checked = false;
+document.getElementById('leaveStartDate').value = '2026-12-01'; document.getElementById('leaveType').value = '1';
+writeLog.length = 0;
+await run('applyLeave()'); await settle();
+const myNew = Object.values(getAt('leaves') || {}).find(l => l.uid === 'uA' && l.date === '2026-12-01');
+check('[연차·앱] 직원 신청(applyLeave) → 규칙 통과, 승인대기로 저장', !!myNew && myNew.status === 'pending' && writeLog.every(w => w.ok), JSON.stringify(writeLog));
+writeLog.length = 0;
+await run(`cancelLeave('${myNew.id}')`); await settle();
+check('[연차·앱] 승인대기 취소(cancelLeave) → 규칙 통과, 삭제됨', getAt(`leaves/${myNew.id}`) === null && writeLog.length > 0 && writeLog.every(w => w.ok), JSON.stringify(writeLog));
+const sneaky = await db.ref('leaves/l1').update({ status: 'approved' }).then(() => 'ok', () => 'denied');
+check('[연차·직접시도] 직원이 본인 대기 건을 승인으로 변경 → 거부', sneaky === 'denied' && getAt('leaves/l1/status') === 'pending');
+await signIn(ADMIN);
+await db.ref('leaves/l1').update({ status: 'pending' });
+writeLog.length = 0;
+await run("adminResolveLeave('l1', 'approved', 'pending')"); await settle();
+check('[연차·앱] 관리자 승인(adminResolveLeave) → 규칙 통과', getAt('leaves/l1/status') === 'approved' && writeLog.every(w => w.ok), JSON.stringify(writeLog));
+await signIn('uA');
+writeLog.length = 0;
+await run("cancelLeave('l1')"); await settle();
+check('[연차·앱] 승인 건 취소 요청(cancelLeave) → 규칙 통과, cancel_requested', getAt('leaves/l1/status') === 'cancel_requested' && writeLog.every(w => w.ok), JSON.stringify(writeLog));
+await signIn(ADMIN);
+writeLog.length = 0;
+await run("adminResolveLeave('l1', 'approved', 'cancel_requested')"); await settle();
+check('[연차·앱] 관리자 취소 승인(삭제) → 규칙 통과', getAt('leaves/l1') === null && writeLog.every(w => w.ok), JSON.stringify(writeLog));
+clearInterval(autoClicker);
+await signIn(ADMIN);
+
 // 관리자 3명: 관리자 탭 표시 (config.js ADMIN_UIDS 2개 + ADMIN_EMAILS 1개)
 const adminTab = () => document.getElementById('tab-btn-admin').style.display;
 await db.ref('users/hiPMcfj1OvWuq6PjedfPFvOLxlp2').set({ displayName: 'Admin2', approved: true, leaveTotal: 15 });
@@ -362,6 +429,7 @@ briefingMode = run('globalThis.__bm');
 check('[배차 갱신] 쿠팡 모드 화면이면 쿠팡 모드로 다시 그림', briefingMode === 'coupang', String(briefingMode));
 await authApi.signOut(); await settle();
 
+__finished = true;
 const failed = results.filter(r => !r.ok);
 console.log(`\n결과: ${results.length - failed.length}/${results.length} 통과, ${failed.length} 실패`);
 process.exit(failed.length ? 1 : 0);
