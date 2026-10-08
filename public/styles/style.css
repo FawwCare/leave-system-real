@@ -1366,7 +1366,7 @@ background: linear-gradient(to bottom,
 
 .calendar-day.today .calendar-date::after,
 .mypage-calendar-day.today .calendar-date::after {
-    content: "?ㅻ뒛";
+    content: "오늘";
     font-size: 0.6rem;
     font-weight: 800;
     margin-left: 4px;
@@ -2434,7 +2434,7 @@ background: linear-gradient(to bottom,
     .notice-list-header { display: none !important; }
     .notice-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
     .notice-item-author, .notice-item-date, .notice-item-views { width: auto; text-align: left; display: inline-block; margin-right: 0.5rem; }
-    .notice-item-views::before { content: '鈺곌퀬??? '; }
+    .notice-item-views::before { content: '조회수 '; }
 }
 
 /* ??筌롫뗄?놅쭪? 獄쏄퀣? (筌?쑵??筌뤴뫖以??怨쀫?) */
