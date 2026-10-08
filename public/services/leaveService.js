@@ -525,7 +525,8 @@ function downloadLeaveCSV() {
 
 let previousPendingLeaves = new Set(), isFirstLeavesLoad = true;
 // 휴가 데이터 최적화: 최신 300개만 로드
-db.ref('leaves').orderByKey().limitToLast(300).on('value', (s) => {
+window.startLeaveSubscriptions = function() {
+window.AppSubscriptionManager.subscribe('leaves', db.ref('leaves').orderByKey().limitToLast(300), (s) => {
     const data = s.val() || {};
     for (let key in data) data[key].id = key;
     AppStore.setLeaves(data);
@@ -537,4 +538,5 @@ db.ref('leaves').orderByKey().limitToLast(300).on('value', (s) => {
     // 데이터 변경 시 화면 즉시 새로고침
     if (typeof renderLeaveUI === 'function') renderLeaveUI();
     if (typeof renderAdminLeaves === 'function') renderAdminLeaves();
-});
+});};
+

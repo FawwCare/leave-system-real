@@ -2115,20 +2115,29 @@ function renderTasks() {
     }
 }
 
-db.ref('tasks').orderByChild('status').equalTo('todo').on('value', (s) => {
-    const data = s.val() || {};
-    AppStore.mergeTasks(data, 'todo');
-});
+window.startTasksTodoListener = function() { console.log('STARTING TASKS TODO LISTENER');
+    window.AppSubscriptionManager.subscribe('tasks_todo', db.ref('tasks').orderByChild('status').equalTo('todo'), (s) => {
+        const data = s.val() || {};
+        AppStore.mergeTasks(data, 'todo');
+    });
+};
 
-db.ref('tasks').orderByChild('status').equalTo('doing').on('value', (s) => {
-    const data = s.val() || {};
-    AppStore.mergeTasks(data, 'doing');
-});
 
-db.ref('tasks').orderByChild('status').equalTo('done').limitToLast(50).on('value', (s) => {
-    const data = s.val() || {};
-    AppStore.mergeTasks(data, 'done');
-});
+window.startTasksDoingListener = function() {
+    window.AppSubscriptionManager.subscribe('tasks_doing', db.ref('tasks').orderByChild('status').equalTo('doing'), (s) => {
+        const data = s.val() || {};
+        AppStore.mergeTasks(data, 'doing');
+    });
+};
+
+
+window.startTasksDoneListener = function() {
+    window.AppSubscriptionManager.subscribe('tasks_done', db.ref('tasks').orderByChild('status').equalTo('done').limitToLast(50), (s) => {
+        const data = s.val() || {};
+        AppStore.mergeTasks(data, 'done');
+    });
+};
+
 
 // ----------------------------------------------------
 // 보관함 (Archive) 기능
@@ -2301,14 +2310,19 @@ function renderDailyTasks() {
 }
 
 // 리스너 설정
-db.ref('tasks/dailyRoutine/settings').on('value', (s) => {
-    AppStore.setDailyTasks(s.val() || {});
-});
+window.startDailyRoutineSettingsListener = function() {
+    window.AppSubscriptionManager.subscribe('dailyTasks', db.ref('tasks/dailyRoutine/settings'), (s) => {
+        AppStore.setDailyTasks(s.val() || {});
+    });
+
+};
 
 const todayStr = getTodayStr();
-db.ref(`tasks/dailyRoutine/logs/${todayStr}`).on('value', (s) => {
-    AppStore.setDailyLogs(s.val() || {});
-});
+window.startDailyRoutineLogsListener = function() {
+    window.AppSubscriptionManager.subscribe('dailyLogs', db.ref(`tasks/dailyRoutine/logs/${todayStr}`), (s) => {
+        AppStore.setDailyLogs(s.val() || {});
+    });
+};
 
 // 엔터키 처리
 document.getElementById('dailyTaskInput')?.addEventListener('keydown', function (e) {
@@ -3219,3 +3233,11 @@ if (document.readyState === 'loading') {
     initTippy();
 }
 
+
+window.startKanbanSubscriptions = function() {
+    if (typeof window.startTasksTodoListener === 'function') window.startTasksTodoListener();
+    if (typeof window.startTasksDoingListener === 'function') window.startTasksDoingListener();
+    if (typeof window.startTasksDoneListener === 'function') window.startTasksDoneListener();
+    if (typeof window.startDailyRoutineSettingsListener === 'function') window.startDailyRoutineSettingsListener();
+    if (typeof window.startDailyRoutineLogsListener === 'function') window.startDailyRoutineLogsListener();
+};

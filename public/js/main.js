@@ -1,3 +1,27 @@
+// Data clear helper
+window.clearAllAppStoreData = function() {
+    AppStore.setTasks({});
+    AppStore.setTrips({});
+    AppStore.setLeaves({});
+    AppStore.setUsers({});
+    AppStore.setNotices({});
+    AppStore.setDailyTasks({});
+    AppStore.setDailyLogs({});
+    AppStore.setNotifications({});
+    AppStore.setExternalEvents({});
+    AppStore.setMeetingFeeds({});
+    AppStore.setTripVehicles({});
+
+    if (document.getElementById('chat-messages')) document.getElementById('chat-messages').innerHTML = '';
+    if (document.getElementById('communication-list')) document.getElementById('communication-list').innerHTML = '';
+    if (document.getElementById('feed-container')) document.getElementById('feed-container').innerHTML = '';
+    if (document.getElementById('todo-list')) document.getElementById('todo-list').innerHTML = '';
+    if (document.getElementById('doing-list')) document.getElementById('doing-list').innerHTML = '';
+    if (document.getElementById('done-list')) document.getElementById('done-list').innerHTML = '';
+    if (document.getElementById('notification-list')) document.getElementById('notification-list').innerHTML = '';
+    if (typeof window.clearServicesData === 'function') window.clearServicesData();
+};
+
 // 모바일/PWA 환경 디버깅을 위한 전역 에러 핸들러 (외부 CDN/크로스오리진 단순 Script error 제외)
 window.addEventListener('error', function(event) {
     if (event.message === 'Script error.' || (!event.filename && event.lineno === 0)) {
@@ -170,7 +194,9 @@ function checkNotificationUrlParams() {
 
 // 앱 실행 시 즉시 권한 요청 및 쿼리 파라미터 확인 실행
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
+    
+
+document.addEventListener('DOMContentLoaded', () => {
         requestNotificationPermission();
         checkNotificationUrlParams();
     });
@@ -184,13 +210,20 @@ initDashboardSortable();
     auth.onAuthStateChanged(async (user) => {
     if (user) {
         requestNotificationPermission(); // 로그인 시 시스템 알림 권한 승인 유도
-        if (typeof startConsumablesListener === 'function') startConsumablesListener();
-        db.ref('users/' + user.uid).on('value', (snapshot) => {
+        
+        // 계정 전환 시 이전 계정의 데이터와 구독 완전 초기화
+        window.AppSubscriptionManager.unsubscribeAllExcept([]);
+        if (typeof window.clearAllAppStoreData === 'function') window.clearAllAppStoreData();
+        AppStore.setCurrentUser(null);
+        if (typeof window.cleanupPrivateChatState === 'function') window.cleanupPrivateChatState();
+        if (typeof window.stopConsumablesListener === 'function') window.stopConsumablesListener();
+
+        window.AppSubscriptionManager.subscribe('userProfile', db.ref('users/' + user.uid), (snapshot) => {
             const profile = snapshot.val();
             
             // 신규 사용자 정보 자동 등록 (DB에 프로필이 없는 경우)
             if (!profile) {
-                const isSystemAdmin = (ADMIN_UIDS.includes(user.uid) || (typeof ADMIN_EMAILS !== 'undefined' && user.email && ADMIN_EMAILS.includes(user.email)));
+                const isSystemAdmin = (user.uid === 'jaGugunGReXytCgbqYwQUybxyJL2');
                 db.ref('users/' + user.uid).set({
                     displayName: user.displayName || '익명',
                     email: user.email,
@@ -209,7 +242,7 @@ initDashboardSortable();
             
             if (profile && profile.approved) {
                 if (document.getElementById('tab-btn-admin')) {
-                    document.getElementById('tab-btn-admin').style.display = (ADMIN_UIDS.includes(user.uid) || (typeof ADMIN_EMAILS !== 'undefined' && user.email && ADMIN_EMAILS.includes(user.email))) ? 'flex' : 'none';
+                    document.getElementById('tab-btn-admin').style.display = (user.uid === 'jaGugunGReXytCgbqYwQUybxyJL2') ? 'flex' : 'none';
                 }
                 listenForUsers();
                 if (typeof startNotificationListener === 'function') startNotificationListener();
@@ -217,43 +250,52 @@ initDashboardSortable();
                 if(typeof renderAdminLeaves === 'function') renderAdminLeaves();
                 if(typeof initPdfToolSettings === 'function') initPdfToolSettings();
                 if(typeof loadProposalSettings === 'function') loadProposalSettings();
+                if (typeof startKanbanSubscriptions === 'function') startKanbanSubscriptions();
+                if (typeof startLeaveSubscriptions === 'function') startLeaveSubscriptions();
+                if (typeof startMapSubscriptions === 'function') startMapSubscriptions();
+                if (typeof startServicesSubscriptions === 'function') startServicesSubscriptions();
+                if (typeof startServicesSubscriptions2 === 'function') startServicesSubscriptions2();
+                if (typeof startConsumablesListener === 'function') startConsumablesListener();
+                
+                window.AppSubscriptionManager.subscribe('external_events', db.ref('external_events'), (snapshot) => {
+                    const externalEvents = snapshot.val() || {};
+                    AppStore.setExternalEvents(externalEvents);
+                    if (typeof renderTabCalendar === 'function') renderTabCalendar();
+                    if (typeof renderTasks === 'function') renderTasks();
+                    if (typeof renderTripList === 'function') renderTripList();
+                });
+                window.AppSubscriptionManager.subscribe('tripVehicles', db.ref('tripVehicles'), (snapshot) => {
+                    AppStore.setTripVehicles(snapshot.val() || {});
+                    if (typeof showBriefingTrips === 'function' && document.getElementById('briefingTripsModal') && document.getElementById('briefingTripsModal').style.display !== 'none') {
+                        let currentMode = 'my';
+                        const teamBtn = document.getElementById('btnTeamTrips');
+                        if (teamBtn && teamBtn.style.background === 'var(--primary)') currentMode = 'team';
+                        showBriefingTrips(currentMode);
+                    }
+                });
             } else {
                 if (document.getElementById('tab-btn-admin')) document.getElementById('tab-btn-admin').style.display = 'none';
+                window.AppSubscriptionManager.unsubscribeAllExcept(['userProfile']);
+                window.isListenerInitialized = false;
+                if (typeof window.clearAllAppStoreData === 'function') window.clearAllAppStoreData();
+                if (typeof window.stopConsumablesListener === 'function') window.stopConsumablesListener();
+                if (typeof window.cleanupPrivateChatState === 'function') window.cleanupPrivateChatState();
+                
             }
         }, (dbError) => {
             alert("[DB 프로필 읽기 에러] " + dbError.message);
         });
-        // 공용 외부 일정 리스너 추가 (팀 전체 공유용)
-        db.ref('external_events').on('value', (snapshot) => {
-            const externalEvents = snapshot.val() || {};
-            const count = Object.keys(externalEvents).length;
-            console.log(`[외부일정 리스너] 수신된 일정 수: ${count}`);
-            AppStore.setExternalEvents(externalEvents);
-            if (typeof renderTabCalendar === 'function') renderTabCalendar();
-            if (typeof renderTasks === 'function') renderTasks();
-            if (typeof renderTripList === 'function') renderTripList();
-        }, (dbError) => {
-            console.error("외부일정 DB 읽기 에러:", dbError);
-        });
 
-        // 차량 배차(호차) 정보 리스너 (팀 전체 공유용)
-        db.ref('tripVehicles').on('value', (snapshot) => {
-            AppStore.setTripVehicles(snapshot.val() || {});
-            if (typeof showBriefingTrips === 'function' && document.getElementById('briefingTripsModal') && document.getElementById('briefingTripsModal').style.display !== 'none') {
-                // 모달이 열려있는 상태라면 현재 모드를 파악하며 리렌더링
-                let currentMode = 'my';
-                const teamBtn = document.getElementById('btnTeamTrips');
-                const coupangBtn = document.getElementById('btnCoupangTrips');
-                if (teamBtn && teamBtn.style.background === 'var(--primary)') currentMode = 'team';
-                else if (coupangBtn && coupangBtn.style.background === 'var(--primary)') currentMode = 'coupang';
-                showBriefingTrips(currentMode);
-            }
-        });
     } else {
         // 로그아웃 시 로컬 상태만 초기화 (자동 파기는 logout 함수에서 명시적으로 처리)
         AppStore.setCurrentUser(null);
-        AppStore.setExternalEvents({}); 
-        if (typeof stopConsumablesListener === 'function') stopConsumablesListener();
+        window.isListenerInitialized = false;
+        window.AppSubscriptionManager.unsubscribeAllExcept([]);
+        if (typeof window.clearAllAppStoreData === 'function') window.clearAllAppStoreData();
+        
+        if (typeof window.stopConsumablesListener === 'function') window.stopConsumablesListener();
+        if (typeof window.cleanupPrivateChatState === 'function') window.cleanupPrivateChatState();
+        
         
         updateUIPermissions(null, null);
         if (document.getElementById('tab-btn-admin')) document.getElementById('tab-btn-admin').style.display = 'none';
@@ -357,7 +399,7 @@ function listenForUsers() {
                                 </div>`;
                 approvalListEl.appendChild(li); pendingCount++;
             } else {
-                const actionBtn = (ADMIN_UIDS.includes(uid) || (typeof ADMIN_EMAILS !== 'undefined' && typeof user !== 'undefined' && user.email && ADMIN_EMAILS.includes(user.email))) ? `<span style="font-size: 0.8rem; color: var(--primary); font-weight: bold;">최고관리자</span>` : `<button class="revoke-btn" onclick="revokeUser('${uid}', '${safeName}')">해제</button>`;
+                const actionBtn = (uid === 'jaGugunGReXytCgbqYwQUybxyJL2') ? `<span style="font-size: 0.8rem; color: var(--primary); font-weight: bold;">최고관리자</span>` : `<button class="revoke-btn" onclick="revokeUser('${uid}', '${safeName}')">해제</button>`;
                 li.innerHTML = `<span>${user.displayName} <small style="color: var(--text-muted); font-weight: normal;">(${user.email})</small></span>${actionBtn}`;
                 memberListEl.appendChild(li); memberCount++;
             }

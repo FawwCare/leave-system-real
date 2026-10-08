@@ -13,7 +13,7 @@ function listenForCommunications() {
     const listEl = document.getElementById('communication-list');
     if (!listEl) return;
 
-    db.ref('businessCommunications').on('value', (snapshot) => {
+    window.AppSubscriptionManager.subscribe('businessCommunications', db.ref('businessCommunications'), (snapshot) => {
         listEl.innerHTML = '';
         const data = snapshot.val();
         if (!data) {
@@ -72,7 +72,7 @@ function listenForCommunications() {
 
 // 탭 전환 시 또는 로딩 시 리스너 등록
 document.addEventListener('DOMContentLoaded', () => {
-    listenForCommunications();
+    // // listenForCommunications();
 });
 
 // ----------------------------------------------------
@@ -534,7 +534,12 @@ function renderFiles() {
 }
 
 // 로컬 렌더링 누락 문제를 최소화하기 위해 limitToLast(500)으로 증가
-db.ref('files').orderByKey().limitToLast(500).on('value', (s) => {
+window.startServicesSubscriptions = function() {
+    if (typeof listenForCommunications === 'function') listenForCommunications();
+    if (typeof window.listenForChatMessages === 'function') window.listenForChatMessages();
+    if (typeof window.listenForNotices === 'function') window.listenForNotices();
+    if (typeof window.listenForFeed === 'function') window.listenForFeed();
+window.AppSubscriptionManager.subscribe('files', db.ref('files').orderByKey().limitToLast(500), (s) => {
     const data = s.val() || {};
     for (let key in data) {
         if (data[key] && typeof data[key] === 'object') {
@@ -543,20 +548,23 @@ db.ref('files').orderByKey().limitToLast(500).on('value', (s) => {
     }
     allFilesData = data;
     renderFiles();
-});
+});};
+
 
 
 // ----------------------------------------------------
 // 조직도(팀원 목록) 및 채팅 기능
 // ----------------------------------------------------
-db.ref('users').on('value', (snapshot) => {
+window.startServicesSubscriptions2 = function() {
+window.AppSubscriptionManager.subscribe('users', db.ref('users'), (snapshot) => {
     AppStore.setUsers(snapshot.val() || {});
     if (typeof renderAdminLeaves === 'function') renderAdminLeaves();
     if (typeof renderLeaveUI === 'function') renderLeaveUI();
     if (typeof renderMyPage === 'function') renderMyPage();
     if (typeof renderTasks === 'function') renderTasks();
     if (typeof generateAiBriefing === 'function') generateAiBriefing();
-});
+});};
+
 
 function renderMembersDirectory() {
     ['ceo', 'executive_director', 'director', 'team1_leader', 'team1_member', 'team2_leader', 'team2_member', 'unassigned'].forEach(id => { const el = document.getElementById('list-' + id); if (el) el.innerHTML = ''; });
@@ -678,7 +686,7 @@ function openPrivateChat(targetUid, targetName) {
     if (currentPrivateChatRef) currentPrivateChatRef.off();
 
     currentPrivateChatRef = db.ref(`privateChats/${getPrivateChatId(auth.currentUser.uid, targetUid)}`).orderByChild('timestamp').limitToLast(50);
-    currentPrivateChatRef.on('value', (s) => {
+    window.AppSubscriptionManager.subscribe('privateChat', currentPrivateChatRef, (s) => {
         const chatBody = document.getElementById('private-chat-messages'); chatBody.innerHTML = '';
         const now = Date.now();
         const threeDaysMs = 3 * 24 * 60 * 60 * 1000; // 3일을 밀리초로 계산
@@ -707,6 +715,16 @@ function openPrivateChat(targetUid, targetName) {
     });
 }
 function closePrivateChat() { document.getElementById('private-chat-window').style.display = 'none'; if (currentPrivateChatRef) currentPrivateChatRef.off(); currentPrivateChatTargetUid = null; }
+
+window.cleanupPrivateChatState = function() {
+    closePrivateChat();
+    privateChatListeners = {};
+    const input = document.getElementById('private-chat-input');
+    if (input) input.value = '';
+    const body = document.getElementById('private-chat-messages');
+    if (body) body.innerHTML = '';
+};
+
 function handlePrivateChatEnter(event) { if (event.key === 'Enter') { event.preventDefault(); if (event.isComposing) return; sendPrivateMessage(); } }
 async function sendPrivateMessage() {
     const currentUserProfile = AppStore.getCurrentUser();
@@ -766,7 +784,8 @@ async function sendChatMessage() {
 }
 
 // 단체 채팅 알림 및 리스너
-db.ref('chatMessages').orderByChild('timestamp').limitToLast(50).on('value', (s) => {
+window.listenForChatMessages = function() {
+window.AppSubscriptionManager.subscribe('chatMessages', db.ref('chatMessages').orderByChild('timestamp').limitToLast(50), (s) => {
     const chatBody = document.getElementById('chat-messages'); if (!chatBody) return; chatBody.innerHTML = '';
     let latestMsg = null;
     const now = Date.now();
@@ -798,6 +817,7 @@ db.ref('chatMessages').orderByChild('timestamp').limitToLast(50).on('value', (s)
         }
     }
 });
+};
 
 // 1:1 개인 채팅 알림 및 리스너
 let privateChatListeners = {};
@@ -806,9 +826,9 @@ function setupPrivateChatNotificationListeners() {
     Object.keys(AppStore.getUsers()).forEach(targetUid => {
         if (targetUid === currentUid) return;
         const chatId = getPrivateChatId(currentUid, targetUid);
-        if (!privateChatListeners[chatId]) {
+        if (true) {
             // 🔥 로컬 저장이 아닌, DB에서 실제로 내가 안 읽은 메시지만 정확히 카운트합니다.
-            db.ref(`privateChats/${chatId}`).orderByChild('timestamp').limitToLast(50).on('value', (s) => {
+            window.AppSubscriptionManager.subscribe('privateChats_list_' + chatId, db.ref(`privateChats/${chatId}`).orderByChild('timestamp').limitToLast(50), (s) => {
                 let unreadCount = 0;
                 let latestMsg = null;
                 const now = Date.now();
@@ -926,7 +946,7 @@ function viewNotice(id) {
     loadComments(id);
 
     // 실시간 공감(좋아요) 리스너
-    db.ref(`notices/${id}/likes`).on('value', s => {
+    window.AppSubscriptionManager.subscribe('noticeLikes_' + id, db.ref(`notices/${id}/likes`), s => {
         if (currentNoticeId !== id) return;
         const likesObj = s.val() || {};
         const uid = auth.currentUser ? auth.currentUser.uid : null;
@@ -968,7 +988,7 @@ function enableNoticeEdit() {
 }
 
 function loadComments(noticeId) {
-    db.ref('notices/' + noticeId + '/comments').on('value', (s) => {
+    window.AppSubscriptionManager.subscribe('noticeComments_' + noticeId, db.ref('notices/' + noticeId + '/comments'), (s) => {
         if (currentNoticeId !== noticeId) return;
         renderComments(s.val() || {});
     });
@@ -1212,13 +1232,15 @@ async function deleteNotice() {
 
 // 공지사항 데이터 실시간 동기화
 // 공지사항 최적화: 최신 50개만 로드
-db.ref('notices').orderByKey().limitToLast(50).on('value', (s) => {
+window.listenForNotices = function() {
+window.AppSubscriptionManager.subscribe('notices', db.ref('notices').orderByKey().limitToLast(50), (s) => {
     const data = s.val() || {};
     for (let key in data) data[key].id = key;
     AppStore.setNotices(data);
 
     if (typeof renderNotices === 'function') renderNotices();
 });
+};
 
 // ----------------------------------------------------
 // Google 캘린더 연동
@@ -1901,7 +1923,7 @@ function startNotificationListener() {
     const uid = auth.currentUser ? auth.currentUser.uid : null;
     if (!uid) return;
 
-    db.ref(`tasks/notifications/${uid}`).orderByChild('timestamp').limitToLast(50).on('value', (s) => {
+    window.AppSubscriptionManager.subscribe('tasks_notifications', db.ref(`tasks/notifications/${uid}`).orderByChild('timestamp').limitToLast(50), (s) => {
         const notisObj = s.val() || {};
         AppStore.setNotifications(notisObj);
         renderNotifications();
@@ -2522,11 +2544,13 @@ function switchProposalMobileTab(tab) {
 let currentFeedFilter = 'all';
 
 // 1. Firebase 데이터베이스 리스너 등록
-db.ref('tasks').orderByChild('status').equalTo('feed').on('value', (snapshot) => {
+window.listenForFeed = function() {
+window.AppSubscriptionManager.subscribe('tasks_feed', db.ref('tasks').orderByChild('status').equalTo('feed'), (snapshot) => {
     const data = snapshot.val() || {};
     for (let key in data) data[key].id = key;
     AppStore.setMeetingFeeds(data);
 });
+};
 
 // 2. 피드 등록 함수
 async function addMeetingFeed() {
@@ -2955,7 +2979,7 @@ function startConsumablesListener() {
     
     console.log('[Consumables] Starting database listener...');
     consumablesListenerRef = db.ref('consumables');
-    consumablesListenerRef.on('value', (snapshot) => {
+    window.AppSubscriptionManager.subscribe('consumables', consumablesListenerRef, (snapshot) => {
         const data = snapshot.val() || {};
         
         // 키 이름(id) 설정
@@ -2979,12 +3003,14 @@ function startConsumablesListener() {
     });
 }
 
-function stopConsumablesListener() {
+window.stopConsumablesListener = function() {
     if (consumablesListenerRef) {
         console.log('[Consumables] Stopping database listener...');
         consumablesListenerRef.off();
         consumablesListenerRef = null;
     }
+    allConsumablesData = {};
+    if (document.getElementById('consumables-grid')) document.getElementById('consumables-grid').innerHTML = '';
 }
 
 // 기본 소모품 품목 초기화 함수
@@ -3240,7 +3266,7 @@ async function openConsumablesLogModal() {
     if (consumablesLogListenerRef) consumablesLogListenerRef.off();
     
     consumablesLogListenerRef = db.ref('consumablesLog').orderByChild('timestamp').limitToLast(50);
-    consumablesLogListenerRef.on('value', (snapshot) => {
+    window.AppSubscriptionManager.subscribe('consumablesLog', consumablesLogListenerRef, (snapshot) => {
         listEl.innerHTML = '';
         const logs = [];
         
@@ -3394,4 +3420,11 @@ ${myName}님의 오늘 일정입니다.
             alert("메시지 전송 실패: " + JSON.stringify(err) + "\n(디벨로퍼스 설정에서 도메인 및 권한을 다시 한번 확인해 주세요!)");
         }
     });
+};
+
+window.getAllFilesData = () => allFilesData;
+window.setAllFilesData = (v) => { allFilesData = v; };
+window.clearServicesData = function() {
+    allFilesData = {};
+    if (document.getElementById('fileList')) document.getElementById('fileList').innerHTML = '';
 };

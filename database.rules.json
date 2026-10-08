@@ -1,0 +1,88 @@
+{
+  "rules": {
+    "users": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth.uid === 'jaGugunGReXytCgbqYwQUybxyJL2' || (auth.uid === $uid && newData.exists())",
+        ".validate": "auth.uid === 'jaGugunGReXytCgbqYwQUybxyJL2' || (newData.exists() && (!data.exists() ? (newData.hasChild('leaveTotal') && newData.child('leaveTotal').val() === 15 && newData.hasChild('approved') && newData.child('approved').val() === false && !newData.hasChild('totalLeave')) : ( (!data.hasChild('approved') || newData.hasChild('approved')) && (!data.hasChild('leaveTotal') || newData.hasChild('leaveTotal')) && (!data.hasChild('totalLeave') || newData.hasChild('totalLeave')) && (!newData.hasChild('totalLeave') || data.hasChild('totalLeave')) )))",
+        "approved": {
+          ".validate": "auth.uid === 'jaGugunGReXytCgbqYwQUybxyJL2' || (!data.exists() && newData.val() === false) || (data.exists() && newData.val() === data.val())"
+        },
+        "leaveTotal": {
+          ".validate": "auth.uid === 'jaGugunGReXytCgbqYwQUybxyJL2' || (!data.exists() && newData.val() === 15) || (data.exists() && newData.val() === data.val())"
+        },
+        "totalLeave": {
+          ".validate": "auth.uid === 'jaGugunGReXytCgbqYwQUybxyJL2' || (data.exists() && newData.val() === data.val())"
+        }
+      }
+    },
+    "leaves": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
+    },
+    "tasks": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
+    },
+    "external_events": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
+    },
+    "businessCommunications": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
+    },
+    "tripVehicles": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
+    },
+    "businessTrips": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
+    },
+    "files": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
+    },
+    "privateChats": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
+    },
+    "chatMessages": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
+    },
+    "notices": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
+    },
+    "consumables": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
+    },
+    "consumablesLog": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
+    },
+    "sharedNote": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
+    },
+    "typingStatus": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
+    },
+    "notifications": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
+    },
+    "dailyTasks": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
+    },
+    "dailyLogs": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
+    }
+  }
+}
