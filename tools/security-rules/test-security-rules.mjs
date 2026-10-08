@@ -32,7 +32,9 @@ const NEWBIE = 'uNew';      // 프로필이 아직 없는 사용자
 const OTHER = 'uOther';
 
 const BUSINESS_PATHS = ['tasks', 'leaves', 'businessTrips', 'files', 'consumables', 'consumablesLog',
-    'external_events', 'tripVehicles', 'businessCommunications', 'chatMessages', 'notices', 'privateChats'];
+    'external_events', 'tripVehicles', 'businessCommunications', 'chatMessages', 'notices'];
+// 1:1 채팅방 ID 형식: 작은UID_큰UID (privateChatUtils.js getPrivateChatId 와 동일)
+const chatIdOf = (a, b) => (a < b ? `${a}_${b}` : `${b}_${a}`);
 
 const rules = fs.readFileSync(RULES_PATH, 'utf8');
 const testEnv = await initializeTestEnvironment({
@@ -55,6 +57,9 @@ async function seed() {
                 [EMAIL_ADMIN_UID]: { displayName: 'Company', approved: true, leaveTotal: 15 },
             },
             ...Object.fromEntries(BUSINESS_PATHS.map(p => [p, { seed1: { title: 'fixture', status: 'todo' } }])),
+            privateChats: {
+                [chatIdOf(APPROVED, OTHER)]: { m1: { uid: OTHER, sender: 'O', text: '안녕', timestamp: 1, read: false } },
+            },
         });
     });
 }
@@ -98,6 +103,29 @@ for (const p of BUSINESS_PATHS) {
     await check(`[승인] ${p} 읽기 허용`, () => assertSucceeds(get(ref(as(APPROVED), p))));
     await check(`[승인] ${p} 쓰기 허용`, () => assertSucceeds(set(ref(as(APPROVED), `${p}/x`), { a: 1 })));
 }
+
+// 3-b) 보안 2차-2: 1:1 채팅은 당사자만
+const CAO = chatIdOf(APPROVED, OTHER);
+const msg = (uid, text = 'hi') => ({ uid, sender: 'x', text, timestamp: 2, read: false });
+await check('[채팅·당사자] 본인 대화 읽기 허용', () => assertSucceeds(get(ref(as(APPROVED), `privateChats/${CAO}`))));
+await check('[채팅·당사자] 상대 당사자도 읽기 허용', () => assertSucceeds(get(ref(as(OTHER), `privateChats/${CAO}`))));
+await check('[채팅·제3자] 승인된 직원이라도 남의 대화 읽기 거부', () => assertFails(get(ref(as(LEGACY), `privateChats/${CAO}`))));
+await check('[채팅·제3자] 남의 대화에 메시지 쓰기 거부', () => assertFails(set(ref(as(LEGACY), `privateChats/${CAO}/m9`), msg(LEGACY))));
+await check('[채팅·제3자] 남의 대화 삭제 거부', () => assertFails(remove(ref(as(LEGACY), `privateChats/${CAO}`))));
+await check('[채팅] privateChats 전체 읽기 거부 (관리자 포함)', async () => { await assertFails(get(ref(as(APPROVED), 'privateChats'))); await assertFails(get(ref(as(ADMIN), 'privateChats'))); });
+await check('[채팅·미승인 당사자] 본인 대화라도 읽기 거부', () => assertFails(get(ref(as(PENDING), `privateChats/${chatIdOf(PENDING, APPROVED)}`))));
+await check('[채팅·비로그인] 읽기 거부', () => assertFails(get(ref(as(null), `privateChats/${CAO}`))));
+await check('[채팅·당사자] 본인 명의 새 메시지 쓰기 허용 (앱 push 형태)', () => assertSucceeds(set(ref(as(APPROVED), `privateChats/${CAO}/m2`), msg(APPROVED))));
+await check('[채팅·당사자] 상대 명의(사칭) 새 메시지 쓰기 거부', () => assertFails(set(ref(as(APPROVED), `privateChats/${CAO}/m3`), msg(OTHER))));
+await check('[채팅·당사자] 받은 메시지 읽음 표시 허용 (앱 update 형태)', () => assertSucceeds(update(ref(as(APPROVED), `privateChats/${CAO}/m1`), { read: true })));
+await check('[채팅·당사자] 받은 메시지 내용 변조 거부', () => assertFails(update(ref(as(APPROVED), `privateChats/${CAO}/m1`), { text: '변조' })));
+await check('[채팅·당사자] 받은 메시지 작성자 변경 거부', () => assertFails(update(ref(as(APPROVED), `privateChats/${CAO}/m1`), { uid: APPROVED })));
+await check('[채팅·우회] 방 ID에 내 UID를 끼운 가짜 방은 상대가 읽을 수 없음', async () => {
+    const fake = `${LEGACY}_${OTHER}_x`;
+    await assertSucceeds(set(ref(as(LEGACY), `privateChats/${fake}/m1`), msg(LEGACY)));   // 본인 UID로 시작 → 쓰기 자체는 허용
+    await assertFails(get(ref(as(APPROVED), `privateChats/${fake}`)));                     // 무관한 제3자는 읽기 불가
+});
+await check('[채팅·우회] 루트 다중 경로로 남의 대화 쓰기 거부', () => assertFails(update(ref(as(LEGACY)), { [`privateChats/${CAO}/m8`]: msg(LEGACY), 'tasks/z': { a: 1 } })));
 
 // 4) 신규 프로필 등록 (main.js 의 실제 기본값과 동일한 형태)
 const newProfile = { displayName: '신규', email: 'new@example.com', approved: false, leaveTotal: 15, department: 'unassigned' };

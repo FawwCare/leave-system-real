@@ -46,8 +46,13 @@
       ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
     },
     "privateChats": {
-      ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",
-      ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true"
+      "$chatId": {
+        ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true && ($chatId.beginsWith(auth.uid + '_') || $chatId.endsWith('_' + auth.uid))",
+        ".write": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true && ($chatId.beginsWith(auth.uid + '_') || $chatId.endsWith('_' + auth.uid))",
+        "$msgId": {
+          ".validate": "!data.exists() ? newData.child('uid').val() === auth.uid : (newData.child('uid').val() === data.child('uid').val() && newData.child('text').val() === data.child('text').val() && newData.child('timestamp').val() === data.child('timestamp').val() && newData.child('sender').val() === data.child('sender').val())"
+        }
+      }
     },
     "chatMessages": {
       ".read": "auth != null && root.child('users/' + auth.uid + '/approved').val() === true",

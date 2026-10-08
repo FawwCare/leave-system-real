@@ -68,6 +68,10 @@ function canRead(p) {
         if (approvedOrAdmin) return true;
         return seg(p)[1] === auth.currentUser.uid;
     }
+    if (top === 'privateChats') {   // 보안 2차-2: 승인 + 당사자만 (방 ID = 작은UID_큰UID)
+        const id = seg(p)[1]; const me = auth.currentUser.uid;
+        return getAt(`users/${me}/approved`) === true && !!id && (id.startsWith(me + '_') || id.endsWith('_' + me));
+    }
     if (BUSINESS_TOP.has(top)) return getAt(`users/${auth.currentUser.uid}/approved`) === true;
     return false;
 }
@@ -307,6 +311,8 @@ const dupe = Object.entries(active().reduce((m, r) => { const k = JSON.stringify
     .filter(([k, n]) => n > (k === KNOWN_PAIR ? 2 : 1));
 check('[반복 5회 후] 동일 쿼리 중복 등록 없음 (실제 등록 기준, users 2키 구성 제외)', dupe.length === 0, JSON.stringify(dupe));
 check('[반복 5회 후] 권한 거부로 취소된 리스너 0건', counters.denied === 0, counters.deniedPaths.join(','));
+const pcRegs = active().filter(r => r.query.path.startsWith('privateChats/'));
+check(`[채팅 구독] 개인채팅 리스너 ${pcRegs.length}건 모두 본인 참여 방만 대상`, pcRegs.length > 0 && pcRegs.every(r => { const id = seg(r.query.path)[1]; return id.startsWith(auth.currentUser.uid + '_') || id.endsWith('_' + auth.currentUser.uid); }));
 // 관찰: 1:1 채팅 창 닫기(query.off() 무인자)가 같은 쿼리의 알림 리스너까지 제거하는지
 run("openPrivateChat('uB', 'B')"); await settle();
 run('closePrivateChat()'); await settle();
