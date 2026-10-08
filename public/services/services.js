@@ -330,7 +330,7 @@ async function forceDownload(url, fileName) {
         window.URL.revokeObjectURL(blobUrl);
     } catch (e) {
         console.error('CORS 에러 혹은 파일 다운로드 불가 상황', e);
-        window.open(url, '_blank');
+        if (/^https?:\/\//i.test(String(url || ''))) window.open(url, '_blank'); // http(s) 주소만 연다 (javascript: 등 차단)
     }
 }
 
@@ -432,7 +432,7 @@ async function openDriveFile(fileId) {
     }
 
     if (file.url) {
-        window.open(file.url, '_blank');
+        if (/^https?:\/\//i.test(String(file.url))) window.open(file.url, '_blank'); // DB에 저장된 주소는 http(s) 만 연다
     } else {
         await customAlert('파일 URL 정보를 찾을 수 없습니다.');
     }

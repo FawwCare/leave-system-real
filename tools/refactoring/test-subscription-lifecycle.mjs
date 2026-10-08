@@ -19,6 +19,7 @@ const ADMIN = 'jaGugunGReXytCgbqYwQUybxyJL2';
 const ADMIN_UIDS_RULE = [ADMIN, 'hiPMcfj1OvWuq6PjedfPFvOLxlp2'];
 
 // ---------------------------------------------------------------- DOM stub
+const allEls = [];
 function makeEl(id) {
     const el = {
         id, _children: [], style: {}, dataset: {}, value: '', checked: false, disabled: false, textContent: '',
@@ -33,6 +34,7 @@ function makeEl(id) {
         focus() {}, blur() {}, click() {}, scrollIntoView() {}, getBoundingClientRect() { return { top: 0, left: 0, width: 0, height: 0 }; },
         getContext() { return null; }, insertAdjacentHTML(_, h) { this._innerHTML += h; }, cloneNode() { return makeEl(); },
     };
+    allEls.push(el);
     return el;
 }
 const elements = new Map();
@@ -203,6 +205,7 @@ const ctx = {
     IntersectionObserver: function () { this.observe = noop; this.disconnect = noop; },
     ResizeObserver: function () { this.observe = noop; this.disconnect = noop; },
     requestAnimationFrame: (f) => setTimeout(f, 0), matchMedia: () => ({ matches: false, addEventListener: noop, addListener: noop }),
+    HTMLElement: Object.assign(function () {}, { prototype: { appendChild(c) { this._children.push(c); return c; } } }), Element: function () {}, Node: function () {}, Event: function () {},
     getComputedStyle: () => ({}), innerWidth: 1280, innerHeight: 800, addEventListener: noop, removeEventListener: noop,
     URL, URLSearchParams, Blob: function () {}, FileReader: function () {}, Image: function () {}, CustomEvent: function () {},
     TextEncoder, TextDecoder, atob, btoa, structuredClone, Intl, Set, Map, WeakMap, Symbol, Error, RegExp, Number, String, Boolean, encodeURIComponent, decodeURIComponent,
@@ -428,6 +431,59 @@ await db.ref('tripVehicles/v2').set({ car: '2호차' }); await settle();
 briefingMode = run('globalThis.__bm');
 check('[배차 갱신] 쿠팡 모드 화면이면 쿠팡 모드로 다시 그림', briefingMode === 'coupang', String(briefingMode));
 await authApi.signOut(); await settle();
+
+// ---------------------------------------------------------------- XSS 회귀 테스트
+// 사용자가 쓸 수 있는 모든 필드에 공격 문자열을 넣고 실제 렌더 함수를 돌린 뒤, 앱이 만든 모든 요소의 innerHTML 에
+// 날것의 공격 문자열이 남아 있는지 검사한다. (태그 / 속성 탈출 / JS 문자열 탈출 3종)
+const P_TAG = '<img src=x onerror=PWN1>';
+const P_ATTR = 'q" onmouseover="PWN2';
+const P_JS = "q');PWN3();//";
+const P = `${P_TAG}${P_ATTR}${P_JS}`;
+const RAW_MARKERS = ['<img src=x onerror=PWN1', 'onmouseover="PWN2', "');PWN3"];
+await signIn(ADMIN);
+await db.ref('users/uX').set({ displayName: P, email: P, department: 'unassigned', approved: false, leaveTotal: 15, photoURL: 'javascript:PWN4' });
+await db.ref('users/uY').set({ displayName: P, email: 'y@x.com', approved: true, leaveTotal: 15, photoURL: '" onerror="PWN5' });
+const tid = P_JS;  // 레코드 키에도 공격 문자열
+await db.ref('tasks/' + 'kTask').set({ title: P, description: P, assignee: `${P}, A`, status: 'todo', dueDate: P, startDate: P, priority: 'high', badgesHtml: P_TAG });
+await db.ref('tasks/' + 'kDone').set({ title: P, assignee: P, status: 'done', dueDate: '2026-10-01' });
+await db.ref('tasks/kArch').set({ title: P, assignee: P, description: P, status: 'archived', dueDate: P, startDate: P });
+await db.ref('tasks/kFeed').set({ status: 'feed', description: P, author: P, timestamp: Date.now(), acknowledgments: { a: { name: P } } });
+await db.ref('businessTrips/kTrip').set({ name: P, address: P, assignee: P, date: '2026-10-09', bookedHotel: P, category: P });
+await db.ref('leaves/kLeave').set({ id: 'kLeave', uid: 'uY', userName: P, date: P, type: 1, subType: '1', status: 'pending', timestamp: 1, rejectReason: P });
+await db.ref('leaves/kLeave2').set({ id: 'kLeave2', uid: ADMIN, userName: P, date: P, type: 1, subType: '1', status: 'rejected', timestamp: 2, rejectReason: P });
+await db.ref('files/kFile').set({ name: P, uploader: P, url: 'javascript:PWN6', path: '', timestamp: 1, type: 'file' });
+await db.ref('files/kFile2').set({ name: P, uploader: P, url: 'https://example.com/a', path: P, timestamp: 3, type: 'file' });
+await db.ref('files/kFolder').set({ name: P, isFolder: true, timestamp: 2 });
+await db.ref('notices/kNotice').set({ title: P, content: P, author: P, timestamp: 1, views: P, comments: { c1: { author: P, content: P, timestamp: 1, uid: 'uY' } } });
+await db.ref('businessCommunications/kComm').set({ title: P, summary: P, sender: P, category: P, categoryLabel: P, timestamp: Date.now() });
+await db.ref('consumables/kCon').set({ name: P, unit: P, currentStock: P, threshold: 1 });
+await db.ref('consumablesLog/kLog').set({ itemName: P, operator: P, change: P, newStock: P, timestamp: 1 });
+await db.ref('external_events/kExt').set({ title: P, assignee: P, date: '2026-10-09', startDate: '2026-10-09' });
+await db.ref(`tasks/notifications/${ADMIN}/kN`).set({ title: P, message: P, timestamp: Date.now() });
+await db.ref('chatMessages/kChat').set({ uid: 'uY', sender: P, text: P, timestamp: Date.now() });
+await settle();
+const renderCalls = ['renderTasks()', 'renderTripList()', 'renderLeaveUI()', 'renderAdminLeaves()', 'renderMyPage()', 'renderFiles()',
+    'renderMembersDirectory()', 'renderChatList()', 'renderNotices()', "viewNotice('kNotice')", 'renderNotifications()',
+    'renderMeetingFeedUI()', 'renderConsumables()', 'openConsumablesLogModal()', 'openArchiveModal()', 'generateAiBriefing()'];
+const renderErrors = [];
+for (const c of renderCalls) { try { await run(c); } catch (e) { renderErrors.push(`${c}: ${e.message}`); } }
+await settle();
+const leaks = [];
+for (const el of allEls) {
+    const h = el._innerHTML || '';
+    for (const m of RAW_MARKERS) if (h.includes(m)) leaks.push(`${el.id || '(무명요소)'} ← ${m} :: ${h.slice(Math.max(0, h.indexOf(m) - 60), h.indexOf(m) + 40).replace(/\s+/g, ' ')}`);
+    if (/(src|href)="javascript:/i.test(h)) leaks.push(`${el.id || '(무명요소)'} ← javascript: URL`);
+    if (h.includes('src="" onerror="PWN5')) leaks.push(`${el.id || '(무명요소)'} ← photoURL 속성 탈출`);
+}
+const sampleHas = (id, needle) => (document.getElementById(id)._innerHTML + document.getElementById(id)._children.map(c => c._innerHTML || '').join('')).includes(needle);
+check('[XSS] 렌더 함수 실행 중 예외 없음', renderErrors.length === 0, renderErrors.join(' | '));
+check(`[XSS] 앱이 만든 요소 ${allEls.length}개 중 날것의 공격 문자열 0건`, leaks.length === 0, leaks.slice(0, 6).join('\n      '));
+check('[XSS] 관리자 승인 목록에 이름이 글자로 표시됨 (이스케이프 확인)', sampleHas('user-approval-list', '&lt;img src=x onerror=PWN1&gt;'));
+check('[XSS] 업무 소통(메일 제목)이 글자로 표시됨', sampleHas('communication-list', '&lt;img src=x onerror=PWN1&gt;'));
+check('[XSS] 일반 업무의 DB badgesHtml 은 그리지 않음', !allEls.some(el => (el._innerHTML || '').includes(P_TAG)));
+const opened = []; ctx.open = (u) => opened.push(u); run('window.open = globalThis.open');
+await run("openDriveFile('kFile')"); await settle();
+check('[XSS] DB의 javascript: 파일 주소는 열지 않음', opened.length === 0, opened.join(','));
 
 __finished = true;
 const failed = results.filter(r => !r.ok);

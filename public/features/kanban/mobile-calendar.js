@@ -105,10 +105,10 @@
                             var meta = metaEl ? metaEl.textContent : '';
 
                             div.innerHTML =
-                                '<div class="mobile-detail-dot" style="background:' + color + '"></div>' +
+                                '<div class="mobile-detail-dot" style="background:' + escapeHTML(color) + '"></div>' +
                                 '<div class="mobile-detail-info">' +
-                                '  <div class="mobile-detail-title">' + title + '</div>' +
-                                '  <div class="mobile-detail-meta">' + meta + '</div>' +
+                                '  <div class="mobile-detail-title">' + escapeHTML(title) + '</div>' +
+                                '  <div class="mobile-detail-meta">' + escapeHTML(meta) + '</div>' +
                                 '</div>';
 
                             // 원본 아이템의 클릭 핸들러 연결

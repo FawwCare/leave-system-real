@@ -993,10 +993,12 @@ async function refreshCalendarEvents(btn) {
 let currentCalendarSearchQuery = '';
 
 function highlightSearchText(text, query) {
-    if (!query || !text) return text;
-    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // 결과는 innerHTML 로 들어가므로 먼저 글자를 이스케이프한 뒤, 이스케이프된 검색어 기준으로 강조한다
+    const safeText = escapeHTML(text);
+    if (!query || !safeText) return safeText;
+    const escapedQuery = escapeHTML(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(${escapedQuery})`, 'gi');
-    return text.replace(regex, '<span class="search-highlight">$1</span>');
+    return safeText.replace(regex, '<span class="search-highlight">$1</span>');
 }
 
 function updateSearchDropdown(items, query) {
@@ -2516,7 +2518,7 @@ async function generateAiBriefing() {
                             <span class="material-symbols-rounded" style="font-size: 1.1rem; color: #8B5CF6; opacity: 0.7;">open_in_new</span>
                         </div>
                         <div style="font-size: 0.88rem; font-weight: 600;">
-                            ${upcomingTrips.length > 0 ? `앞으로 <span style="color: #8B5CF6;">${upcomingTrips.length}</span>건의 일정이 있습니다.<br><span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">• 다음 일정: ${upcomingTrips[0].date} ${upcomingTrips[0].name}</span>` : '예정된 연동 일정이 없습니다.'}
+                            ${upcomingTrips.length > 0 ? `앞으로 <span style="color: #8B5CF6;">${upcomingTrips.length}</span>건의 일정이 있습니다.<br><span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">• 다음 일정: ${escapeHTML(upcomingTrips[0].date)} ${escapeHTML(upcomingTrips[0].name)}</span>` : '예정된 연동 일정이 없습니다.'}
                         </div>
                     </div>
                     <div style="background: rgba(16, 185, 129, 0.05); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.1);">
