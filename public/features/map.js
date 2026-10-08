@@ -174,7 +174,7 @@ function openTripModal(id = null, name = '', date = '', assignee = '', contact =
 
         resultsContainer.style.display = 'flex';
 
-        resultsContainer.innerHTML = `<div style="padding:0.8rem; background-color:#10B98115; color:#10B981; border-radius:6px; font-weight:bold; font-size:0.85rem; text-align:center; display:flex; justify-content:space-between; align-items:center;"><span><span class="material-symbols-rounded" style="vertical-align:middle; font-size:1.2em;">check_circle</span> 예약 숙소: ${escapeHTML(bookedHotel)}</span><button onclick="cancelAccommodation()" style="background:transparent; color:var(--danger); border:1px solid var(--danger); padding:0.2rem 0.5rem; font-size:0.75rem;">예약 취소</button></div>`;
+        resultsContainer.innerHTML = `<div style="padding:0.8rem; background-color:#10B98115; color:#10B981; border-radius:var(--radius); font-weight:bold; font-size:0.85rem; text-align:center; display:flex; justify-content:space-between; align-items:center;"><span><span class="material-symbols-rounded" style="vertical-align:middle; font-size:1.2em;">check_circle</span> 예약 숙소: ${escapeHTML(bookedHotel)}</span><button onclick="cancelAccommodation()" style="background:transparent; color:var(--danger); border:1px solid var(--danger); padding:0.2rem 0.5rem; font-size:0.75rem;">예약 취소</button></div>`;
 
     } else {
 
@@ -298,7 +298,7 @@ async function searchAccommodation() {
 
                         const safeName = place.place_name.replace(/'/g, "\\'");
 
-                        html += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--card-bg); padding:0.8rem; border-radius:6px; border:1px solid var(--border-color); margin-bottom:0.5rem;"><div><div style="font-weight:bold; font-size:0.9rem; color:#E63946;">${escapeHTML(place.place_name)}</div><div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">${escapeHTML(distText)} | <a href="${safeUrl(place.place_url)}" rel="noopener noreferrer" target="_blank" style="color:var(--primary); text-decoration:underline;">카카오맵 상세정보</a></div></div><button onclick="bookAccommodation(${jsAttrArg(place.place_name)})" style="background-color:#E63946; padding:0.4rem 0.8rem; font-size:0.8rem;">선택 및 예약</button></div>`;
+                        html += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--card-bg); padding:0.8rem; border-radius:var(--radius); border:1px solid var(--border-color); margin-bottom:0.5rem;"><div><div style="font-weight:bold; font-size:0.9rem; color:#E63946;">${escapeHTML(place.place_name)}</div><div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">${escapeHTML(distText)} | <a href="${safeUrl(place.place_url)}" rel="noopener noreferrer" target="_blank" style="color:var(--primary); text-decoration:underline;">카카오맵 상세정보</a></div></div><button onclick="bookAccommodation(${jsAttrArg(place.place_name)})" style="background-color:#E63946; padding:0.4rem 0.8rem; font-size:0.8rem;">선택 및 예약</button></div>`;
 
                     });
 
@@ -338,7 +338,7 @@ async function bookAccommodation(hotelName) {
 
         document.getElementById('tripBookedHotel').value = hotelName;
 
-        document.getElementById('accommodationResults').innerHTML = `<div style="padding:0.8rem; background-color:#10B98115; color:#10B981; border-radius:6px; font-weight:bold; font-size:0.85rem; text-align:center; display:flex; justify-content:space-between; align-items:center;"><span><span class="material-symbols-rounded" style="vertical-align:middle; font-size:1.2em;">check_circle</span> 예약 숙소: ${escapeHTML(hotelName)}</span><button onclick="cancelAccommodation()" style="background:transparent; color:var(--danger); border:1px solid var(--danger); padding:0.2rem 0.5rem; font-size:0.75rem;">예약 취소</button></div>`;
+        document.getElementById('accommodationResults').innerHTML = `<div style="padding:0.8rem; background-color:#10B98115; color:#10B981; border-radius:var(--radius); font-weight:bold; font-size:0.85rem; text-align:center; display:flex; justify-content:space-between; align-items:center;"><span><span class="material-symbols-rounded" style="vertical-align:middle; font-size:1.2em;">check_circle</span> 예약 숙소: ${escapeHTML(hotelName)}</span><button onclick="cancelAccommodation()" style="background:transparent; color:var(--danger); border:1px solid var(--danger); padding:0.2rem 0.5rem; font-size:0.75rem;">예약 취소</button></div>`;
 
 
 
@@ -1997,7 +1997,7 @@ async function calculateOptimizedRoute() {
 
             const hqContentEl = document.createElement('div');
 
-            hqContentEl.innerHTML = `<div style="background-color: #1F2937; color: white; padding: 4px 8px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 0.85rem; border: 2px solid white; box-shadow: var(--shadow-sm); cursor: pointer;"><span class="material-symbols-rounded" style="font-size:1.1em; margin-right:4px;">apartment</span>본점</div>`;
+            hqContentEl.innerHTML = `<div style="background-color: #1F2937; color: white; padding: 4px 8px; border-radius: var(--radius); display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 0.85rem; border: 2px solid white; box-shadow: var(--shadow-sm); cursor: pointer;"><span class="material-symbols-rounded" style="font-size:1.1em; margin-right:4px;">apartment</span>본점</div>`;
 
             const hqOverlay = new kakao.maps.CustomOverlay({ position: hqPosition, content: hqContentEl, yAnchor: 0.5, zIndex: 10 });
 
@@ -2033,10 +2033,10 @@ async function calculateOptimizedRoute() {
                     
                     <div style="display:flex; align-items:center; gap:8px;">
                         <!-- 3. 미니멀 컬러 도트 -->
-                        <div style="width:8px; height:8px; border-radius:50%; background-color:var(--team-color); box-shadow:0 0 8px var(--team-color); animation: pulse 2s infinite;"></div>
+                        <div style="width:8px; height:8px; border-radius:50%; background-color:var(--team-color); box-shadow:none; animation: pulse 2s infinite;"></div>
                         
                         <!-- 2. 반투명 글로우 뱃지 -->
-                        <div style="display:flex; align-items:center; gap:4px; background-color:color-mix(in srgb, var(--team-color) 15%, transparent); padding:4px 10px; border-radius:20px;">
+                        <div style="display:flex; align-items:center; gap:4px; background-color:color-mix(in srgb, var(--team-color) 15%, transparent); padding:4px 10px; border-radius:var(--radius);">
                             <!-- 1. 아이콘 포인트 색상화 -->
                             <span class="material-symbols-rounded" style="color:var(--team-color); font-size:1.1rem; margin-top:2px;">local_shipping</span>
                             <span style="font-weight:700; color:var(--text-main); font-size:0.95rem;">${teamData.teamId}팀 배정</span>
@@ -2046,7 +2046,7 @@ async function calculateOptimizedRoute() {
                         <span style="font-size:0.85rem; color:var(--text-muted); font-weight:normal; margin-left:4px;">(총 ${teamData.totalDistance.toFixed(1)}km / ${durationText})</span>
                     </div>
 
-                    <button id="${naviBtnId}" style="background-color:#FEE500; color:#000000; border:none; padding:0.4rem 0.8rem; font-size:0.85rem; display:flex; align-items:center; gap:4px; font-weight:bold; border-radius:8px; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.1); transition:all 0.2s;">
+                    <button id="${naviBtnId}" style="background-color:#FEE500; color:#000000; border:none; padding:0.4rem 0.8rem; font-size:0.85rem; display:flex; align-items:center; gap:4px; font-weight:bold; border-radius:var(--radius); cursor:pointer; box-shadow:none; transition:all 0.2s;">
                         <span class="material-symbols-rounded" style="font-size:1.1em;">navigation</span> 카카오내비 전송
                     </button>
                 </div>
@@ -2236,7 +2236,7 @@ async function calculateOptimizedRoute() {
 
                         startLi.className = 'route-item';
 
-                        startLi.innerHTML = `<div class="route-item-number" style="background-color: #1F2937; width:auto; padding:0 8px; border-radius:12px; font-size: 0.8rem;">출발</div>
+                        startLi.innerHTML = `<div class="route-item-number" style="background-color: #1F2937; width:auto; padding:0 8px; border-radius:var(--radius); font-size: 0.8rem;">출발</div>
 
                         <div class="route-item-info">
 

@@ -1024,7 +1024,7 @@ function renderComments(comments) {
 
     const renderSingleComment = (c, isReply) => {
         const div = document.createElement('div');
-        div.style.cssText = `display:flex; flex-direction:column; gap:4px; padding: 10px 14px; background:var(--card-bg); border-radius:12px; border:1px solid var(--border-color); position:relative; animation: fadeIn 0.3s ease; ${isReply ? 'margin-left: 24px; background:#F9FAFB;' : ''}`;
+        div.style.cssText = `display:flex; flex-direction:column; gap:4px; padding: 10px 14px; background:var(--card-bg); border-radius:var(--radius); border:1px solid var(--border-color); position:relative; animation: fadeIn 0.3s ease; ${isReply ? 'margin-left: 24px; background:#F9FAFB;' : ''}`;
 
         const isMyComment = currentUid && c.uid === currentUid;
         const deleteBtn = isMyComment ? `<button onclick="deleteComment(${jsAttrArg(c.id)})" style="position:absolute; right:8px; top:8px; background:transparent; color:var(--text-muted); border:none; padding:4px; cursor:pointer;" title="댓글 삭제"><span class="material-symbols-rounded" style="font-size:1.1rem;">close</span></button>` : '';
@@ -2241,7 +2241,7 @@ function renderProposalHistory() {
         Object.keys(data).sort((a, b) => data[b].timestamp - data[a].timestamp).forEach(id => {
             const prop = data[id];
             const chip = document.createElement('div');
-            chip.style.cssText = 'display: inline-flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm);';
+            chip.style.cssText = 'display: inline-flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: var(--radius); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm);';
 
             let emoji = '📈';
             if (prop.template === 'marketing') emoji = '📣';
@@ -2750,7 +2750,7 @@ function renderMeetingFeedUI() {
 
     if (filteredFeeds.length === 0) {
         container.innerHTML = `
-            <div style="text-align: center; padding: 3rem; color: var(--text-muted); font-style: italic; background-color: var(--col-bg); border-radius: 12px; border: 1px dashed var(--border-color); width: 100%; box-sizing: border-box;">
+            <div style="text-align: center; padding: 3rem; color: var(--text-muted); font-style: italic; background-color: var(--col-bg); border-radius: var(--radius); border: 1px dashed var(--border-color); width: 100%; box-sizing: border-box;">
                 ${searchTerm || currentFeedFilter !== 'all' ? '필터링 조건에 부합하는 피드가 없습니다.' : '등록된 지시사항이 없습니다. 첫 글을 등록해 보세요!'}
             </div>
         `;
@@ -3317,7 +3317,7 @@ async function openConsumablesLogModal() {
                     <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">작업자: ${escapeHTML(log.operator || '익명')} | ${timeStr}</div>
                 </div>
                 <div style="text-align:right;">
-                    <span style="font-size:0.8rem; font-weight:800; color:${badgeColor}; background-color:${badgeBg}; padding:2px 8px; border-radius:6px; display:inline-block;">${escapeHTML(changeText)}</span>
+                    <span style="font-size:0.8rem; font-weight:800; color:${badgeColor}; background-color:${badgeBg}; padding:2px 8px; border-radius:var(--radius); display:inline-block;">${escapeHTML(changeText)}</span>
                     <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">현재고: ${escapeHTML(log.newStock || 0)}개</div>
                 </div>
             `;

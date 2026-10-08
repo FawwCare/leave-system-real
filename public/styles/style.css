@@ -15,15 +15,22 @@
     --card-bg-hover: rgba(255, 255, 255, 1);
     --text-main: #1e293b;
     --text-muted: #64748b;
-    --border-color: rgba(0, 0, 0, 0.08);
+    --border-color: rgba(0, 0, 0, 0.12);
+    --border-strong: rgba(0, 0, 0, 0.24);
     --col-bg: rgba(248, 250, 252, 0.8);
     --glass-blur: blur(16px);
     
     /* 遺꾨━媛먯씠 媛뺥솕????꾩슦 */
-    --shadow-sm: 0 2px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.08);
-    --shadow-md: 0 6px 12px rgba(0,0,0,0.08), 0 3px 6px rgba(0,0,0,0.06);
-    --shadow-lg: 0 20px 40px rgba(0,0,0,0.12), 0 8px 16px rgba(0,0,0,0.08);
-    --shadow-glow: 0 0 20px var(--primary-glow);
+    /* 평면(플랫) UI: 카드·버튼은 그림자 대신 테두리, 떠 있는 레이어만 약한 그림자 */
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+    --shadow-glow: none;
+    --shadow-float: 0 4px 14px rgba(0, 0, 0, 0.10);
+    /* 모서리: 태그·배지 3px / 버튼·입력·카드 4px / 모달·패널 6px. 원형 요소(50%)는 별도 유지 */
+    --radius-sm: 3px;
+    --radius: 4px;
+    --radius-lg: 6px;
 }
 
 /* ?ㅽ겕 紐⑤뱶 ?됱긽 (Midnight Glass Theme) */
@@ -38,11 +45,13 @@
     --text-main: #F8FAFC;
     --text-muted: #94A3B8;
     --border-color: rgba(255, 255, 255, 0.15); 
+    --border-strong: rgba(255, 255, 255, 0.30);
     
     /* ?ㅽ겕 紐⑤뱶 ?꾩슜 媛뺣젰 洹몃┝??*/
-    --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.6);
-    --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.7);
-    --shadow-lg: 0 25px 50px rgba(0, 0, 0, 0.8);
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+    --shadow-float: 0 6px 20px rgba(0, 0, 0, 0.45);
 }
 
 body {
@@ -160,7 +169,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .section {
     background-color: var(--card-bg);
-    border-radius: 12px;
+    border-radius: var(--radius);
     padding: 1.5rem;
     box-shadow: var(--shadow-md);
 }
@@ -178,7 +187,7 @@ button {
     color: white;
     border: none;
     padding: 0.6rem 1.2rem;
-    border-radius: 8px;
+    border-radius: var(--radius);
     font-weight: 600;
     font-size: 0.9rem;
     cursor: pointer;
@@ -215,7 +224,7 @@ button:disabled {
     background: var(--card-bg);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
-    border-radius: 20px;
+    border-radius: var(--radius);
     box-shadow: var(--shadow-sm);
     width: fit-content;
 }
@@ -223,7 +232,7 @@ button:disabled {
     background-color: transparent;
     color: var(--text-muted);
     border: none;
-    border-radius: 16px;
+    border-radius: var(--radius);
     padding: 0.7rem 1.2rem;
     font-size: 1rem;
     font-weight: 700;
@@ -242,7 +251,7 @@ button:disabled {
 .tab-btn.active {
     background-color: var(--primary);
     color: #ffffff;
-    box-shadow: 0 4px 12px var(--primary-glow);
+    box-shadow: none;
 }
 .tab-content {
     animation: fadeIn 0.3s ease-in-out;
@@ -312,7 +321,7 @@ button:disabled {
     }
     .section {
         padding: 1.2rem !important;
-        border-radius: 12px !important;
+        border-radius: var(--radius) !important;
     }
 
     /* 筌뤴뫀而????筌롫뗀??3???袁ⓥ봺沃섎챷毓?域밸챶?????됱뵠?袁⑹뜍 揶쏆뮉??(揶쎛嚥??????꾨늄 ?얜챷??嚥▲끇媛?獄?癰귣똻?? */
@@ -334,7 +343,7 @@ button:disabled {
         font-size: 0.76rem !important;
         font-weight: 700 !important;
         border: 1px solid var(--border-color) !important;
-        border-radius: 12px !important;
+        border-radius: var(--radius) !important;
         background-color: var(--card-bg) !important;
         color: var(--text-muted) !important;
         gap: 4px !important;
@@ -357,7 +366,7 @@ button:disabled {
         color: #FFFFFF !important;
         border-color: transparent !important;
         margin-bottom: 0 !important;
-        box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3), 0 2px 4px -1px rgba(79, 70, 229, 0.15) !important;
+        box-shadow: none !important;
     }
     .tab-btn.active span.material-symbols-rounded {
         color: #FFFFFF !important;
@@ -404,8 +413,8 @@ button:disabled {
     .calendar-task.task-more-badge {
         background-color: #FFFFFF !important;
         border: 1px solid #CBD5E1 !important;
-        border-radius: 6px !important;
-        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.16) !important;
+        border-radius: var(--radius) !important;
+        box-shadow: none !important;
         transition: all 0.2s ease !important;
         display: inline-flex !important;
         align-items: center !important;
@@ -414,7 +423,7 @@ button:disabled {
     .task-more-badge:hover {
         background-color: #F8FAFC !important;
         border-color: #94A3B8 !important;
-        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18) !important;
+        box-shadow: none !important;
     }
 
     .task-time-badge {
@@ -602,7 +611,7 @@ button:disabled {
     .calendar-section-full {
         padding: 1rem !important;
         gap: 1rem !important;
-        border-radius: 16px !important;
+        border-radius: var(--radius) !important;
     }
     .premium-top-bar {
         flex-direction: column !important;
@@ -723,7 +732,7 @@ button:disabled {
         width: 100% !important;
         max-width: 100% !important;
         max-height: 80vh !important;
-        border-radius: 24px 24px 0 0 !important;
+        border-radius: var(--radius) var(--radius) 0 0 !important;
         margin: 0 !important;
         border: none !important;
         border-top: 1px solid var(--border-color) !important;
@@ -893,7 +902,7 @@ button:disabled {
 .search-input {
     padding: 0.5rem 1rem;
     border: 1px solid transparent;
-    border-radius: 12px;
+    border-radius: var(--radius);
     font-size: 0.95rem;
     outline: none;
     background-color: var(--col-bg);
@@ -910,7 +919,7 @@ button:disabled {
     margin-bottom: 1.5rem;
     padding: 1.2rem;
     background-color: var(--col-bg);
-    border-radius: 12px;
+    border-radius: var(--radius);
 }
 
 .progress-header {
@@ -940,7 +949,7 @@ button:disabled {
     padding: 1rem;
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 16px;
+    border-radius: var(--radius);
     box-shadow: var(--shadow-sm);
     align-items: center;
     flex-wrap: wrap;
@@ -949,7 +958,7 @@ button:disabled {
 .task-input-area input {
     padding: 0.8rem 1.2rem;
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: var(--radius);
     font-size: 0.95rem;
     outline: none;
     background-color: var(--col-bg);
@@ -959,7 +968,7 @@ button:disabled {
 #priorityInput {
     padding: 0.8rem 1.2rem;
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: var(--radius);
     font-size: 0.95rem;
     outline: none;
     background-color: var(--col-bg);
@@ -1028,7 +1037,7 @@ select option {
     flex: 1;
     min-width: 280px;
     background-color: var(--col-bg);
-    border-radius: 16px;
+    border-radius: var(--radius);
     padding: 1.2rem;
     border: 1px solid rgba(226, 232, 240, 0.5);
     transition: background-color 0.2s, box-shadow 0.2s, transform 0.2s;
@@ -1069,7 +1078,7 @@ select option {
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     padding: 1.2rem;
-    border-radius: 16px;
+    border-radius: var(--radius);
     box-shadow: var(--shadow-md); /* stronger shadow for more depth */
     border: 1px solid rgba(148, 163, 184, 0.2); /* slightly visible outline */
     display: flex;
@@ -1105,7 +1114,7 @@ select option {
     color: var(--danger);
     padding: 0.4rem 0.6rem;
     font-size: 0.8rem;
-    border-radius: 6px;
+    border-radius: var(--radius);
     font-weight: bold;
 }
 
@@ -1119,7 +1128,7 @@ select option {
     color: var(--text-muted);
     padding: 0.4rem 0.8rem;
     font-size: 0.8rem;
-    border-radius: 6px;
+    border-radius: var(--radius);
     font-weight: 600;
     border: 1px solid var(--border-color);
     transition: all 0.2s;
@@ -1136,7 +1145,7 @@ select option {
    ??筌뤴뫀諭?甕곕뗀? (Legend) & ??볦퍟???????==================== */
 .view-legend {
     display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;
-    padding: 0.8rem 1.2rem; background-color: var(--col-bg); border-radius: 8px; border: 1px solid rgba(226, 232, 240, 0.6);
+    padding: 0.8rem 1.2rem; background-color: var(--col-bg); border-radius: var(--radius); border: 1px solid rgba(226, 232, 240, 0.6);
 }
 .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 600; color: var(--text-main); white-space: nowrap; }
 .legend-color { width: 14px; height: 14px; border-radius: 4px; display: inline-block; box-shadow: var(--shadow-sm); }
@@ -1174,7 +1183,7 @@ select option {
     flex-direction: column !important;
     gap: 0 !important;
     border: 1px solid var(--border-color) !important;
-    border-radius: 16px !important;
+    border-radius: var(--radius) !important;
     overflow: hidden !important;
     background-color: var(--card-bg) !important;
     min-height: auto !important;
@@ -1291,9 +1300,9 @@ background: linear-gradient(to bottom,
     background-color: var(--card-bg);
     padding: 16px 12px;
     min-height: 140px;
-    border-radius: 16px;
+    border-radius: var(--radius);
     border: 1px solid var(--border-color);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: none;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -1308,7 +1317,7 @@ background: linear-gradient(to bottom,
     min-height: 60px !important;
     height: 60px !important;
     padding: 4px 6px !important;
-    border-radius: 8px !important;
+    border-radius: var(--radius) !important;
 }
 
 .mypage-calendar-day .calendar-date {
@@ -1318,7 +1327,7 @@ background: linear-gradient(to bottom,
 
 .calendar-day:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    box-shadow: none;
     z-index: 2;
 }
 
@@ -1330,7 +1339,7 @@ background: linear-gradient(to bottom,
 .mypage-calendar-day.today {
     background-color: rgba(99, 102, 241, 0.06) !important;
     border: 2px solid #6366F1 !important;
-    box-shadow: 0 0 16px rgba(99, 102, 241, 0.25) !important;
+    box-shadow: none !important;
     position: relative;
     z-index: 1;
 }
@@ -1339,7 +1348,7 @@ background: linear-gradient(to bottom,
 [data-theme='dark'] .mypage-calendar-day.today {
     background-color: rgba(99, 102, 241, 0.15) !important;
     border: 2px solid #818CF8 !important;
-    box-shadow: 0 0 16px rgba(129, 140, 248, 0.3) !important;
+    box-shadow: none !important;
 }
 
 .calendar-day.today .calendar-date,
@@ -1347,10 +1356,10 @@ background: linear-gradient(to bottom,
     background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important;
     color: white !important;
     padding: 0px 6px !important;
-    border-radius: 8px !important;
+    border-radius: var(--radius) !important;
     display: inline-flex !important;
     align-items: center !important;
-    box-shadow: 0 2px 4px rgba(249, 115, 22, 0.3) !important;
+    box-shadow: none !important;
     margin-bottom: 6px !important;
     line-height: 1.4 !important;
 }
@@ -1372,11 +1381,11 @@ background: linear-gradient(to bottom,
     color: white !important;
     border: none;
     padding: 0.35rem 0.8rem;
-    border-radius: 8px;
+    border-radius: var(--radius);
     font-size: 0.8rem;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+    box-shadow: none;
     transition: all 0.2s ease;
     margin-left: 6px;
     display: inline-flex;
@@ -1384,7 +1393,7 @@ background: linear-gradient(to bottom,
 }
 .btn-today-premium:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.45);
+    box-shadow: none;
 }
 
 .calendar-date {
@@ -1414,13 +1423,13 @@ background: linear-gradient(to bottom,
 .calendar-task {
     font-size: 0.75rem;
     padding: 2px 6px; /* ?깅슧??以꾩씠湲?(湲곗〈 4px 8px) */
-    border-radius: 6px;
+    border-radius: var(--radius);
     color: white;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     font-weight: 500;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    box-shadow: none;
     animation: fadeIn 0.3s ease;
     flex-shrink: 0;
     display: flex;
@@ -1448,8 +1457,8 @@ background: linear-gradient(to bottom,
     max-width: 450px;
     height: auto;
     max-height: 80vh;
-    border-radius: 20px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border-radius: var(--radius);
+    box-shadow: none;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -1489,10 +1498,10 @@ background: linear-gradient(to bottom,
     font-weight: 700;
     padding: 10px 16px;
     border: none;
-    border-radius: 12px;
+    border-radius: var(--radius);
     color: white;
     cursor: pointer;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    box-shadow: none;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -1507,7 +1516,7 @@ background: linear-gradient(to bottom,
 .cal-add-btn.task-btn:hover {
     background: linear-gradient(135deg, #4338ca 0%, #2563eb 100%);
     transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3), 0 4px 6px -2px rgba(79, 70, 229, 0.1);
+    box-shadow: none;
 }
 
 .cal-add-btn.trip-btn {
@@ -1517,7 +1526,7 @@ background: linear-gradient(to bottom,
 .cal-add-btn.trip-btn:hover {
     background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
     transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.3), 0 4px 6px -2px rgba(139, 92, 246, 0.1);
+    box-shadow: none;
 }
 
 .cal-add-btn:active {
@@ -1556,7 +1565,7 @@ background: linear-gradient(to bottom,
     align-items: center;
     padding: 16px;
     background-color: var(--card-bg);
-    border-radius: 12px;
+    border-radius: var(--radius);
     border: 1px solid var(--border-color);
     transition: all 0.2s ease;
     cursor: pointer;
@@ -1566,13 +1575,13 @@ background: linear-gradient(to bottom,
 .day-item:hover {
     transform: translateX(4px);
     border-color: #4f46e5;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: none;
 }
 
 .day-item-icon {
     width: 40px;
     height: 40px;
-    border-radius: 10px;
+    border-radius: var(--radius);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1632,7 +1641,7 @@ background: linear-gradient(to bottom,
     flex-direction: column;
     gap: 2rem;
     background-color: #f8fafc; /* 獄쏆빓??繹먥뫀嫄??獄쏄퀗瑗?*/
-    border-radius: 24px;
+    border-radius: var(--radius);
 }
 
 [data-theme='dark'] .calendar-section-full {
@@ -1645,9 +1654,9 @@ background: linear-gradient(to bottom,
     align-items: center;
     background-color: var(--card-bg);
     padding: 1rem 1.5rem;
-    border-radius: 20px;
+    border-radius: var(--radius);
     border: 1px solid var(--border-color);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+    box-shadow: none;
     gap: 1rem;
     flex-wrap: wrap;
 }
@@ -1670,7 +1679,7 @@ background: linear-gradient(to bottom,
     gap: 4px;
     background-color: var(--col-bg);
     padding: 5px;
-    border-radius: 14px;
+    border-radius: var(--radius);
     border: 1px solid var(--border-color);
     box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
 }
@@ -1688,7 +1697,7 @@ background: linear-gradient(to bottom,
     align-items: center;
     background-color: var(--col-bg);
     padding: 4px 8px;
-    border-radius: 12px;
+    border-radius: var(--radius);
     border: 1px solid var(--border-color);
     gap: 4px;
 }
@@ -1701,7 +1710,7 @@ background: linear-gradient(to bottom,
     color: var(--text-main);
     cursor: pointer;
     padding: 4px 8px;
-    border-radius: 6px;
+    border-radius: var(--radius);
     outline: none;
     transition: background 0.2s;
 }
@@ -1713,7 +1722,7 @@ background: linear-gradient(to bottom,
 .nav-arrow-btn {
     width: 36px;
     height: 36px;
-    border-radius: 10px;
+    border-radius: var(--radius);
     border: 1px solid var(--border-color);
     background-color: var(--card-bg);
     display: flex;
@@ -1737,7 +1746,7 @@ background: linear-gradient(to bottom,
 .nav-arrow-btn:hover {
     background-color: var(--primary);
     border-color: var(--primary);
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    box-shadow: none;
 }
 
 .nav-arrow-btn:hover .material-symbols-rounded {
@@ -1756,12 +1765,12 @@ background: linear-gradient(to bottom,
     color: #374151;
     border: 1px solid #d1d5db;
     padding: 0.6rem 1.2rem;
-    border-radius: 12px;
+    border-radius: var(--radius);
     font-weight: 700;
     font-size: 0.9rem;
     display: flex;
     align-items: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: none;
     transition: all 0.2s;
     cursor: pointer;
     white-space: nowrap;
@@ -1769,7 +1778,7 @@ background: linear-gradient(to bottom,
 
 .google-sync-premium:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: none;
     background: white;
 }
 
@@ -1785,7 +1794,7 @@ background: linear-gradient(to bottom,
 
 .cal-filter-btn {
     padding: 0.5rem 1rem;
-    border-radius: 10px;
+    border-radius: var(--radius);
     border: none;
     background-color: transparent;
     color: var(--text-muted);
@@ -1810,13 +1819,13 @@ background: linear-gradient(to bottom,
     background-color: var(--card-bg);
     color: var(--primary);
     font-weight: 700;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+    box-shadow: none;
 }
 
 [data-theme='dark'] .cal-filter-btn.active {
     background-color: #1e293b;
     color: #818cf8;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: none;
 }
 
 /* 筌?꼶?????? ??쎄쾿嚥▲끇而?沃섎챶?뀐쭖???????곗춦 */
@@ -1856,9 +1865,9 @@ background: linear-gradient(to bottom,
     background-color: var(--card-bg);
     padding: 16px 12px;
     min-height: 140px;
-    border-radius: 16px;
+    border-radius: var(--radius);
     border: 1px solid var(--border-color);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: none;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -1873,7 +1882,7 @@ background: linear-gradient(to bottom,
     min-height: 60px !important;
     height: 60px !important;
     padding: 4px 6px !important;
-    border-radius: 8px !important;
+    border-radius: var(--radius) !important;
 }
 
 .mypage-calendar-day .calendar-date {
@@ -1883,7 +1892,7 @@ background: linear-gradient(to bottom,
 
 .calendar-day:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    box-shadow: none;
     z-index: 2;
 }
 
@@ -1894,7 +1903,7 @@ background: linear-gradient(to bottom,
 .calendar-day.today {
     background-color: white;
     border: 2px solid var(--primary);
-    box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.1);
+    box-shadow: none;
 }
 
 [data-theme='dark'] .calendar-day.today {
@@ -1964,7 +1973,7 @@ background: linear-gradient(to bottom,
     color: var(--text-muted);
     border: 1px solid var(--border-color);
     padding: 0.6rem 1.2rem;
-    border-radius: 8px;
+    border-radius: var(--radius);
     font-weight: 600;
     font-size: 0.9rem;
     cursor: pointer;
@@ -1991,7 +2000,7 @@ background: linear-gradient(to bottom,
 .file-list li { 
     background-color: var(--col-bg); 
     padding: 0.8rem 1rem; 
-    border-radius: 6px; 
+    border-radius: var(--radius); 
     border: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
@@ -2033,7 +2042,7 @@ background: linear-gradient(to bottom,
     -webkit-backdrop-filter: var(--glass-blur);
     width: 90%;
     max-width: 500px;
-    border-radius: 20px;
+    border-radius: var(--radius);
     padding: 1.5rem;
     box-shadow: var(--shadow-lg);
     border: 1px solid var(--border-color);
@@ -2079,7 +2088,7 @@ background: linear-gradient(to bottom,
     color: var(--primary);
     font-weight: 600;
     text-align: center;
-    border-radius: 10px;
+    border-radius: var(--radius);
     padding: 0.75rem 1rem;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -2105,7 +2114,7 @@ background: linear-gradient(to bottom,
 
 .modal-body textarea {
     width: 100%; height: 150px; padding: 0.75rem;
-    border: 1px solid var(--border-color); border-radius: 6px;
+    border: 1px solid var(--border-color); border-radius: var(--radius);
     resize: vertical; outline: none; font-family: inherit; box-sizing: border-box;
 }
 .modal-body textarea:focus { border-color: var(--primary); }
@@ -2136,7 +2145,7 @@ background: linear-gradient(to bottom,
 .user-list li {
     background-color: var(--col-bg);
     padding: 1rem 1.2rem;
-    border-radius: 10px;
+    border-radius: var(--radius);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -2153,7 +2162,7 @@ background: linear-gradient(to bottom,
     width: 100%;
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: var(--radius);
     padding: 1rem 0;
 }
 .gantt-scroll-area {
@@ -2193,7 +2202,7 @@ background: linear-gradient(to bottom,
 .gantt-row:hover .gantt-row-label { background-color: var(--card-bg); }
 .gantt-bar-area { position: relative; flex: none; height: 100%; overflow: hidden; }
 .gantt-bar {
-    position: absolute; top: 8px; height: 28px; border-radius: 6px;
+    position: absolute; top: 8px; height: 28px; border-radius: var(--radius);
     display: flex; align-items: center; padding: 0 0.5rem;
     gap: 4px;
     font-size: 0.75rem; color: white; font-weight: 600;
@@ -2219,7 +2228,7 @@ background: linear-gradient(to bottom,
 .trip-card {
     background-color: var(--card-bg);
     border: 1px solid rgba(226, 232, 240, 0.8);
-    border-radius: 12px;
+    border-radius: var(--radius);
     padding: 1rem 1.2rem;
     box-shadow: var(--shadow-sm);
     transition: transform 0.2s, box-shadow 0.2s;
@@ -2245,7 +2254,7 @@ background: linear-gradient(to bottom,
 .trip-attachment-btns { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
 .trip-attach-btn {
     background-color: var(--col-bg); color: var(--text-main); border: 1px solid var(--border-color);
-    padding: 0.5rem 0.8rem; font-size: 0.8rem; border-radius: 8px; cursor: pointer; flex: 1;
+    padding: 0.5rem 0.8rem; font-size: 0.8rem; border-radius: var(--radius); cursor: pointer; flex: 1;
     display: flex; align-items: center; justify-content: center; gap: 0.4rem;
     box-shadow: none; font-weight: 600; transition: all 0.2s;
 }
@@ -2270,8 +2279,8 @@ background: linear-gradient(to bottom,
     background-color: var(--card-bg);
     color: var(--text-main);
     padding: 1rem 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-float);
     /* removed border-left for cleaner look */
     display: flex;
     align-items: center;
@@ -2283,7 +2292,7 @@ background: linear-gradient(to bottom,
 .toast.toast-warning { border-left-color: #F59E0B; }
 .toast.fade-out { animation: fadeOutRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 
-[data-theme="dark"] .toast { box-shadow: 0 10px 25px -5px rgba(0,0,0,0.6); border-color: var(--border-color); border-left-color: var(--primary); }
+[data-theme="dark"] .toast { box-shadow: var(--shadow-float); border-color: var(--border-color); border-left-color: var(--primary); }
 [data-theme="dark"] .toast.toast-warning { border-left-color: #F59E0B; }
 
 @keyframes slideInRight {
@@ -2312,8 +2321,8 @@ background: linear-gradient(to bottom,
 .chat-window {
     position: fixed; bottom: 90px; right: 20px; z-index: 999;
     width: 340px; height: 500px; max-height: calc(100vh - 120px);
-    background-color: var(--card-bg); border-radius: 16px;
-    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+    background-color: var(--card-bg); border-radius: var(--radius);
+    box-shadow: none;
     display: none; flex-direction: column; overflow: hidden;
     border: 1px solid var(--border-color);
 }
@@ -2334,7 +2343,7 @@ background: linear-gradient(to bottom,
 .chat-message.mine { align-self: flex-end; align-items: flex-end; }
 .chat-message.others { align-self: flex-start; align-items: flex-start; }
 .chat-sender { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.2rem; margin-left: 4px; margin-right: 4px; }
-.chat-bubble { padding: 0.8rem 1.2rem; border-radius: 18px; font-size: 0.9rem; line-height: 1.4; word-break: break-word; box-shadow: var(--shadow-sm); }
+.chat-bubble { padding: 0.8rem 1.2rem; border-radius: var(--radius); font-size: 0.9rem; line-height: 1.4; word-break: break-word; box-shadow: var(--shadow-sm); }
 .chat-message.mine .chat-bubble { background-color: var(--primary); color: white; border-bottom-right-radius: 4px; }
 .chat-message.others .chat-bubble { background: var(--col-bg); color: var(--text-main); border: 1px solid var(--border-color); border-bottom-left-radius: 4px; }
 .chat-time { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem; }
@@ -2343,7 +2352,7 @@ background: linear-gradient(to bottom,
 }
 .chat-footer input {
     flex: 1; padding: 0.6rem 1rem; border: 1px solid var(--border-color);
-    border-radius: 20px; font-size: 0.9rem; outline: none; background: rgba(255, 255, 255, 0.05); color: var(--text-main);
+    border-radius: var(--radius); font-size: 0.9rem; outline: none; background: rgba(255, 255, 255, 0.05); color: var(--text-main);
     transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
 }
 [data-theme="light"] .chat-footer input { background: rgba(0, 0, 0, 0.02); }
@@ -2383,10 +2392,10 @@ background: linear-gradient(to bottom,
     font-size: 0.75rem;
     font-weight: 800;
     padding: 2px 8px;
-    border-radius: 6px;
+    border-radius: var(--radius);
     margin-right: 8px;
     vertical-align: middle;
-    box-shadow: 0 2px 4px rgba(225, 29, 72, 0.2);
+    box-shadow: none;
     flex-shrink: 0;
 }
 
@@ -2453,13 +2462,13 @@ background: linear-gradient(to bottom,
    鈺곌퀣彛??(Organization Chart)
 ==================== */
 .org-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; padding-bottom: 2rem; }
-.org-column { background: var(--col-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border-radius: 20px; padding: 1.5rem; border: 1px solid var(--border-color); display: flex; flex-direction: column; min-height: 320px; box-shadow: var(--shadow-md); }
+.org-column { background: var(--col-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border-radius: var(--radius); padding: 1.5rem; border: 1px solid var(--border-color); display: flex; flex-direction: column; min-height: 320px; box-shadow: var(--shadow-md); }
 .org-col-ceo { grid-column: 1 / -1; max-width: 500px; margin: 0 auto; width: 100%; position: relative; }
-.org-col-ceo::before { content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px; background: linear-gradient(45deg, var(--primary), var(--danger)); border-radius: 22px; z-index: -1; opacity: 0.5; filter: blur(8px); animation: pulse 3s infinite; }
+.org-col-ceo::before { content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px; background: linear-gradient(45deg, var(--primary), var(--danger)); border-radius: var(--radius); z-index: -1; opacity: 0.5; filter: blur(8px); animation: pulse 3s infinite; }
 .org-col-unassigned { grid-column: 1 / -1; }
-.org-column h3 { margin: 0 0 1.5rem 0; font-size: 1.1rem; color: var(--text-main); text-align: center; font-weight: 800; background: var(--card-bg); backdrop-filter: var(--glass-blur); padding: 0.8rem; border-radius: 12px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
+.org-column h3 { margin: 0 0 1.5rem 0; font-size: 1.1rem; color: var(--text-main); text-align: center; font-weight: 800; background: var(--card-bg); backdrop-filter: var(--glass-blur); padding: 0.8rem; border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
 .org-list { flex: 1; min-height: 200px; display: flex; flex-direction: column; gap: 1rem; padding-right: 4px; }
-.org-card { background: var(--card-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); padding: 1.2rem; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 1rem; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+.org-card { background: var(--card-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); padding: 1.2rem; border-radius: var(--radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 1rem; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
 .org-card.draggable { cursor: grab; }
 .org-card.draggable:active { cursor: grabbing; transform: scale(0.98); }
 .org-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: var(--shadow-lg); border-color: var(--primary-glow); }
@@ -2475,7 +2484,7 @@ background: linear-gradient(to bottom,
 }
 .trip-map-area { 
     width: 100%; height: 400px; min-height: 400px; 
-    background-color: var(--card-bg); border-radius: 12px; 
+    background-color: var(--card-bg); border-radius: var(--radius); 
     border: 1px solid var(--border-color); overflow: hidden; 
     display: flex; justify-content: center; align-items: center; text-align: center; 
 }
@@ -2485,7 +2494,7 @@ background: linear-gradient(to bottom,
 }
 .route-item { 
     display: flex; gap: 1rem; padding: 1rem; 
-    background: var(--card-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border-radius: 16px; 
+    background: var(--card-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border-radius: var(--radius); 
     border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); align-items: flex-start; 
     transition: all 0.3s ease;
 }
@@ -2510,7 +2519,7 @@ background: linear-gradient(to bottom,
     align-items: center;
     gap: 8px;
     background-color: var(--col-bg);
-    border-radius: 8px;
+    border-radius: var(--radius);
 }
 
 /* ==================== 
@@ -2521,7 +2530,7 @@ background: linear-gradient(to bottom,
     gap: 15px;
     padding: 15px;
     background-color: var(--col-bg);
-    border-radius: 12px;
+    border-radius: var(--radius);
     border: 2px solid var(--border-color);
 }
 .game-hole {
@@ -2539,7 +2548,7 @@ background: linear-gradient(to bottom,
     bottom: -100%; left: 10%;
     display: flex; justify-content: center; align-items: center;
     transition: bottom 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.1s;
-    cursor: pointer; box-shadow: 0 -2px 5px rgba(0,0,0,0.2); user-select: none;
+    cursor: pointer; box-shadow: none; user-select: none;
 }
 .game-mole.up { bottom: 5%; }
 .game-mole.whacked { background-color: var(--danger) !important; transform: scale(0.9); }
@@ -2555,7 +2564,7 @@ background: linear-gradient(to bottom,
 .daily-item {
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: var(--radius);
     padding: 1rem;
     display: flex;
     align-items: center;
@@ -2583,7 +2592,7 @@ background: linear-gradient(to bottom,
     width: 22px;
     height: 22px;
     border: 2px solid var(--primary);
-    border-radius: 6px;
+    border-radius: var(--radius);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2634,11 +2643,11 @@ background: linear-gradient(to bottom,
     background-color: #F0F7FF;
     color: var(--primary);
     padding: 2px 8px;
-    border-radius: 6px;
+    border-radius: var(--radius);
     font-size: 0.72rem;
     font-weight: 700;
     border: 1px solid rgba(37, 99, 235, 0.12);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    box-shadow: none;
     transition: all 0.2s ease;
     margin-right: 4px;
     margin-bottom: 4px;
@@ -2646,7 +2655,7 @@ background: linear-gradient(to bottom,
 
 .assignee-chip:hover {
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.15);
+    box-shadow: none;
     background-color: white;
 }
 
@@ -2703,8 +2712,8 @@ background: linear-gradient(to bottom,
     max-height: 480px;
     background: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius);
+    box-shadow: none;
     z-index: 1000;
     display: flex;
     flex-direction: column;
@@ -2734,7 +2743,7 @@ background: linear-gradient(to bottom,
 
 .noti-item {
     padding: 0.8rem;
-    border-radius: 12px;
+    border-radius: var(--radius);
     cursor: pointer;
     transition: background 0.2s;
     margin-bottom: 4px;
@@ -2810,9 +2819,9 @@ background: linear-gradient(to bottom,
     min-width: 380px;
     background: #ffffff;
     padding: 1.8rem;
-    border-radius: 24px;
+    border-radius: var(--radius);
     border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    box-shadow: none;
 }
 
 .pdf-upload-panel {
@@ -2828,7 +2837,7 @@ background: linear-gradient(to bottom,
     min-height: 260px;
     border: 2px dashed #cbd5e1;
     background: #f8fafc;
-    border-radius: 24px;
+    border-radius: var(--radius);
     padding: 2rem;
     display: flex;
     flex-direction: column;
@@ -2849,7 +2858,7 @@ background: linear-gradient(to bottom,
     width: 64px;
     height: 64px;
     background: #eff6ff;
-    border-radius: 20px;
+    border-radius: var(--radius);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2864,7 +2873,7 @@ background: linear-gradient(to bottom,
     background: #6366f1;
     color: white;
     border: none;
-    border-radius: 18px;
+    border-radius: var(--radius);
     font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
@@ -2872,14 +2881,14 @@ background: linear-gradient(to bottom,
     align-items: center;
     justify-content: center;
     gap: 10px;
-    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+    box-shadow: none;
     transition: all 0.2s;
 }
 
 .process-btn:hover:not(:disabled) {
     background: #4f46e5;
     transform: translateY(-2px);
-    box-shadow: 0 15px 30px rgba(99, 102, 241, 0.3);
+    box-shadow: none;
 }
 
 .process-btn:disabled {
@@ -2920,7 +2929,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb {
     border: 2px solid #6366f1;
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    box-shadow: none;
 }
 
 .spinner-small {
@@ -2961,11 +2970,11 @@ input[type="range"].premium-slider::-webkit-slider-thumb {
 @keyframes blink-red-neon {
     0% {
         border-color: rgba(239, 68, 68, 0.3);
-        box-shadow: 0 0 4px rgba(239, 68, 68, 0.1);
+        box-shadow: none;
     }
     100% {
         border-color: rgba(239, 68, 68, 1);
-        box-shadow: 0 0 12px rgba(239, 68, 68, 0.5), inset 0 0 6px rgba(239, 68, 68, 0.1);
+        box-shadow: none;
         background-color: rgba(254, 226, 226, 0.15); /* ??곸? ?븍맩???獄쏄퀗瑗?*/
     }
 }
@@ -2993,7 +3002,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb {
     padding: 3rem 1rem;
     font-size: 0.95rem;
     background-color: var(--col-bg);
-    border-radius: 16px;
+    border-radius: var(--radius);
     border: 1px dashed var(--border-color);
     display: flex;
     flex-direction: column;
@@ -3009,7 +3018,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb {
 .comm-card {
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 18px;
+    border-radius: var(--radius);
     padding: 1.2rem;
     display: flex;
     flex-direction: column;
@@ -3022,7 +3031,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb {
 
 .comm-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    box-shadow: none;
     border-color: var(--primary);
 }
 
@@ -3051,7 +3060,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb {
     font-size: 0.7rem;
     font-weight: 700;
     padding: 4px 8px;
-    border-radius: 6px;
+    border-radius: var(--radius);
 }
 
 /* 燁삳똾?믤⑥쥓?곮퉪???쎄쾿筌뤴뫀諭??????袁ⓥ봺沃섎챷毓?獄쏄퀣? ?????*/
@@ -3065,7 +3074,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb {
     background-color: var(--col-bg);
     color: var(--text-main);
     padding: 3px 6px;
-    border-radius: 6px;
+    border-radius: var(--radius);
     font-weight: 600;
     border: 1px solid var(--border-color);
 }
@@ -3078,7 +3087,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb {
     background-color: var(--col-bg);
     color: var(--primary);
     padding: 3px 8px;
-    border-radius: 20px;
+    border-radius: var(--radius);
     font-weight: bold;
     border: 1px solid rgba(79, 70, 229, 0.1);
 }
@@ -3094,7 +3103,7 @@ input[type="range"].premium-slider::-webkit-slider-thumb {
     font-weight: 500;
     background: var(--col-bg);
     padding: 0.8rem 1rem;
-    border-radius: 12px;
+    border-radius: var(--radius);
     /* removed border-left for cleaner look */
 }
 
@@ -3328,7 +3337,7 @@ color: #4B5563 !important;
 }
 .calendar-task:hover {
     transform: translateY(-1px) scale(1.015);
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.04) !important;
+    box-shadow: none !important;
     filter: brightness(1.03);
 }
 
@@ -3345,23 +3354,23 @@ color: #4B5563 !important;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(79, 70, 229, 0.15);
-    border-radius: 16px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+    border-radius: var(--radius);
+    box-shadow: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
 }
 [data-theme='dark'] .briefing-card {
     background: rgba(30, 41, 59, 0.45);
     border-color: rgba(251, 113, 133, 0.15);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: none;
 }
 .briefing-card:hover {
     border-color: var(--primary);
-    box-shadow: 0 10px 35px rgba(79, 70, 229, 0.08);
+    box-shadow: none;
 }
 [data-theme='dark'] .briefing-card:hover {
     border-color: #fb7185;
-    box-shadow: 0 10px 35px rgba(251, 113, 133, 0.08);
+    box-shadow: none;
 }
 .briefing-header {
     display: flex;
@@ -3475,7 +3484,7 @@ color: #4B5563 !important;
     backdrop-filter: blur(25px);
     -webkit-backdrop-filter: blur(25px);
     border-left: 1px solid rgba(226, 232, 240, 0.8);
-    box-shadow: -10px 0 35px rgba(0, 0, 0, 0.08);
+    box-shadow: none;
     z-index: 10000;
     display: flex;
     flex-direction: column;
@@ -3484,7 +3493,7 @@ color: #4B5563 !important;
 [data-theme='dark'] .notification-drawer {
     background: rgba(15, 23, 42, 0.92);
     border-left-color: rgba(51, 65, 85, 0.5);
-    box-shadow: -10px 0 35px rgba(0, 0, 0, 0.35);
+    box-shadow: none;
 }
 .notification-drawer.open {
     right: 0;
@@ -3515,7 +3524,7 @@ color: #4B5563 !important;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
+    border-radius: var(--radius);
     transition: background 0.2s;
 }
 .drawer-close-btn:hover {
@@ -3555,7 +3564,7 @@ color: #4B5563 !important;
 .notification-item {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 14px;
+    border-radius: var(--radius);
     padding: 0.9rem 1.1rem;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -3630,7 +3639,7 @@ color: #4B5563 !important;
     background: rgba(255, 255, 255, 0.5);
     backdrop-filter: blur(10px);
     border: 1px dashed rgba(59, 130, 246, 0.25);
-    border-radius: 12px;
+    border-radius: var(--radius);
     display: flex;
     flex-direction: column;
     gap: 5px;
@@ -3660,7 +3669,7 @@ color: #4B5563 !important;
     display: none;
     background-color: var(--col-bg);
     border: 1px solid var(--border-color);
-    border-radius: 14px;
+    border-radius: var(--radius);
     padding: 4px;
     margin-bottom: 1.2rem;
     gap: 4px;
@@ -3673,7 +3682,7 @@ color: #4B5563 !important;
     font-size: 0.85rem;
     font-weight: 700;
     padding: 0.6rem;
-    border-radius: 10px;
+    border-radius: var(--radius);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -3744,7 +3753,7 @@ color: #4B5563 !important;
 ==================== */
 .feed-card {
     background-color: var(--card-bg);
-    border-radius: 16px;
+    border-radius: var(--radius);
     padding: 1.5rem;
     box-shadow: var(--shadow-md);
     border: 1px solid var(--border-color);
@@ -3842,7 +3851,7 @@ color: #4B5563 !important;
     color: var(--text-main);
     font-size: 0.75rem;
     padding: 2px 8px;
-    border-radius: 12px;
+    border-radius: var(--radius);
     font-weight: 600;
 }
 
@@ -3864,7 +3873,7 @@ color: #4B5563 !important;
     color: white;
     border: none;
     padding: 0.4rem 1rem;
-    border-radius: 8px;
+    border-radius: var(--radius);
     font-weight: 700;
     font-size: 0.8rem;
     cursor: pointer;
@@ -3895,7 +3904,7 @@ color: #4B5563 !important;
     color: var(--text-main);
     border: 1px solid var(--border-color);
     padding: 0.4rem 1rem;
-    border-radius: 8px;
+    border-radius: var(--radius);
     font-weight: 700;
     font-size: 0.8rem;
     cursor: pointer;
@@ -3917,7 +3926,7 @@ color: #4B5563 !important;
     border: 1px solid rgba(99, 102, 241, 0.2);
     font-size: 0.75rem;
     padding: 4px 10px;
-    border-radius: 8px;
+    border-radius: var(--radius);
     font-weight: bold;
     display: flex;
     align-items: center;
@@ -3950,7 +3959,7 @@ color: #4B5563 !important;
     background-color: var(--col-bg);
     border: 1px solid var(--border-color);
     /* removed border-left for cleaner look */
-    border-radius: 8px;
+    border-radius: var(--radius);
     margin-top: 1.8rem;
     margin-bottom: 0.8rem;
     display: flex;
@@ -4014,7 +4023,7 @@ color: #4B5563 !important;
     #day-detail-overlay .day-detail-panel {
         max-width: 100% !important;
         width: 100% !important;
-        border-radius: 24px 24px 0 0 !important;
+        border-radius: var(--radius) var(--radius) 0 0 !important;
         max-height: 85vh !important;
         animation: slideUpMobile 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
         border-bottom: none !important;
@@ -4111,7 +4120,7 @@ color: #4B5563 !important;
 .consumable-card {
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 16px;
+    border-radius: var(--radius);
     padding: 1.2rem;
     box-shadow: var(--shadow-sm);
     transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
@@ -4143,7 +4152,7 @@ color: #4B5563 !important;
     font-size: 0.72rem;
     font-weight: 800;
     padding: 2px 8px;
-    border-radius: 6px;
+    border-radius: var(--radius);
 }
 
 .consumable-badge.stock-high {
@@ -4226,7 +4235,7 @@ color: #4B5563 !important;
     padding: 0.4rem 0.6rem !important;
     font-size: 0.8rem !important;
     font-weight: 700 !important;
-    border-radius: 8px !important;
+    border-radius: var(--radius) !important;
     background-color: var(--col-bg) !important;
     color: var(--text-main) !important;
     border: 1px solid var(--border-color) !important;
@@ -4245,7 +4254,7 @@ color: #4B5563 !important;
     border: 1px solid var(--border-color) !important;
     color: var(--text-muted) !important;
     padding: 0.4rem !important;
-    border-radius: 8px !important;
+    border-radius: var(--radius) !important;
     cursor: pointer;
     box-shadow: none !important;
     display: flex;
@@ -4289,14 +4298,14 @@ color: #4B5563 !important;
     display: inline-flex !important;
     align-items: center !important;
     gap: 8px !important;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.12) !important;
+    box-shadow: none !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .calendar-expand-toggle-btn:hover {
     background: var(--primary, #4F46E5) !important;
     color: #FFFFFF !important;
-    box-shadow: 0 6px 18px rgba(79, 70, 229, 0.3) !important;
+    box-shadow: none !important;
     transform: translateY(-2px) !important;
 }
 
@@ -4304,7 +4313,7 @@ color: #4B5563 !important;
     background: #1E293B !important;
     color: #FFFFFF !important;
     border-color: #334155 !important;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2) !important;
+    box-shadow: none !important;
 }
 
 .calendar-expand-toggle-btn.expanded:hover {
@@ -4317,20 +4326,20 @@ color: #4B5563 !important;
     color: #10B981 !important;
     border: 1.5px solid #A7F3D0 !important;
     padding: 8px 16px !important;
-    border-radius: 20px !important;
+    border-radius: var(--radius) !important;
     font-size: 0.85rem !important;
     font-weight: 700 !important;
     cursor: pointer !important;
     display: inline-flex !important;
     align-items: center !important;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.12) !important;
+    box-shadow: none !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .calendar-refresh-premium:hover {
     background: #10B981 !important;
     color: #FFFFFF !important;
-    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.28) !important;
+    box-shadow: none !important;
     transform: translateY(-1px) !important;
 }
 
@@ -4357,7 +4366,7 @@ color: #4B5563 !important;
         max-width: fit-content !important;
         padding: 1px 6px !important;
         font-size: 0.72rem !important;
-        border-radius: 10px !important;
+        border-radius: var(--radius) !important;
         display: inline-flex !important;
         margin: 0 auto !important;
     }
@@ -4374,7 +4383,7 @@ color: #4B5563 !important;
 ==================== */
 #calendar-search-input {
     padding: 8px 12px 8px 36px;
-    border-radius: 20px;
+    border-radius: var(--radius);
     border: 1px solid var(--border-color);
     background: var(--card-bg);
     color: var(--text-main);
@@ -4400,8 +4409,8 @@ color: #4B5563 !important;
     overflow-y: auto;
     background: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-float);
     z-index: 1000;
     display: flex;
     flex-direction: column;
@@ -4440,7 +4449,7 @@ color: #4B5563 !important;
     border: 1px solid var(--border-color) !important;
     color: var(--text-muted) !important;
     padding: 0.4rem !important;
-    border-radius: 8px !important;
+    border-radius: var(--radius) !important;
     cursor: pointer;
     box-shadow: none !important;
     display: flex;
@@ -4484,14 +4493,14 @@ color: #4B5563 !important;
     display: inline-flex !important;
     align-items: center !important;
     gap: 8px !important;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.12) !important;
+    box-shadow: none !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .calendar-expand-toggle-btn:hover {
     background: var(--primary, #4F46E5) !important;
     color: #FFFFFF !important;
-    box-shadow: 0 6px 18px rgba(79, 70, 229, 0.3) !important;
+    box-shadow: none !important;
     transform: translateY(-2px) !important;
 }
 
@@ -4499,7 +4508,7 @@ color: #4B5563 !important;
     background: #1E293B !important;
     color: #FFFFFF !important;
     border-color: #334155 !important;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2) !important;
+    box-shadow: none !important;
 }
 
 .calendar-expand-toggle-btn.expanded:hover {
@@ -4512,20 +4521,20 @@ color: #4B5563 !important;
     color: #10B981 !important;
     border: 1.5px solid #A7F3D0 !important;
     padding: 8px 16px !important;
-    border-radius: 20px !important;
+    border-radius: var(--radius) !important;
     font-size: 0.85rem !important;
     font-weight: 700 !important;
     cursor: pointer !important;
     display: inline-flex !important;
     align-items: center !important;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.12) !important;
+    box-shadow: none !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .calendar-refresh-premium:hover {
     background: #10B981 !important;
     color: #FFFFFF !important;
-    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.28) !important;
+    box-shadow: none !important;
     transform: translateY(-1px) !important;
 }
 
@@ -4552,7 +4561,7 @@ color: #4B5563 !important;
         max-width: fit-content !important;
         padding: 1px 6px !important;
         font-size: 0.72rem !important;
-        border-radius: 10px !important;
+        border-radius: var(--radius) !important;
         display: inline-flex !important;
         margin: 0 auto !important;
     }
@@ -4569,7 +4578,7 @@ color: #4B5563 !important;
 ==================== */
 #calendar-search-input {
     padding: 8px 12px 8px 36px;
-    border-radius: 20px;
+    border-radius: var(--radius);
     border: 1px solid var(--border-color);
     background: var(--card-bg);
     color: var(--text-main);
@@ -4595,8 +4604,8 @@ color: #4B5563 !important;
     overflow-y: auto;
     background: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-float);
     z-index: 1000;
     display: flex;
     flex-direction: column;
@@ -4679,7 +4688,7 @@ color: #4B5563 !important;
     align-items: center;
     justify-content: flex-start;
     gap: clamp(6px, 1vw, 12px);
-    border-radius: 12px;
+    border-radius: var(--radius);
     padding: clamp(10px, 1.2vw, 14px) clamp(10px, 1.5vw, 18px);
     font-size: clamp(0.85rem, 1vw, 0.98rem);
     font-weight: 600;
@@ -4696,7 +4705,7 @@ color: #4B5563 !important;
 .vertical-menu .tab-btn.active {
     background-color: var(--card-bg);
     color: var(--primary);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    box-shadow: none;
     border: 1px solid var(--border-color);
     position: relative;
     z-index: 10;
@@ -4740,7 +4749,7 @@ color: #4B5563 !important;
         border-top: 1px solid var(--border-color) !important;
         z-index: 9999 !important;
         padding: 8px 0 20px 0 !important; /* Edge-to-edge layout, bottom padding for iPhone */
-        box-shadow: 0 -4px 20px rgba(0,0,0,0.1) !important;
+        box-shadow: none !important;
         border-radius: 0 !important;
     }
     .vertical-menu {
@@ -4819,8 +4828,8 @@ color: #4B5563 !important;
     background: linear-gradient(180deg, #FFFCF5 0%, #FFFFFF 100%) !important;
     border: 1px solid rgba(212, 175, 55, 0.3) !important;
     border-top: 4px solid #D4AF37 !important;
-    border-radius: 16px !important;
-    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.08), 0 1px 3px rgba(0,0,0,0.03) !important;
+    border-radius: var(--radius) !important;
+    box-shadow: none !important;
     transform: translateY(-2px);
     position: relative;
     z-index: 10;
@@ -4854,11 +4863,11 @@ color: #4B5563 !important;
     background: #FFFFFF !important;
     border: 1px solid rgba(212, 175, 55, 0.4) !important;
     color: var(--text-main) !important; /* ?뺤긽?곸씤 ?띿뒪???됱긽 */
-    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.08) !important;
+    box-shadow: none !important;
     transition: all 0.2s ease !important;
 }
 .org-col-ceo .org-card:hover {
-    box-shadow: 0 6px 16px rgba(212, 175, 55, 0.15) !important;
+    box-shadow: none !important;
     border-color: #D4AF37 !important;
     transform: translateY(-2px);
 }
@@ -4900,7 +4909,7 @@ color: #4B5563 !important;
     background: var(--card-bg);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
-    border-radius: 16px;
+    border-radius: var(--radius);
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-md);
     padding: 1.2rem;
@@ -4912,7 +4921,7 @@ color: #4B5563 !important;
     min-height: 600px;
     display: flex;
     flex-direction: column;
-    border-radius: 12px;
+    border-radius: var(--radius);
     overflow: hidden;
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-sm);
@@ -4942,10 +4951,10 @@ color: #4B5563 !important;
    ========================================================================== */
 .premium-panel {
     background-color: var(--card-bg);
-    border-radius: 12px;
+    border-radius: var(--radius);
     border: 1px solid var(--border-color);
     padding: 1.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    box-shadow: none;
     display: flex;
     flex-direction: column;
     gap: 1.2rem;
@@ -4986,7 +4995,7 @@ color: #4B5563 !important;
     width: 100%;
     padding: 0.6rem 0.8rem;
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: var(--radius);
     font-size: 0.85rem;
     background-color: var(--col-bg);
     color: var(--text-main);
@@ -5011,7 +5020,7 @@ color: #4B5563 !important;
     align-items: center;
     background-color: var(--col-bg);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: var(--radius);
     padding: 0.3rem;
     height: 40px;
     box-sizing: border-box;
@@ -5064,7 +5073,7 @@ color: #4B5563 !important;
     padding: 0.8rem;
     background-color: var(--col-bg);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: var(--radius);
     cursor: pointer;
     font-size: 0.85rem;
     font-weight: 600;
@@ -5084,7 +5093,7 @@ color: #4B5563 !important;
     background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
     color: white;
     border: none;
-    border-radius: 10px;
+    border-radius: var(--radius);
     padding: 1rem;
     font-size: 1.05rem;
     font-weight: 700;
@@ -5093,12 +5102,12 @@ color: #4B5563 !important;
     justify-content: center;
     gap: 8px;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    box-shadow: none;
     transition: transform 0.2s, box-shadow 0.2s;
 }
 .premium-action-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+    box-shadow: none;
 }
 .premium-action-btn:active {
     transform: translateY(0);
@@ -5112,7 +5121,7 @@ color: #4B5563 !important;
    ========================================================================== */
 .slim-panel {
     background-color: #ffffff;
-    border-radius: 8px;
+    border-radius: var(--radius);
     border: 1px solid #e2e8f0;
     padding: 1.2rem;
     display: flex;
@@ -5143,7 +5152,7 @@ color: #4B5563 !important;
 }
 .slim-input, .slim-select {
     border: 1px solid #cbd5e1;
-    border-radius: 6px;
+    border-radius: var(--radius);
     padding: 0.4rem 0.6rem;
     font-size: 0.8rem;
     color: #334155;
@@ -5185,7 +5194,7 @@ color: #4B5563 !important;
     background-color: #334155;
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radius);
     padding: 0.8rem;
     font-size: 0.9rem;
     font-weight: 600;
@@ -5218,7 +5227,7 @@ color: #4B5563 !important;
 .sleek-trip-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    border-radius: var(--radius);
     padding: 1rem 1.2rem;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -5229,7 +5238,7 @@ color: #4B5563 !important;
     gap: 0.4rem;
 }
 .sleek-trip-card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    box-shadow: none;
     transform: translateY(-1px);
     border-color: #cbd5e1;
 }
@@ -5306,7 +5315,7 @@ color: #4B5563 !important;
 .trip-card-v3 {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    border-radius: var(--radius);
     padding: 1rem 1.2rem;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -5318,7 +5327,7 @@ color: #4B5563 !important;
     min-height: min-content;
 }
 .trip-card-v3:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    box-shadow: none;
     transform: translateY(-1px);
     border-color: #cbd5e1;
 }
@@ -5365,7 +5374,7 @@ color: #4B5563 !important;
     gap: 4px;
     background: #f8fafc;
     padding: 0.6rem;
-    border-radius: 6px;
+    border-radius: var(--radius);
     margin-top: 0.2rem;
     border: 1px solid #f1f5f9;
     line-height: 1.3;
@@ -5426,7 +5435,7 @@ color: #4B5563 !important;
 .trip-card-v3.dragging {
     opacity: 0.5;
     transform: scale(0.98);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    box-shadow: none;
 }
 .trip-card-v3[draggable="true"] {
     cursor: grab;
@@ -5442,7 +5451,7 @@ color: #4B5563 !important;
     background: var(--card-bg) !important;
     backdrop-filter: var(--glass-blur) !important;
     -webkit-backdrop-filter: var(--glass-blur) !important;
-    border-radius: 16px !important;
+    border-radius: var(--radius) !important;
     border: 1px solid var(--border-color) !important;
     padding: 0.8rem !important;
     display: flex !important;
@@ -5564,7 +5573,7 @@ color: #4B5563 !important;
     background: var(--card-bg) !important;
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-sm);
-    border-radius: 12px;
+    border-radius: var(--radius);
     padding: 12px;
     margin-bottom: 10px;
     position: relative;
@@ -5675,7 +5684,7 @@ input, select, textarea, [contenteditable] {
     color: #9ca3af;
     transition: all 0.2s ease;
     user-select: none;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    box-shadow: none;
 }
 .vehicle-reaction-btn:hover {
     background-color: #f3f4f6;
@@ -5686,7 +5695,7 @@ input, select, textarea, [contenteditable] {
     background-color: var(--primary);
     border-color: var(--primary);
     color: white;
-    box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+    box-shadow: none;
 }
 
 /* Responsive Vehicle Toggle */
@@ -5718,4 +5727,46 @@ input, select, textarea, [contenteditable] {
 .org-col-team1 h3 { color: #10B981 !important; }
 .org-col-team2 h3 { color: #8B5CF6 !important; }
 
-
+/* ==================== 평면(플랫) UI 마감 ==================== */
+/* 떠 있는 레이어(모달·달력·채팅창·토스트·알림 서랍·드롭다운)는 화면과 구분되도록 약한 그림자만 남긴다 */
+.modal-content,
+.flatpickr-calendar,
+.chat-window,
+.toast,
+.notification-drawer,
+.search-dropdown-menu,
+.search-dropdown-detail,
+.calendar-sub-menu,
+#calendar-search-dropdown {
+    box-shadow: var(--shadow-float) !important;
+}
+.modal-content,
+.notification-drawer {
+    border-radius: var(--radius-lg) !important;
+}
+/* 태그·배지류는 한 단계 더 각지게 */
+.assignee-chip,
+.comm-badge,
+.comm-sender-chip,
+.feed-ack-badge,
+.consumable-badge,
+.notice-badge-important,
+.task-more-badge {
+    border-radius: var(--radius-sm) !important;
+}
+/* 카드 hover: 떠오르는 그림자 대신 테두리 색으로 반응 */
+.task-card:hover,
+.trip-card:hover,
+.trip-card-v3:hover,
+.org-card:hover,
+.route-item:hover,
+.daily-item:hover,
+.notification-item:hover,
+.feed-card:hover,
+.consumable-card:hover {
+    border-color: var(--border-strong) !important;
+}
+/* 그림자에만 의존하던 큰 영역은 레이아웃 변화 없는 1px 윤곽선으로 구분 */
+.section {
+    box-shadow: 0 0 0 1px var(--border-color);
+}

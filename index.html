@@ -321,7 +321,7 @@
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <h1 style="margin:0;">FaWW Workspace</h1>
                     <button id="app-version-badge" onclick="forceAppUpdate()" title="클릭하여 최신 기능으로 강제 새로고침 (캐시 초기화)"
-                        style="cursor: pointer; background: var(--primary); color: #ffffff; font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; border: none; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3); transition: all 0.2s;"
+                        style="cursor: pointer; background: var(--primary); color: #ffffff; font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: var(--radius); border: none; display: inline-flex; align-items: center; gap: 4px; box-shadow: none; transition: all 0.2s;"
                         onmouseover="this.style.transform='scale(1.06)';" onmouseout="this.style.transform='scale(1)';">
                         <span class="material-symbols-rounded"
                             style="font-size: 0.95rem; color: #ffffff;">refresh</span>
@@ -519,7 +519,7 @@
                         </div>
                         <div style="flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 0.4rem;">
                             <div id="assignee-tags-container"
-                                style="display: flex; flex-wrap: wrap; gap: 4px; padding: 0.4rem; border: 1px solid var(--border-color); border-radius: 12px; background: var(--col-bg); min-height: 42px; align-items: center;">
+                                style="display: flex; flex-wrap: wrap; gap: 4px; padding: 0.4rem; border: 1px solid var(--border-color); border-radius: var(--radius); background: var(--col-bg); min-height: 42px; align-items: center;">
                                 <span
                                     style="font-size: 0.8rem; color: var(--text-muted); margin-left: 0.4rem;">담당자:</span>
                                 <!-- 선택된 담당자들이 여기에 태그로 표시됩니다 -->
@@ -536,7 +536,7 @@
                             <option value="high">중요도: 높음</option>
                         </select>
                         <button onclick="addTask()"
-                            style="display:flex; align-items:center; justify-content:center; gap:6px; padding: 0.8rem 1.5rem; border-radius: 12px; font-size: 0.95rem;"><span
+                            style="display:flex; align-items:center; justify-content:center; gap:6px; padding: 0.8rem 1.5rem; border-radius: var(--radius); font-size: 0.95rem;"><span
                                 class="material-symbols-rounded" style="font-size:1.2em;">add_task</span>추가</button>
                     </div>
 
@@ -712,7 +712,7 @@
                     </div>
 
                     <div
-                        style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem; background-color:var(--col-bg); padding:0.5rem 0.8rem; border-radius:6px; border:1px solid var(--border-color);">
+                        style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem; background-color:var(--col-bg); padding:0.5rem 0.8rem; border-radius:var(--radius); border:1px solid var(--border-color);">
                         <button id="btn-go-up" onclick="goUpFolder()"
                             style="background:transparent; color:var(--text-main); padding:0.2rem; border:none; box-shadow:none; cursor:pointer;"
                             title="상위 폴더로 이동" disabled><span
@@ -756,14 +756,14 @@
                                 style="font-size:1.2em;">edit_document</span> 새 공지 작성</button>
                     </div>
                     <div class="notice-list-header"
-                        style="display: flex; padding: 0.8rem 1rem; background-color: var(--col-bg); border-radius: 8px; font-weight: 600; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem;">
+                        style="display: flex; padding: 0.8rem 1rem; background-color: var(--col-bg); border-radius: var(--radius); font-weight: 600; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem;">
                         <div style="flex: 1;">제목</div>
                         <div style="width: 100px; text-align: center;">작성자</div>
                         <div style="width: 100px; text-align: center;">작성일</div>
                         <div style="width: 60px; text-align: center;">조회수</div>
                     </div>
                     <div
-                        style="background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px;">
+                        style="background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius);">
                         <ul id="notice-list"
                             style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column;">
                             <!-- 공지사항 렌더링 영역 -->
@@ -817,7 +817,7 @@
                                 <!-- 터치 보호망 오버레이 -->
                                 <div id="map-touch-overlay" class="map-scroll-overlay" onclick="activateMobileMap()">
                                     <div
-                                        style="background: rgba(15, 23, 42, 0.85); color: #FFFFFF; padding: 0.8rem 1.2rem; border-radius: 12px; font-size: 0.82rem; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; max-width: 80%; box-shadow: var(--shadow-lg);">
+                                        style="background: rgba(15, 23, 42, 0.85); color: #FFFFFF; padding: 0.8rem 1.2rem; border-radius: var(--radius); font-size: 0.82rem; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; max-width: 80%; box-shadow: var(--shadow-lg);">
                                         <span class="material-symbols-rounded"
                                             style="font-size: 1.8rem; color: #8B5CF6;">touch_app</span>
                                         <span>터치하여 지도를 활성화하세요</span>
@@ -904,7 +904,7 @@
                                             style="font-size: 1.2rem;">task_alt</span> 선택된 출장지 (경로 포함)
                                     </h4>
                                     <div id="trip-list-selected" class="trip-grid dropzone" data-zone="selected"
-                                        style="min-height: 120px; padding: 0.5rem; background: #f0fdf4; border-radius: 8px; border: 2px dashed #bbf7d0; transition: all 0.2s; max-height: 35vh; overflow-y: auto;">
+                                        style="min-height: 120px; padding: 0.5rem; background: #f0fdf4; border-radius: var(--radius); border: 2px dashed #bbf7d0; transition: all 0.2s; max-height: 35vh; overflow-y: auto;">
                                     </div>
                                 </div>
 
@@ -916,13 +916,13 @@
                                         대기 중인 출장 (미선택)
                                     </h4>
                                     <div id="trip-list-unselected" class="trip-grid dropzone" data-zone="unselected"
-                                        style="min-height: 120px; padding: 0.5rem; background: var(--bg-color); border-radius: 8px; border: 2px dashed transparent; transition: all 0.2s; max-height: 35vh; overflow-y: auto;">
+                                        style="min-height: 120px; padding: 0.5rem; background: var(--bg-color); border-radius: var(--radius); border: 2px dashed transparent; transition: all 0.2s; max-height: 35vh; overflow-y: auto;">
                                     </div>
                                 </div>
                             </div>
 
                             <details
-                                style="margin-top: 1.5rem; background-color: var(--card-bg); padding: 0.8rem 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                                style="margin-top: 1.5rem; background-color: var(--card-bg); padding: 0.8rem 1rem; border-radius: var(--radius); border: 1px solid var(--border-color);">
                                 <summary
                                     style="font-size: 1rem; color: var(--text-muted); font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none;">
                                     <span class="material-symbols-rounded"
@@ -970,7 +970,7 @@
 
                     <!-- 지시/안건 입력 창 -->
                     <div class="feed-write-card"
-                        style="background-color: var(--col-bg); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 1rem;">
+                        style="background-color: var(--col-bg); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 2rem; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 1rem;">
                         <h3
                             style="margin: 0; font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 6px;">
                             <span class="material-symbols-rounded" style="color: var(--primary);">edit_document</span>
@@ -978,12 +978,12 @@
                         </h3>
                         <textarea id="feedInput"
                             placeholder="대표님 지시사항 등 팀원들과 즉시 공유해야 할 일들을 작성해 주세요. (등록 시 팀원들에게 실시간 알림이 발송됩니다)"
-                            style="width: 100%; height: 100px; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 12px; font-size: 0.95rem; resize: none; background-color: var(--card-bg); color: var(--text-main); font-family: inherit; line-height: 1.5; box-sizing: border-box; outline: none; transition: border-color 0.2s;"
+                            style="width: 100%; height: 100px; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: var(--radius); font-size: 0.95rem; resize: none; background-color: var(--card-bg); color: var(--text-main); font-family: inherit; line-height: 1.5; box-sizing: border-box; outline: none; transition: border-color 0.2s;"
                             onfocus="this.style.borderColor='var(--primary)'"
                             onblur="this.style.borderColor='var(--border-color)'"></textarea>
                         <div style="display: flex; justify-content: flex-end;">
                             <button onclick="addMeetingFeed()"
-                                style="display: flex; align-items: center; gap: 6px; padding: 0.75rem 1.8rem; border-radius: 12px; font-weight: bold; font-size: 0.95rem; background: linear-gradient(135deg, var(--primary), #6366f1); box-shadow: var(--shadow-sm);">
+                                style="display: flex; align-items: center; gap: 6px; padding: 0.75rem 1.8rem; border-radius: var(--radius); font-weight: bold; font-size: 0.95rem; background: linear-gradient(135deg, var(--primary), #6366f1); box-shadow: var(--shadow-sm);">
                                 <span class="material-symbols-rounded">send</span> 등록하기
                             </button>
                         </div>
@@ -993,14 +993,14 @@
                         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;" id="feedFilterButtons">
                             <button class="cal-filter-btn active" id="feed-filter-all"
                                 onclick="setFeedFilter('all', this)"
-                                style="padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">전체
+                                style="padding: 0.4rem 1rem; border-radius: var(--radius); font-size: 0.85rem; font-weight: 600;">전체
                                 보기</button>
                             <button class="cal-filter-btn" id="feed-filter-unread"
                                 onclick="setFeedFilter('unread', this)"
-                                style="padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">내가
+                                style="padding: 0.4rem 1rem; border-radius: var(--radius); font-size: 0.85rem; font-weight: 600;">내가
                                 미확인</button>
                             <button class="cal-filter-btn" id="feed-filter-read" onclick="setFeedFilter('read', this)"
-                                style="padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">내가
+                                style="padding: 0.4rem 1rem; border-radius: var(--radius); font-size: 0.85rem; font-weight: 600;">내가
                                 확인 완료</button>
                         </div>
                         <div style="position: relative; min-width: 240px; flex: 1; max-width: 320px;">
@@ -1038,7 +1038,7 @@
                     <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 2rem;">
                         <!-- 좌측: 내 휴가 현황 및 신청 -->
                         <div
-                            style="flex: 1; min-width: 300px; background-color: var(--col-bg); padding: 1.5rem; border-radius: 12px;">
+                            style="flex: 1; min-width: 300px; background-color: var(--col-bg); padding: 1.5rem; border-radius: var(--radius);">
                             <div
                                 style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; font-size: 1.1rem; font-weight: 600;">
                                 <span>잔여 연차: <strong id="leave-remain"
@@ -1074,7 +1074,7 @@
 
                         <!-- 우측: 내 휴가 내역 -->
                         <div
-                            style="flex: 1; min-width: 300px; background-color: var(--col-bg); padding: 1.5rem; border-radius: 12px;">
+                            style="flex: 1; min-width: 300px; background-color: var(--col-bg); padding: 1.5rem; border-radius: var(--radius);">
                             <div
                                 style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1rem;">
                                 <h3 style="font-size: 1rem; margin: 0;">내 휴가 내역</h3>
@@ -1249,7 +1249,7 @@
                     <div
                         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; align-items: start;">
                         <div
-                            style="background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 1.2rem; border-radius: 12px; box-shadow: var(--shadow-sm);">
+                            style="background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 1.2rem; border-radius: var(--radius); box-shadow: var(--shadow-sm);">
                             <h3
                                 style="font-size: 1.05rem; margin-top: 0; margin-bottom: 1rem; color: var(--primary); display: flex; align-items: center; gap: 6px;">
                                 <span class="material-symbols-rounded">work</span> 내 업무</h3>
@@ -1257,7 +1257,7 @@
                                 style="max-height: 280px; overflow-y: auto; padding-right: 4px;"></ul>
                         </div>
                         <div
-                            style="background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 1.2rem; border-radius: 12px; box-shadow: var(--shadow-sm);">
+                            style="background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 1.2rem; border-radius: var(--radius); box-shadow: var(--shadow-sm);">
                             <h3
                                 style="font-size: 1.05rem; margin-top: 0; margin-bottom: 1rem; color: #8B5CF6; display: flex; align-items: center; gap: 6px;">
                                 <span class="material-symbols-rounded">flight_takeoff</span> 내 출장 일정</h3>
@@ -1265,7 +1265,7 @@
                                 style="max-height: 280px; overflow-y: auto; padding-right: 4px;"></ul>
                         </div>
                         <div
-                            style="background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 1.2rem; border-radius: 12px; box-shadow: var(--shadow-sm);">
+                            style="background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 1.2rem; border-radius: var(--radius); box-shadow: var(--shadow-sm);">
                             <h3
                                 style="font-size: 1.05rem; margin-top: 0; margin-bottom: 1rem; color: #10B981; display: flex; align-items: center; gap: 6px;">
                                 <span class="material-symbols-rounded">beach_access</span> 내 휴가 결재</h3>
@@ -1300,7 +1300,7 @@
                         </h2>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <span
-                                style="background: #eef2ff; color: #4f46e5; font-weight: 700; padding: 6px 12px; border-radius: 10px; font-size: 0.75rem; border: 1px solid rgba(79, 70, 229, 0.1);">PREMIUM
+                                style="background: #eef2ff; color: #4f46e5; font-weight: 700; padding: 6px 12px; border-radius: var(--radius); font-size: 0.75rem; border: 1px solid rgba(79, 70, 229, 0.1);">PREMIUM
                                 v1.2</span>
                         </div>
                     </div>
@@ -1320,7 +1320,7 @@
                                         style="font-size: 1rem; color: var(--primary);">edit_note</span></label>
                                 <input type="text" id="pdf-watermark-text" value="이름 010-xxxx-xxxx"
                                     class="premium-input"
-                                    style="width: 100%; padding: 0.8rem; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem;">
+                                    style="width: 100%; padding: 0.8rem; border: 1.5px solid #e2e8f0; border-radius: var(--radius); font-size: 0.9rem;">
                             </div>
 
                             <div class="settings-grid" style="margin-top: 1.2rem;">
@@ -1345,7 +1345,7 @@
                             </div>
 
                             <div style="margin-top: 1.2rem;">
-                                <div style="display: flex; align-items: center; gap: 10px; background: #f8fafc; padding: 0.8rem; border-radius: 12px; border: 1px solid #e2e8f0; cursor: pointer;"
+                                <div style="display: flex; align-items: center; gap: 10px; background: #f8fafc; padding: 0.8rem; border-radius: var(--radius); border: 1px solid #e2e8f0; cursor: pointer;"
                                     onclick="const chk=document.getElementById('pdf-tile-mode'); chk.checked=!chk.checked; if(window.toggleTileMode) toggleTileMode(chk.checked);">
                                     <input type="checkbox" id="pdf-tile-mode" checked
                                         style="width: 16px; height: 16px; accent-color: #6366f1;">
@@ -1354,7 +1354,7 @@
                             </div>
 
                             <div id="tile-settings"
-                                style="display: block; margin-top: 1rem; padding: 1rem; background: #f8fafc; border-radius: 15px; border: 1px dashed #cbd5e1;">
+                                style="display: block; margin-top: 1rem; padding: 1rem; background: #f8fafc; border-radius: var(--radius); border: 1px dashed #cbd5e1;">
                                 <div class="settings-grid">
                                     <div class="form-group" style="margin:0;">
                                         <label>가로 간격 <span id="val-spacing-x">300</span></label>
@@ -1438,7 +1438,7 @@
                                         메모/회의록 입력 <span class="material-symbols-rounded"
                                             style="font-size: 1rem; color: var(--primary);">edit_note</span></label>
                                     <textarea id="proposalRawInput" class="premium-input"
-                                        style="width: 100%; height: 200px; padding: 0.8rem; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; resize: none; font-family: inherit; line-height: 1.5;"
+                                        style="width: 100%; height: 200px; padding: 0.8rem; border: 1.5px solid #e2e8f0; border-radius: var(--radius); font-size: 0.9rem; resize: none; font-family: inherit; line-height: 1.5;"
                                         placeholder="회의에서 나눈 이야기나 파편화된 아이디어를 입력하세요. 예: '여름 텀블러 이벤트, 7월 한달간, 20대 타겟, SNS 홍보 기획...'"></textarea>
                                 </div>
 
@@ -1449,7 +1449,7 @@
                                             style="font-weight: 600; font-size: 0.85rem; color: var(--text-muted);">템플릿
                                             유형</label>
                                         <select id="proposalTemplate" class="premium-input"
-                                            style="width: 100%; padding: 0.8rem; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; font-weight: bold; cursor: pointer;">
+                                            style="width: 100%; padding: 0.8rem; border: 1.5px solid #e2e8f0; border-radius: var(--radius); font-size: 0.9rem; font-weight: bold; cursor: pointer;">
                                             <option value="business">📈 신규 사업 기획서</option>
                                             <option value="marketing">📣 마케팅/캠페인 전략</option>
                                             <option value="event">🎈 이벤트/행사 기획안</option>
@@ -1460,7 +1460,7 @@
                                         <label
                                             style="font-weight: 600; font-size: 0.85rem; color: var(--text-muted);">어조/스타일</label>
                                         <select id="proposalTone" class="premium-input"
-                                            style="width: 100%; padding: 0.8rem; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; font-weight: bold; cursor: pointer;">
+                                            style="width: 100%; padding: 0.8rem; border: 1.5px solid #e2e8f0; border-radius: var(--radius); font-size: 0.9rem; font-weight: bold; cursor: pointer;">
                                             <option value="professional">💼 전문적이고 격조 높은</option>
                                             <option value="persuasive">🗣 설득력 있고 논리적인</option>
                                             <option value="creative">💡 친근하고 창의적인</option>
@@ -1478,7 +1478,7 @@
                                             style="font-size: 1.15rem; color: #6366f1;">vpn_key</span>
                                     </label>
                                     <input type="password" id="proposalApiKeyInput" class="premium-input"
-                                        style="width: 100%; padding: 0.8rem; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem;"
+                                        style="width: 100%; padding: 0.8rem; border: 1.5px solid #e2e8f0; border-radius: var(--radius); font-size: 0.9rem;"
                                         placeholder="sk-..." onchange="saveProposalApiKey(this.value)">
                                 </div>
 
@@ -1502,22 +1502,22 @@
                                     </h3>
                                     <div style="display: flex; gap: 6px;">
                                         <button class="text-btn" onclick="copyProposalText()"
-                                            style="padding: 4px 8px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px; background: transparent; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; color: var(--text-main);"
+                                            style="padding: 4px 8px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px; background: transparent; border: 1px solid var(--border-color); border-radius: var(--radius); cursor: pointer; color: var(--text-main);"
                                             title="클립보드 복사"><span class="material-symbols-rounded"
                                                 style="font-size: 1rem;">content_copy</span> 복사</button>
                                         <button class="text-btn" onclick="downloadProposalAsFile()"
-                                            style="padding: 4px 8px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px; background: transparent; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; color: var(--text-main);"
+                                            style="padding: 4px 8px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px; background: transparent; border: 1px solid var(--border-color); border-radius: var(--radius); cursor: pointer; color: var(--text-main);"
                                             title="파일로 다운로드"><span class="material-symbols-rounded"
                                                 style="font-size: 1rem;">download</span> 다운로드</button>
                                         <button class="text-btn" onclick="saveProposalToDatabase()"
-                                            style="padding: 4px 8px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px; background: transparent; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; color: var(--text-main);"
+                                            style="padding: 4px 8px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px; background: transparent; border: 1px solid var(--border-color); border-radius: var(--radius); cursor: pointer; color: var(--text-main);"
                                             title="보관함 저장"><span class="material-symbols-rounded"
                                                 style="font-size: 1rem;">bookmark</span> 저장</button>
                                     </div>
                                 </div>
 
                                 <div id="proposalOutputContainer"
-                                    style="flex: 1; background: var(--col-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.2rem; overflow-y: auto; max-height: calc(100vh - 100px); font-size: 0.9rem; line-height: 1.7; color: var(--text-main); word-break: break-all; white-space: pre-wrap;">
+                                    style="flex: 1; background: var(--col-bg); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 1.2rem; overflow-y: auto; max-height: calc(100vh - 100px); font-size: 0.9rem; line-height: 1.7; color: var(--text-main); word-break: break-all; white-space: pre-wrap;">
                                     <span style="color: var(--text-muted); font-style: italic;">좌측에 회의 내용을 입력하고 'AI 기획서
                                         초안 생성' 버튼을 클릭하면 전문적인 기획서가 이곳에 생성됩니다.</span>
                                 </div>
@@ -1526,7 +1526,7 @@
 
                         <!-- 저장된 기획서 히스토리 보관함 -->
                         <div
-                            style="margin-top: 2rem; background: rgba(79, 70, 229, 0.03); border: 1px dashed rgba(79, 70, 229, 0.2); padding: 1.2rem; border-radius: 16px;">
+                            style="margin-top: 2rem; background: rgba(79, 70, 229, 0.03); border: 1px dashed rgba(79, 70, 229, 0.2); padding: 1.2rem; border-radius: var(--radius);">
                             <h4
                                 style="margin: 0 0 1rem 0; font-size: 0.95rem; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 6px;">
                                 <span class="material-symbols-rounded">history</span>
@@ -1557,7 +1557,7 @@
                             style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.5rem;">일정
                             분류</label>
                         <select id="modalTaskType" class="search-input"
-                            style="width: 100%; box-sizing: border-box; padding: 0.6rem 0.8rem; font-weight: bold; border-radius: 8px;">
+                            style="width: 100%; box-sizing: border-box; padding: 0.6rem 0.8rem; font-weight: bold; border-radius: var(--radius);">
                             <option value="task">업무 (칸반 보드에 표시)</option>
                             <option value="schedule">일정 (달력에만 표시)</option>
                             <option value="external">외부 연동 일정 (구글 캘린더)</option>
@@ -1580,7 +1580,7 @@
                         <label
                             style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.5rem;">담당자</label>
                         <div id="modal-assignee-tags-container"
-                            style="display: flex; flex-wrap: wrap; gap: 4px; padding: 0.4rem; border: 1px solid var(--border-color); border-radius: 12px; background: var(--col-bg); min-height: 42px; align-items: center;">
+                            style="display: flex; flex-wrap: wrap; gap: 4px; padding: 0.4rem; border: 1px solid var(--border-color); border-radius: var(--radius); background: var(--col-bg); min-height: 42px; align-items: center;">
                             <select id="modalAssigneeInput" class="search-input"
                                 style="border: none; background: transparent; padding: 0.2rem 0.5rem; font-size: 0.9rem; flex: 1; min-width: 80px;"
                                 onchange="addModalAssigneeTag(this)">
@@ -1597,19 +1597,19 @@
                         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                             <button type="button" class="status-chip" onclick="setModalTaskStatus('todo')"
                                 id="status-chip-todo"
-                                style="flex: 1; padding: 8px 6px; font-size: 0.78rem; border-radius: 10px; border: 1.5px solid var(--border-color); background: var(--col-bg); color: var(--text-main); font-weight: bold; cursor: pointer; transition: all 0.2s; outline: none; box-shadow: none;">할
+                                style="flex: 1; padding: 8px 6px; font-size: 0.78rem; border-radius: var(--radius); border: 1.5px solid var(--border-color); background: var(--col-bg); color: var(--text-main); font-weight: bold; cursor: pointer; transition: all 0.2s; outline: none; box-shadow: none;">할
                                 일</button>
                             <button type="button" class="status-chip" onclick="setModalTaskStatus('doing')"
                                 id="status-chip-doing"
-                                style="flex: 1; padding: 8px 6px; font-size: 0.78rem; border-radius: 10px; border: 1.5px solid var(--border-color); background: var(--col-bg); color: var(--text-main); font-weight: bold; cursor: pointer; transition: all 0.2s; outline: none; box-shadow: none;">진행
+                                style="flex: 1; padding: 8px 6px; font-size: 0.78rem; border-radius: var(--radius); border: 1.5px solid var(--border-color); background: var(--col-bg); color: var(--text-main); font-weight: bold; cursor: pointer; transition: all 0.2s; outline: none; box-shadow: none;">진행
                                 중</button>
                             <button type="button" class="status-chip" onclick="setModalTaskStatus('review')"
                                 id="status-chip-review"
-                                style="flex: 1; padding: 8px 6px; font-size: 0.78rem; border-radius: 10px; border: 1.5px solid var(--border-color); background: var(--col-bg); color: var(--text-main); font-weight: bold; cursor: pointer; transition: all 0.2s; outline: none; box-shadow: none;">검토
+                                style="flex: 1; padding: 8px 6px; font-size: 0.78rem; border-radius: var(--radius); border: 1.5px solid var(--border-color); background: var(--col-bg); color: var(--text-main); font-weight: bold; cursor: pointer; transition: all 0.2s; outline: none; box-shadow: none;">검토
                                 중</button>
                             <button type="button" class="status-chip" onclick="setModalTaskStatus('done')"
                                 id="status-chip-done"
-                                style="flex: 1; padding: 8px 6px; font-size: 0.78rem; border-radius: 10px; border: 1.5px solid var(--border-color); background: var(--col-bg); color: var(--text-main); font-weight: bold; cursor: pointer; transition: all 0.2s; outline: none; box-shadow: none;">완료</button>
+                                style="flex: 1; padding: 8px 6px; font-size: 0.78rem; border-radius: var(--radius); border: 1.5px solid var(--border-color); background: var(--col-bg); color: var(--text-main); font-weight: bold; cursor: pointer; transition: all 0.2s; outline: none; box-shadow: none;">완료</button>
                         </div>
                     </div>
 
@@ -1617,7 +1617,7 @@
                         <label
                             style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.5rem;">장소</label>
                         <div id="modalLocationDisplay"
-                            style="padding: 0.6rem 0.8rem; background: var(--col-bg); border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                            style="padding: 0.6rem 0.8rem; background: var(--col-bg); border: 1px solid var(--border-color); border-radius: var(--radius); font-size: 0.9rem; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
                             <span class="material-symbols-rounded"
                                 style="color: var(--text-muted); font-size: 1.2rem;">location_on</span><span
                                 id="modalLocationText"></span></div>
@@ -1723,7 +1723,7 @@
                                 class="material-symbols-rounded">close</span></button>
                     </div>
                     <label id="noticeImportantLabel"
-                        style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem; font-weight: 600; color: var(--danger); cursor: pointer; padding: 4px 8px; background: #fff1f2; border-radius: 8px; border: 1px solid #fecdd3;">
+                        style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem; font-weight: 600; color: var(--danger); cursor: pointer; padding: 4px 8px; background: #fff1f2; border-radius: var(--radius); border: 1px solid #fecdd3;">
                         <input type="checkbox" id="noticeImportantInput"
                             style="width: 16px; height: 16px; accent-color: var(--danger);">
                         📌 중요 공지로 상단 고정
@@ -1736,11 +1736,11 @@
                         <span id="noticeViews"></span>
                     </div>
                     <textarea id="noticeContentInput" placeholder="공지 내용을 자세히 작성하세요..."
-                        style="width: 100%; height: 300px; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; resize: vertical; outline: none; font-family: inherit; box-sizing: border-box;"></textarea>
+                        style="width: 100%; height: 300px; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius); resize: vertical; outline: none; font-family: inherit; box-sizing: border-box;"></textarea>
 
                     <div id="noticeLikeSection" style="display: none; justify-content: center; margin-top: 1rem;">
                         <button id="noticeLikeBtn" onclick="toggleNoticeLike()"
-                            style="background-color: var(--col-bg); color: var(--text-main); border: 1px solid var(--border-color); display: flex; align-items: center; gap: 6px; padding: 0.5rem 1.2rem; border-radius: 20px; font-weight: bold; transition: all 0.2s;">
+                            style="background-color: var(--col-bg); color: var(--text-main); border: 1px solid var(--border-color); display: flex; align-items: center; gap: 6px; padding: 0.5rem 1.2rem; border-radius: var(--radius); font-weight: bold; transition: all 0.2s;">
                             <span class="material-symbols-rounded" id="noticeLikeIcon"
                                 style="font-size: 1.2rem;">favorite</span>
                             공감 <span id="noticeLikeCount">0</span>
@@ -1762,7 +1762,7 @@
                         </div>
 
                         <div id="replyIndicator"
-                            style="display: none; align-items: center; justify-content: space-between; background-color: #F3F4F6; padding: 6px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem; color: var(--text-main);">
+                            style="display: none; align-items: center; justify-content: space-between; background-color: #F3F4F6; padding: 6px 12px; border-radius: var(--radius); margin-bottom: 8px; font-size: 0.85rem; color: var(--text-main);">
                             <span><strong id="replyToName">OOO</strong>님에게 답글 작성 중...</span>
                             <button onclick="cancelReply()"
                                 style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0;"><span
@@ -1771,13 +1771,13 @@
                         </div>
 
                         <div
-                            style="display: flex; gap: 0.6rem; background-color: var(--col-bg); padding: 0.6rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                            style="display: flex; gap: 0.6rem; background-color: var(--col-bg); padding: 0.6rem; border-radius: var(--radius); border: 1px solid var(--border-color);">
                             <input type="text" id="noticeCommentInput" class="search-input"
                                 style="flex: 1; padding: 0.6rem; border: none; background: transparent;"
                                 placeholder="따뜻한 댓글을 남겨주세요..."
                                 onkeydown="if(event.key === 'Enter') { event.preventDefault(); if(event.isComposing) return; saveComment(); }">
                             <button onclick="saveComment()"
-                                style="padding: 0.6rem 1.2rem; flex-shrink: 0; border-radius: 8px;">등록</button>
+                                style="padding: 0.6rem 1.2rem; flex-shrink: 0; border-radius: var(--radius);">등록</button>
                         </div>
                     </div>
                 </div>
@@ -1888,14 +1888,14 @@
                             style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); display:block; margin-bottom: 0.3rem;">대상
                             팀원 선택</label>
                         <select id="adminAddLeaveUserSelect"
-                            style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.9rem;"></select>
+                            style="width: 100%; padding: 0.5rem; border-radius: var(--radius); border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.9rem;"></select>
                     </div>
                     <div>
                         <label
                             style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); display:block; margin-bottom: 0.3rem;">휴가
                             구분</label>
                         <select id="adminAddLeaveTypeSelect"
-                            style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.9rem;">
+                            style="width: 100%; padding: 0.5rem; border-radius: var(--radius); border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.9rem;">
                             <option value="1">연차 (1일)</option>
                             <option value="0.5am">오전 반차 (0.5일)</option>
                             <option value="0.5pm">오후 반차 (0.5일)</option>
@@ -1906,14 +1906,14 @@
                             <label
                                 style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); display:block; margin-bottom: 0.3rem;">시작일</label>
                             <input type="date" id="adminAddLeaveStartDate"
-                                style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.9rem;">
+                                style="width: 100%; padding: 0.5rem; border-radius: var(--radius); border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.9rem;">
                         </div>
                         <div style="flex: 1;">
                             <label
                                 style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); display:block; margin-bottom: 0.3rem;">종료일
                                 (선택)</label>
                             <input type="date" id="adminAddLeaveEndDate"
-                                style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.9rem;">
+                                style="width: 100%; padding: 0.5rem; border-radius: var(--radius); border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.9rem;">
                         </div>
                     </div>
                     <div>
@@ -1921,7 +1921,7 @@
                             style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); display:block; margin-bottom: 0.3rem;">처리
                             상태</label>
                         <select id="adminAddLeaveStatusSelect"
-                            style="width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.9rem;">
+                            style="width: 100%; padding: 0.5rem; border-radius: var(--radius); border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.9rem;">
                             <option value="approved">즉시 승인 (기본)</option>
                             <option value="pending">결재 대기중</option>
                         </select>
@@ -2138,11 +2138,11 @@
                 </div>
                 <div style="display: flex; gap: 10px; margin-bottom: 1rem;">
                     <button id="btnMyTrips" onclick="showBriefingTrips('my')"
-                        style="flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--primary); background: var(--primary); color: white; cursor: pointer; font-weight: 600;">내 일정</button>
+                        style="flex: 1; padding: 8px; border-radius: var(--radius); border: 1px solid var(--primary); background: var(--primary); color: white; cursor: pointer; font-weight: 600;">내 일정</button>
                     <button id="btnTeamTrips" onclick="showBriefingTrips('team')"
-                        style="flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--border-color); background: transparent; color: var(--text-main); cursor: pointer; font-weight: 600;">모두의 일정(출장)</button>
+                        style="flex: 1; padding: 8px; border-radius: var(--radius); border: 1px solid var(--border-color); background: transparent; color: var(--text-main); cursor: pointer; font-weight: 600;">모두의 일정(출장)</button>
                     <button id="btnCoupangTrips" onclick="showBriefingTrips('coupang')"
-                        style="flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--border-color); background: transparent; color: var(--text-main); cursor: pointer; font-weight: 600;">모두의 일정(쿠팡)</button>
+                        style="flex: 1; padding: 8px; border-radius: var(--radius); border: 1px solid var(--border-color); background: transparent; color: var(--text-main); cursor: pointer; font-weight: 600;">모두의 일정(쿠팡)</button>
                 </div>
                 <div id="briefingTripsList"
                     style="display: flex; flex-direction: column; gap: 10px; max-height: 50vh; overflow-y: auto; margin-bottom: 1rem;">
@@ -2243,7 +2243,7 @@
 
         <!-- 우측 팀원 상태 사이드바 (글로벌) -->
         <div class="team-status-sidebar"
-            style="width: clamp(140px, 14vw, 190px); flex-shrink: 0; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); padding: clamp(12px, 1.2vw, 16px); position: sticky; top: 20px; right: 0; margin-left: auto; align-self: flex-start; z-index: 10;">
+            style="width: clamp(140px, 14vw, 190px); flex-shrink: 0; background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border-color); padding: clamp(12px, 1.2vw, 16px); position: sticky; top: 20px; right: 0; margin-left: auto; align-self: flex-start; z-index: 10;">
             <h3
                 style="margin-top: 0; font-size: clamp(0.85rem, 1vw, 0.95rem); color: var(--text-main); display: flex; align-items: center; gap: 6px; margin-bottom: 16px;">
                 <span class="material-symbols-rounded" style="color: var(--primary);">groups</span> 워크스페이스 멤버

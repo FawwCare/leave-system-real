@@ -2364,7 +2364,7 @@ function renderAssigneeTags() {
     selectedAssignees.forEach(name => {
         const tag = document.createElement('div');
         tag.className = 'assignee-tag';
-        tag.style = 'display:flex; align-items:center; gap:4px; background:var(--primary); color:white; padding:2px 8px; border-radius:12px; font-size:0.8rem; font-weight:600; margin: 2px 0;';
+        tag.style = 'display:flex; align-items:center; gap:4px; background:var(--primary); color:white; padding:2px 8px; border-radius:var(--radius); font-size:0.8rem; font-weight:600; margin: 2px 0;';
         tag.innerHTML = `${escapeHTML(name)} <span class="material-symbols-rounded" style="font-size:1rem; cursor:pointer;" onclick="removeAssigneeTag(${jsAttrArg(name)})">close</span>`;
         container.insertBefore(tag, selectEl);
     });
@@ -2395,7 +2395,7 @@ function renderModalAssigneeTags() {
     modalSelectedAssignees.forEach(name => {
         const tag = document.createElement('div');
         tag.className = 'assignee-tag';
-        tag.style = 'display:flex; align-items:center; gap:4px; background:var(--primary); color:white; padding:2px 8px; border-radius:12px; font-size:0.8rem; font-weight:600; margin: 2px 0;';
+        tag.style = 'display:flex; align-items:center; gap:4px; background:var(--primary); color:white; padding:2px 8px; border-radius:var(--radius); font-size:0.8rem; font-weight:600; margin: 2px 0;';
         tag.innerHTML = `${escapeHTML(name)} <span class="material-symbols-rounded" style="font-size:1rem; cursor:pointer;" onclick="removeModalAssigneeTag(${jsAttrArg(name)})">close</span>`;
         container.insertBefore(tag, selectEl);
     });
@@ -2500,7 +2500,7 @@ async function generateAiBriefing() {
                     안녕하세요, <strong style="color: var(--primary); font-weight: 700;">${escapeHTML(userProfile.displayName)}</strong>님! 오늘 하루도 스마트한 업무 협업을 위한 핵심 요약을 전해드립니다.
                 </p>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 0.8rem;">
-                    <div style="background: rgba(79, 70, 229, 0.05); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(79, 70, 229, 0.1); cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(79, 70, 229, 0.1)'" onmouseout="this.style.background='rgba(79, 70, 229, 0.05)'" onclick="document.getElementById('searchAssignee').value = ${jsAttrArg(userNameShort)}; if(typeof filterTasks === 'function') { filterTasks(); if(typeof closeCommonCalendarModal === 'function') closeCommonCalendarModal(); }">
+                    <div style="background: rgba(79, 70, 229, 0.05); padding: 12px 16px; border-radius: var(--radius); border: 1px solid rgba(79, 70, 229, 0.1); cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(79, 70, 229, 0.1)'" onmouseout="this.style.background='rgba(79, 70, 229, 0.05)'" onclick="document.getElementById('searchAssignee').value = ${jsAttrArg(userNameShort)}; if(typeof filterTasks === 'function') { filterTasks(); if(typeof closeCommonCalendarModal === 'function') closeCommonCalendarModal(); }">
                         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 700; font-size: 0.85rem; color: var(--primary);">
                             <span class="material-symbols-rounded" style="font-size: 1.15rem;">task_alt</span> 내 할당 업무
                         </div>
@@ -2510,7 +2510,7 @@ async function generateAiBriefing() {
                             ${overdueTasks.length > 0 ? `<br><span style="color: var(--danger); font-size: 0.8rem; display: inline-flex; align-items: center; gap: 2px;">⚠️ 마감 지연 ${overdueTasks.length}건</span>` : ''}
                         </div>
                     </div>
-                    <div style="background: rgba(139, 92, 246, 0.05); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.1); cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(139, 92, 246, 0.1)'" onmouseout="this.style.background='rgba(139, 92, 246, 0.05)'" onclick="if(typeof showBriefingTrips === 'function') showBriefingTrips();">
+                    <div style="background: rgba(139, 92, 246, 0.05); padding: 12px 16px; border-radius: var(--radius); border: 1px solid rgba(139, 92, 246, 0.1); cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(139, 92, 246, 0.1)'" onmouseout="this.style.background='rgba(139, 92, 246, 0.05)'" onclick="if(typeof showBriefingTrips === 'function') showBriefingTrips();">
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
                             <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.85rem; color: #8B5CF6;">
                                 <span class="material-symbols-rounded" style="font-size: 1.15rem;">flight_takeoff</span> 다가오는 연동 일정
@@ -2521,7 +2521,7 @@ async function generateAiBriefing() {
                             ${upcomingTrips.length > 0 ? `앞으로 <span style="color: #8B5CF6;">${upcomingTrips.length}</span>건의 일정이 있습니다.<br><span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">• 다음 일정: ${escapeHTML(upcomingTrips[0].date)} ${escapeHTML(upcomingTrips[0].name)}</span>` : '예정된 연동 일정이 없습니다.'}
                         </div>
                     </div>
-                    <div style="background: rgba(16, 185, 129, 0.05); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.1);">
+                    <div style="background: rgba(16, 185, 129, 0.05); padding: 12px 16px; border-radius: var(--radius); border: 1px solid rgba(16, 185, 129, 0.1);">
                         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 700; font-size: 0.85rem; color: #10B981;">
                             <span class="material-symbols-rounded" style="font-size: 1.15rem;">beach_access</span> 연차 사용 현황
                         </div>
@@ -3128,14 +3128,14 @@ window.renderTeamStatusSidebar = function() {
         const avatarUrl = member.photoURL || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
         
         const card = document.createElement('div');
-        card.style = 'display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 10px; background: var(--col-bg); border: 1px solid var(--border-color);';
+        card.style = 'display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: var(--radius); background: var(--col-bg); border: 1px solid var(--border-color);';
         
         const profileDiv = document.createElement('div');
         profileDiv.style = 'display: flex; align-items: center; gap: 8px;';
         
         const img = document.createElement('img');
         img.src = avatarUrl;
-        img.style = 'width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.1);';
+        img.style = 'width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: none;';
         img.setAttribute('referrerpolicy', 'no-referrer');
         
         const nameSpan = document.createElement('span');
@@ -3146,7 +3146,7 @@ window.renderTeamStatusSidebar = function() {
         profileDiv.appendChild(nameSpan);
         
         const statusDiv = document.createElement('div');
-        statusDiv.style = `display: flex; align-items: center; gap: 3px; padding: 3px 6px; border-radius: 20px; background: ${statusColor}15; color: ${statusColor}; font-size: 0.72rem; font-weight: 700; white-space: nowrap;`;
+        statusDiv.style = `display: flex; align-items: center; gap: 3px; padding: 3px 6px; border-radius: var(--radius); background: ${statusColor}15; color: ${statusColor}; font-size: 0.72rem; font-weight: 700; white-space: nowrap;`;
         statusDiv.innerHTML = `<span class="material-symbols-rounded" style="font-size: 0.95rem;">${statusIcon}</span> ${status}`;
         
         card.appendChild(profileDiv);
