@@ -456,6 +456,21 @@ await authApi.signOut(); await settle();
     await db.ref('external_events/eH').set(null); await db.ref('users/uHong').set(null); await settle();
 }
 
+// ---------------------------------------------------------------- 날짜 표기 (실제 렌더 경로)
+{
+    await signIn(ADMIN);
+    const y = new Date().getFullYear();
+    await db.ref('tasks/kDateT').set({ title: '날짜확인업무', status: 'todo', dueDate: `${y}-10-06`, assignee: 'A' });
+    await db.ref('leaves/kDateL').set({ id: 'kDateL', uid: 'uA', userName: 'A', date: `${y}-10-06`, type: 1, subType: '1', status: 'pending', timestamp: 1 });
+    await settle(); run('renderTasks()'); run('renderAdminLeaves()'); await settle();
+    const wd = '일월화수목금토'[new Date(y, 9, 6).getDay()];
+    const html = allEls.map(e => e._innerHTML || '').join('\n');
+    check(`[날짜] 업무 카드 마감일이 짧은형(10/6 (${wd}))으로 표시`, html.includes(`마감일 10/6 (${wd})`) || html.includes(`마감지연 10/6 (${wd})`));
+    check(`[날짜] 관리자 연차 목록이 짧은형으로 표시`, (document.getElementById('admin-pending-leaves-list')._innerHTML || '').includes(`10/6 (${wd})`));
+    check('[날짜] 원래 형식(YYYY-MM-DD)이 업무 카드에 남지 않음', !html.includes(`마감일 ${y}-10-06`) && !html.includes(`마감지연 ${y}-10-06`));
+    await db.ref('tasks/kDateT').set(null); await db.ref('leaves/kDateL').set(null); await settle();
+}
+
 // ---------------------------------------------------------------- XSS 회귀 테스트
 // 사용자가 쓸 수 있는 모든 필드에 공격 문자열을 넣고 실제 렌더 함수를 돌린 뒤, 앱이 만든 모든 요소의 innerHTML 에
 // 날것의 공격 문자열이 남아 있는지 검사한다. (태그 / 속성 탈출 / JS 문자열 탈출 3종)
@@ -484,10 +499,17 @@ await db.ref('consumables/kCon').set({ name: P, unit: P, currentStock: P, thresh
 await db.ref('consumablesLog/kLog').set({ itemName: P, operator: P, change: P, newStock: P, timestamp: 1 });
 await db.ref('external_events/kExt').set({ title: P, assignee: P, date: '2026-10-09', startDate: '2026-10-09' });
 await db.ref(`tasks/notifications/${ADMIN}/kN`).set({ title: P, message: P, timestamp: Date.now() });
+// 날짜 표시 변환은 해석 못 한 값을 원문 그대로 돌려주므로, 날짜·타임스탬프 칸에도 공격 문자열을 넣어 본다
+await db.ref(`tasks/notifications/${ADMIN}/kN2`).set({ title: 't', message: 'm', timestamp: P });
+await db.ref('consumablesLog/kLog2').set({ itemName: 'x', operator: 'y', change: 1, newStock: 1, timestamp: P });
+await db.ref('businessCommunications/kComm2').set({ title: 't', summary: 's', sender: 'x', timestamp: P });
+await db.ref('notices/kNotice2').set({ title: 't', content: 'c', author: 'a', timestamp: P, comments: { c2: { author: 'a', content: 'c', timestamp: P, uid: 'uY' } } });
+await db.ref('businessTrips/kTrip2').set({ name: 't', address: 'a', assignee: 'A', date: P });
+await db.ref('businessTrips/kTrip3').set({ name: 't', address: 'a', assignee: 'A', date: `2026-10-09 ~ ${P}` });
 await db.ref('chatMessages/kChat').set({ uid: 'uY', sender: P, text: P, timestamp: Date.now() });
 await settle();
 const renderCalls = ['renderTasks()', 'renderTripList()', 'renderLeaveUI()', 'renderAdminLeaves()', 'renderMyPage()', 'renderFiles()',
-    'renderMembersDirectory()', 'renderChatList()', 'renderNotices()', "viewNotice('kNotice')", 'renderNotifications()',
+    'renderMembersDirectory()', 'renderChatList()', 'renderNotices()', "viewNotice('kNotice')", "viewNotice('kNotice2')", 'renderNotifications()',
     'renderMeetingFeedUI()', 'renderConsumables()', 'openConsumablesLogModal()', 'openArchiveModal()', 'generateAiBriefing()'];
 const renderErrors = [];
 for (const c of renderCalls) { try { await run(c); } catch (e) { renderErrors.push(`${c}: ${e.message}`); } }

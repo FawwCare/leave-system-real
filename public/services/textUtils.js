@@ -55,6 +55,75 @@ function textMentionsMember(text, displayName) {
     return memberMentionIndex(text, displayName) !== -1;
 }
 
+// ---------------------------------------------------------------------------
+// 날짜 표시 공용 규칙 (DB 저장값은 그대로 두고, 화면에 보여줄 때만 변환)
+//  - 짧은형(카드·목록): 10/6 (월)        올해가 아니면 2027/1/5 (화)
+//  - 한글형(팝업·상세): 10월 6일 (월)    올해가 아니면 2027년 1월 5일 (화)
+//  - 해석할 수 없는 값은 원래 글자를 그대로 돌려준다 (추측하지 않음)
+// 반환값은 일반 문자열이므로 innerHTML 에 넣을 때는 기존처럼 escapeHTML 로 감싼다.
+// ---------------------------------------------------------------------------
+const DATE_WEEKDAYS_KO = ['일', '월', '화', '수', '목', '금', '토'];
+
+// 'YYYY-MM-DD'(시간 포함 가능)는 브라우저가 UTC 로 해석하지 않도록 현지 날짜로 직접 만든다.
+function parseDisplayDate(value) {
+    if (value === null || value === undefined || value === '') return null;
+    if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
+    if (typeof value === 'number') { const d = new Date(value); return isNaN(d.getTime()) ? null : d; }
+    const s = String(value).trim();
+    if (/^\d{12,13}$/.test(s)) return parseDisplayDate(Number(s));
+    const m = /^(\d{4})[-./](\d{1,2})[-./](\d{1,2})(?:[T\s]+(\d{1,2}):(\d{2}))?/.exec(s);
+    if (!m) return null;
+    const y = +m[1], mo = +m[2], da = +m[3];
+    const d = new Date(y, mo - 1, da, m[4] ? +m[4] : 0, m[5] ? +m[5] : 0);
+    // 2026-02-30 같은 없는 날짜는 해석하지 않음
+    if (d.getFullYear() !== y || d.getMonth() !== mo - 1 || d.getDate() !== da) return null;
+    return d;
+}
+
+function formatDateShort(value) {
+    const d = parseDisplayDate(value);
+    if (!d) return (value === null || value === undefined) ? '' : String(value);
+    const base = `${d.getMonth() + 1}/${d.getDate()} (${DATE_WEEKDAYS_KO[d.getDay()]})`;
+    return d.getFullYear() === new Date().getFullYear() ? base : `${d.getFullYear()}/${base}`;
+}
+
+function formatDateLong(value) {
+    const d = parseDisplayDate(value);
+    if (!d) return (value === null || value === undefined) ? '' : String(value);
+    const base = `${d.getMonth() + 1}월 ${d.getDate()}일 (${DATE_WEEKDAYS_KO[d.getDay()]})`;
+    return d.getFullYear() === new Date().getFullYear() ? base : `${d.getFullYear()}년 ${base}`;
+}
+
+function formatDateRange(start, end, style) {
+    const a = parseDisplayDate(start), b = parseDisplayDate(end);
+    const one = style === 'long' ? formatDateLong : formatDateShort;
+    if (!a) return [start, end].filter(x => x !== null && x !== undefined && x !== '').map(String).join(' ~ ');
+    if (!b || (a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate())) return one(a);
+    if (style === 'long' && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()) {
+        return `${one(a)} ~ ${b.getDate()}일 (${DATE_WEEKDAYS_KO[b.getDay()]})`;
+    }
+    return `${one(a)} ~ ${one(b)}`;
+}
+
+// 저장된 날짜 글자(단일 또는 '시작 to 끝', '시작 ~ 끝', '시작 - 끝')를 보기 좋게. 해석 실패 시 원문 그대로.
+function formatDateText(raw, style) {
+    if (raw === null || raw === undefined) return '';
+    const str = String(raw).trim();
+    if (!str) return '';
+    const parts = str.split(/\s*(?:\bto\b|~|\s-\s)\s*/i).filter(Boolean);
+    if (parts.length === 1) return parseDisplayDate(parts[0]) ? (style === 'long' ? formatDateLong(parts[0]) : formatDateShort(parts[0])) : str;
+    if (parts.length === 2 && parseDisplayDate(parts[0]) && parseDisplayDate(parts[1])) return formatDateRange(parts[0], parts[1], style);
+    return str;
+}
+
+// 타임스탬프 등 날짜+시간: 10/8 (수) 14:30
+function formatDateTime(value, style) {
+    const d = parseDisplayDate(value);
+    if (!d) return (value === null || value === undefined) ? '' : String(value);
+    const hm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    return `${style === 'long' ? formatDateLong(d) : formatDateShort(d)} ${hm}`;
+}
+
 /**
  * HTML 태그를 제거하고 개행 문자를 살려 일반 텍스트로 변환하는 함수
  */

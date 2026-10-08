@@ -2031,7 +2031,7 @@ function renderTasks() {
         if (task.dueDate) {
             const taskDate = new Date(task.dueDate); taskDate.setHours(0, 0, 0, 0);
             const isOverdue = taskDate < today && task.status !== 'done';
-            dueBadge = `<span style="font-size: 0.75rem; color: ${isOverdue ? 'var(--danger)' : 'var(--text-main)'}; font-weight: 600;">${isOverdue ? '마감지연' : '마감일'} ${escapeHTML(task.dueDate)}</span>`;
+            dueBadge = `<span style="font-size: 0.75rem; color: ${isOverdue ? 'var(--danger)' : 'var(--text-main)'}; font-weight: 600;">${isOverdue ? '마감지연' : '마감일'} ${escapeHTML(formatDateShort(task.dueDate))}</span>`;
         }
 
         const archiveBtnHtml = (task.status === 'done' && !task.isTrip && !task.isLeave) ? `<button class="archive-btn" onclick="archiveSingleTask(event, ${jsAttrArg(task.id)})" title="보관함으로 이동" style="padding:0.2rem; background:transparent; border:none; cursor:pointer; color:var(--text-muted);"><span class="material-symbols-rounded" style="font-size:1.1em;">inventory_2</span></button>` : '';
@@ -2208,7 +2208,7 @@ function openArchiveModal() {
             li.innerHTML = `
                 <div style="flex:1; cursor:pointer;" onclick="openModal(${jsAttrArg(task.id)}, ${jsAttrArg(task.title)}, ${jsAttrArg(task.description || '')}, ${jsAttrArg(task.dueDate || '')}, ${jsAttrArg(task.startDate || '')})">
                     <div style="font-weight:600; color:var(--text-main);">${escapeHTML(task.title)}</div>
-                    <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.2rem;">담당: ${escapeHTML(task.assignee || '미지정')} | 마감: ${escapeHTML(task.dueDate || '미정')}</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.2rem;">담당: ${escapeHTML(task.assignee || '미지정')} | 마감: ${escapeHTML(task.dueDate ? formatDateShort(task.dueDate) : '미정')}</div>
                 </div>
                 <div style="display:flex; gap:0.5rem; flex-shrink:0;">
                     <button onclick="restoreArchivedTask(${jsAttrArg(task.id)})" title="칸반보드 완료 컬럼으로 복구" style="background:var(--col-bg); color:var(--primary); border:1px solid var(--border-color); padding:0.3rem 0.6rem; font-size:0.8rem;"><span class="material-symbols-rounded" style="font-size:1.1em; vertical-align:middle;">restore</span> 복구</button>
@@ -2518,7 +2518,7 @@ async function generateAiBriefing() {
                             <span class="material-symbols-rounded" style="font-size: 1.1rem; color: #8B5CF6; opacity: 0.7;">open_in_new</span>
                         </div>
                         <div style="font-size: 0.88rem; font-weight: 600;">
-                            ${upcomingTrips.length > 0 ? `앞으로 <span style="color: #8B5CF6;">${upcomingTrips.length}</span>건의 일정이 있습니다.<br><span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">• 다음 일정: ${escapeHTML(upcomingTrips[0].date)} ${escapeHTML(upcomingTrips[0].name)}</span>` : '예정된 연동 일정이 없습니다.'}
+                            ${upcomingTrips.length > 0 ? `앞으로 <span style="color: #8B5CF6;">${upcomingTrips.length}</span>건의 일정이 있습니다.<br><span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">• 다음 일정: ${escapeHTML(formatDateText(upcomingTrips[0].date))} ${escapeHTML(upcomingTrips[0].name)}</span>` : '예정된 연동 일정이 없습니다.'}
                         </div>
                     </div>
                     <div style="background: rgba(16, 185, 129, 0.05); padding: 12px 16px; border-radius: var(--radius); border: 1px solid rgba(16, 185, 129, 0.1);">
@@ -2862,15 +2862,13 @@ window.showBriefingTrips = function(mode = 'my') {
                 const rawDate = String(t.date || t.dueDate || t.startDate || '');
                 let displayDate = '';
                 if (rawDate) {
-                    const parts = rawDate.includes(' to ') ? rawDate.split(' to ') : rawDate.split(' ~ ');
+                    const parts = rawDate.includes(' to ') ? rawDate.split(' to ') : rawDate.split(' ~ '); // displayDate 는 조각별로 이스케이프한 HTML (줄바꿈 <br> 포함)
                     displayDate = parts.map(d => {
-                        const dateObj = new Date(d.trim());
-                        if (!isNaN(dateObj.getTime())) {
-                            const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-                            const dd = String(dateObj.getDate()).padStart(2, '0');
-                            return `${mm}월 ${dd}일`;
+                        const dateObj = parseDisplayDate(d.trim());
+                        if (dateObj) {
+                            return escapeHTML(formatDateShort(dateObj));
                         }
-                        return d;
+                        return escapeHTML(d);
                     }).join('<br>~ ');
                 }
                 
@@ -2923,7 +2921,7 @@ window.showBriefingTrips = function(mode = 'my') {
                             
                             let dateTd = '';
                             if (parsed.rowspan > 0) {
-                                dateTd = `<td rowspan="${parsed.rowspan}" style="border: 1px solid #000; border-bottom: 3px solid #000; padding: 4px; font-weight: 500; background-color: #FFF9C4; text-align: center;">${escapeHTML(parsed.displayDate)}</td>`;
+                                dateTd = `<td rowspan="${parsed.rowspan}" style="border: 1px solid #000; border-bottom: 3px solid #000; padding: 4px; font-weight: 500; background-color: #FFF9C4; text-align: center;">${parsed.displayDate}</td>`;
                             }
                             
                             return `

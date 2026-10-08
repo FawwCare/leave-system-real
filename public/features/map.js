@@ -769,7 +769,7 @@ function renderTripList() {
         let displayDate = trip.date;
         if (trip.date) {
             const parsed = typeof parseTripDateRange === 'function' ? parseTripDateRange(trip.date) : { endDate: trip.endDate || trip.date, displayDate: (trip.endDate && trip.endDate !== trip.date) ? (trip.date.split('T')[0] + ' ~ ' + trip.endDate.split('T')[0]) : trip.date.split('T')[0] };
-            displayDate = parsed.displayDate || trip.date;
+            displayDate = formatDateText(parsed.displayDate || trip.date);
             const todayStr = typeof getTodayStr === 'function' ? getTodayStr() : new Date().toISOString().split('T')[0];
             const compareDate = (parsed.endDate || '').split('T')[0];
             if (compareDate && compareDate < todayStr) {
@@ -2224,7 +2224,7 @@ async function calculateOptimizedRoute() {
 
                     dateHeader.style.cssText = 'font-size:0.85rem; color:var(--text-muted); margin: 0.8rem 0 0.2rem 0.5rem; font-weight:bold;';
 
-                    dateHeader.textContent = `🗓 [${trip.date}]`;
+                    dateHeader.textContent = `🗓 [${formatDateText(trip.date)}]`;
 
                     listEl.appendChild(dateHeader);
 

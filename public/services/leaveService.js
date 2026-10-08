@@ -74,7 +74,7 @@ function renderLeaveUI() {
         let statusText = l.status === 'approved' ? '승인됨' : (l.status === 'pending' ? '승인 대기중' : (l.status === 'cancel_requested' ? '취소 대기중' : (l.status === 'rejected' ? '반려됨' : '취소됨')));
         let color = l.status === 'approved' ? '#10B981' : (l.status === 'rejected' || l.status === 'cancel_requested' ? 'var(--danger)' : '#F59E0B');
         let btnHtml = (l.status === 'pending' || l.status === 'approved') ? `<button class="cancel-btn" onclick="cancelLeave(${jsAttrArg(l.id)})">취소</button>` : '';
-        li.innerHTML = `<div><div style="font-weight:600;">${escapeHTML(l.date)}</div><div style="font-size:0.8rem; color:${color}">${statusText}</div></div>${btnHtml}`;
+        li.innerHTML = `<div><div style="font-weight:600;">${escapeHTML(formatDateShort(l.date))}</div><div style="font-size:0.8rem; color:${color}">${statusText}</div></div>${btnHtml}`;
         listEl.appendChild(li);
     });
 }
@@ -130,7 +130,7 @@ function openLeaveDetailModal(leaveId) {
         </div>
         <div>
             <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">휴가일</label>
-            <p style="margin: 0.3rem 0 0 0; font-weight: 600;">${escapeHTML(leave.date)}</p>
+            <p style="margin: 0.3rem 0 0 0; font-weight: 600;">${escapeHTML(formatDateLong(leave.date))}</p>
         </div>
         <div>
             <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">상태</label>
@@ -204,7 +204,7 @@ function renderAdminLeaves() {
                     <div style="font-weight:600; display:flex; align-items:center; gap:6px;">
                         ${escapeHTML(l.userName)} <span style="font-size:0.8rem; padding:2px 6px; border-radius:4px; background-color:var(--bg-color); color:${isCancel ? 'var(--danger)' : 'var(--text-muted)'};">${isCancel ? '취소 요청' : typeText}</span>
                     </div>
-                    <div style="font-size:0.85rem; color:var(--primary); font-weight:bold;">${escapeHTML(l.date)}</div>
+                    <div style="font-size:0.85rem; color:var(--primary); font-weight:bold;">${escapeHTML(formatDateShort(l.date))}</div>
                 </div>
                 <div style="display:flex; gap:6px;">
                     <button onclick="adminResolveLeave(${jsAttrArg(l.id)}, 'approved', ${jsAttrArg(l.status)})" style="background-color: #10B981; padding: 0.4rem 0.8rem; font-size: 0.8rem;">승인</button>
@@ -249,7 +249,7 @@ function renderAdminLeaves() {
                             <span style="font-size:0.75rem; padding:2px 6px; border-radius:4px; background-color:var(--bg-color); color:var(--text-main);">${typeText}</span>
                             <span style="font-size:0.75rem; padding:2px 6px; border-radius:4px; background-color:var(--bg-color); color:${statusColor}; font-weight:bold;">${statusBadge}</span>
                         </div>
-                        <div style="font-size:0.85rem; color:var(--primary); font-weight:bold;">${escapeHTML(l.date)} ${l.rejectReason ? `<span style="font-size:0.75rem; color:var(--danger); font-weight:normal;">(사유: ${escapeHTML(l.rejectReason)})</span>` : ''}</div>
+                        <div style="font-size:0.85rem; color:var(--primary); font-weight:bold;">${escapeHTML(formatDateShort(l.date))} ${l.rejectReason ? `<span style="font-size:0.75rem; color:var(--danger); font-weight:normal;">(사유: ${escapeHTML(l.rejectReason)})</span>` : ''}</div>
                     </div>
                     <div style="display:flex; gap:4px; align-items:center;">
                         ${l.status !== 'approved' ? `<button onclick="adminResolveLeave(${jsAttrArg(l.id)}, 'approved', ${jsAttrArg(l.status)})" style="background-color: #10B981; padding: 0.3rem 0.6rem; font-size: 0.75rem;">승인</button>` : ''}

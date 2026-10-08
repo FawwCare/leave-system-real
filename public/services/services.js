@@ -37,7 +37,7 @@ function listenForCommunications() {
             else if (item.category === '일정공유') { categoryClass = 'schedule'; categoryEmoji = '📅'; }
 
             // 날짜 표시
-            const dateStr = item.timestamp ? new Date(item.timestamp).toLocaleString('ko-KR', { hour12: false }) : '';
+            const dateStr = item.timestamp ? formatDateTime(item.timestamp) : '';
 
             // Gmail 바로가기 링크 생성 (제목 검색을 통한 지메일 유기적 접근)
             const searchQuery = encodeURIComponent(`subject:("${item.title}")`);
@@ -888,7 +888,7 @@ function renderNotices() {
         li.innerHTML = `
             <div class="notice-item-title">${importantBadge}${escapeHTML(notice.title)}</div>
             <div class="notice-item-author">${escapeHTML(notice.author)}</div>
-            <div class="notice-item-date">${new Date(notice.timestamp).toLocaleDateString()}</div>
+            <div class="notice-item-date">${escapeHTML(formatDateShort(notice.timestamp))}</div>
             <div class="notice-item-views">${escapeHTML(notice.views || 0)}</div>
         `;
         li.onclick = () => viewNotice(notice.id);
@@ -940,7 +940,7 @@ function viewNotice(id) {
     // 정보 표시
     const info = document.getElementById('noticeInfo');
     info.style.display = 'flex';
-    document.getElementById('noticeAuthorDate').textContent = `${notice.author || '익명'} | ${new Date(notice.timestamp).toLocaleDateString()}`;
+    document.getElementById('noticeAuthorDate').textContent = `${notice.author || '익명'} | ${escapeHTML(formatDateLong(notice.timestamp))}`;
     document.getElementById('noticeViews').textContent = `조회수 ${notice.views || 0}`;
 
     // 댓글 로드
@@ -1039,7 +1039,7 @@ function renderComments(comments) {
                     ${isReply ? '<span class="material-symbols-rounded" style="font-size:1.1rem; color:var(--text-muted); vertical-align:middle; margin-right:4px;">subdirectory_arrow_right</span>' : ''}
                     ${escapeHTML(c.author)}
                 </span>
-                <span style="font-size:0.75rem; color:var(--text-muted); margin-right: 25px;">${new Date(c.timestamp).toLocaleString([], { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                <span style="font-size:0.75rem; color:var(--text-muted); margin-right: 25px;">${escapeHTML(formatDateTime(c.timestamp))}</span>
             </div>
             <div style="font-size:0.9rem; color:var(--text-main); word-break:break-all; line-height:1.5; ${isReply ? 'margin-left:22px;' : ''}">${escapeHTML(c.content)}</div>
             <div style="display:flex; gap: 12px; margin-top: 4px; align-items:center; ${isReply ? 'margin-left:22px;' : ''}">
@@ -1829,12 +1829,12 @@ function renderNotifications() {
             toggleNotificationPanel();
         };
 
-        const timeStr = new Date(n.timestamp).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const timeStr = formatDateTime(n.timestamp);
 
         item.innerHTML = `
             <div class="notif-title-row">
                 <span>${escapeHTML(n.title)}</span>
-                <span class="notif-date">${timeStr}</span>
+                <span class="notif-date">${escapeHTML(timeStr)}</span>
             </div>
             <div class="notif-message">${escapeHTML(n.message)}</div>
         `;
@@ -2248,13 +2248,13 @@ function renderProposalHistory() {
             else if (prop.template === 'event') emoji = '🎈';
             else if (prop.template === 'problem') emoji = '🔧';
 
-            const timeStr = new Date(prop.timestamp).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+            const timeStr = formatDateShort(prop.timestamp);
 
             chip.innerHTML = `
                 <span onclick="loadSavedProposal(${jsAttrArg(id)})" style="display:flex; align-items:center; gap:4px;">
                     <span>${emoji}</span>
                     <span style="color: var(--text-main); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(prop.title)}</span>
-                    <small style="color: var(--text-muted); font-weight: normal;">(${timeStr})</small>
+                    <small style="color: var(--text-muted); font-weight: normal;">(${escapeHTML(timeStr)})</small>
                 </span>
                 <span class="material-symbols-rounded" onclick="deleteSavedProposal(event, ${jsAttrArg(id)})" style="font-size: 1rem; color: var(--text-muted); cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'">close</span>
             `;
@@ -2762,12 +2762,7 @@ function renderMeetingFeedUI() {
     const dateKeys = [];
 
     filteredFeeds.forEach(feed => {
-        const dateKey = new Date(feed.timestamp).toLocaleDateString('ko-KR', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            weekday: 'long'
-        });
+        const dateKey = formatDateLong(feed.timestamp);
         if (!groupedFeeds[dateKey]) {
             groupedFeeds[dateKey] = [];
             dateKeys.push(dateKey);
@@ -3290,7 +3285,7 @@ async function openConsumablesLogModal() {
         }
         
         logs.forEach(log => {
-            const timeStr = new Date(log.timestamp).toLocaleString('ko-KR', { hour12: false });
+            const timeStr = formatDateTime(log.timestamp);
             const li = document.createElement('li');
             li.style.display = 'flex';
             li.style.justifyContent = 'space-between';
@@ -3298,7 +3293,7 @@ async function openConsumablesLogModal() {
             li.style.padding = '0.8rem 1rem';
             li.style.borderBottom = '1px solid var(--border-color)';
             
-            const changeText = log.change || '';
+            const changeText = String(log.change ?? ''); // 숫자 등으로 저장된 기록이 있어도 목록 전체가 멈추지 않도록
             const isPlus = changeText.startsWith('+') || changeText.includes('신규');
             const isDelete = changeText.includes('삭제');
             let badgeColor = '#F59E0B'; 
@@ -3314,7 +3309,7 @@ async function openConsumablesLogModal() {
             li.innerHTML = `
                 <div>
                     <div style="font-weight:700; color:var(--text-main); font-size:0.95rem;">${escapeHTML(log.itemName || '알 수 없는 품목')}</div>
-                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">작업자: ${escapeHTML(log.operator || '익명')} | ${timeStr}</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">작업자: ${escapeHTML(log.operator || '익명')} | ${escapeHTML(timeStr)}</div>
                 </div>
                 <div style="text-align:right;">
                     <span style="font-size:0.8rem; font-weight:800; color:${badgeColor}; background-color:${badgeBg}; padding:2px 8px; border-radius:var(--radius); display:inline-block;">${escapeHTML(changeText)}</span>
