@@ -16,6 +16,7 @@ const BUSINESS_TOP = new Set(['tasks', 'leaves', 'businessTrips', 'files', 'cons
     'tripVehicles', 'businessCommunications', 'chatMessages', 'notices', 'privateChats', 'sharedNote', 'typingStatus',
     'notifications', 'dailyTasks', 'dailyLogs']);
 const ADMIN = 'jaGugunGReXytCgbqYwQUybxyJL2';
+const ADMIN_UIDS_RULE = [ADMIN, 'hiPMcfj1OvWuq6PjedfPFvOLxlp2'];
 
 // ---------------------------------------------------------------- DOM stub
 function makeEl(id) {
@@ -61,7 +62,12 @@ function setAt(p, v) {
 function canRead(p) {
     const top = seg(p)[0];
     if (!auth.currentUser) return false;
-    if (top === 'users') return true;
+    if (top === 'users') {   // 보안 2차-1: 명단 전체는 승인자·관리자, 하위 본인 경로는 본인
+        const approvedOrAdmin = getAt(`users/${auth.currentUser.uid}/approved`) === true || ADMIN_UIDS_RULE.includes(auth.currentUser.uid)
+            || (auth.currentUser.email === 'contact@faww.co.kr' && auth.currentUser.emailVerified === true);
+        if (approvedOrAdmin) return true;
+        return seg(p)[1] === auth.currentUser.uid;
+    }
     if (BUSINESS_TOP.has(top)) return getAt(`users/${auth.currentUser.uid}/approved`) === true;
     return false;
 }
@@ -192,6 +198,7 @@ function seedData() {
             [ADMIN]: { displayName: 'Admin', email: 'admin@example.com', approved: true, leaveTotal: 15 },
             uA: { displayName: 'A', email: 'a@example.com', approved: true, leaveTotal: 15, department: 'team1_member' },
             uB: { displayName: 'B', email: 'b@example.com', approved: true, leaveTotal: 15, department: 'team2_member' },
+            uP: { displayName: 'P', email: 'p@example.com', approved: false, leaveTotal: 15, department: 'unassigned' },
         },
         tasks: { t1: { title: 'A업무', status: 'todo', assignee: 'A' }, t2: { title: '완료', status: 'done' }, notifications: { uA: { n1: { text: 'A 알림', timestamp: 1 } } } },
         businessTrips: { b1: { title: '출장1', assignee: 'A', date: '2026-10-08' } },
@@ -216,6 +223,13 @@ seedData();
 await settle();
 check('[로드 직후·비로그인] 업무 경로 리스너 등록 0건', activeBusiness().length === 0, activePaths().join(','));
 check('[로드 직후·비로그인] 권한 거부로 취소된 리스너 0건 (로그인 전 구독 시도 없음)', counters.denied === 0, counters.deniedPaths.join(','));
+
+// 미승인 사용자 로그인: 본인 프로필만 구독, 명단·업무 구독 시도 없음
+await signIn('uP');
+check('[미승인 로그인] 권한 거부 0건 (명단·업무 구독 시도 없음)', counters.denied === 0, counters.deniedPaths.join(','));
+check('[미승인 로그인] 활성 리스너 = 본인 프로필 1건', activePaths().join(',') === 'users/uP', activePaths().join(','));
+check('[미승인 로그인] 저장소에 타 직원 명단 없음', Object.keys(run('AppStore').getUsers() || {}).length === 0);
+await authApi.signOut(); await settle();
 
 // 로그인 A (승인)
 await signIn('uA');

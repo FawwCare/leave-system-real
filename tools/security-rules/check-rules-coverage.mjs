@@ -22,7 +22,8 @@ const weak = Object.keys(rules).filter(k => k !== 'users' && (rules[k]['.read'] 
 ck('users 외 모든 경로가 로그인+승인 조건 (.read/.write)', weak.length === 0, weak.join(','));
 const nested = Object.keys(rules).filter(k => k !== 'users' && Object.keys(rules[k]).some(c => !c.startsWith('.')));
 ck('users 외 경로에 하위 규칙으로 권한을 넓히는 항목 없음', nested.length === 0, nested.join(','));
-ck("users .read = 'auth != null' (1차 범위의 의도된 예외로 기록)", rules.users['.read'] === 'auth != null');
+ck('users 전체 .read 가 승인 조건 포함 (2차-1: 미승인 명단 열람 차단)', rules.users['.read'].includes("root.child('users/' + auth.uid + '/approved').val() === true") && rules.users['.read'] !== 'auth != null');
+ck('users/$uid .read 는 본인만 (auth.uid === $uid)', rules.users['$uid']['.read'] === 'auth != null && auth.uid === $uid');
 ck('users 노드 자체에 .write 없음 (부모 덮어쓰기 차단)', !('.write' in rules.users));
 // config.js 의 관리자 명단과 규칙의 관리자 조건이 어긋나지 않는지 (명단 불일치 재발 방지)
 const cfg = fs.readFileSync(path.join(ROOT, 'public/js/config.js'), 'utf8');

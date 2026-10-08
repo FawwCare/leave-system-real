@@ -83,7 +83,15 @@ await check('[미승인] 쿼리(tasks status=todo) 읽기 거부', async () => {
     const { query, orderByChild, equalTo } = await import('firebase/database');
     await assertFails(get(query(ref(as(PENDING), 'tasks'), orderByChild('status'), equalTo('todo'))));
 });
-await check('[미승인] users 읽기 허용 (1차 범위의 의도된 예외)', () => assertSucceeds(get(ref(as(PENDING), 'users'))));
+// 보안 2차-1: 직원 명단은 승인된 사용자·관리자만, 미승인은 본인 프로필만
+await check('[미승인] users 전체 읽기 거부', () => assertFails(get(ref(as(PENDING), 'users'))));
+await check('[미승인] 본인 프로필 읽기 허용', () => assertSucceeds(get(ref(as(PENDING), `users/${PENDING}`))));
+await check('[미승인] 타인 프로필 읽기 거부', () => assertFails(get(ref(as(PENDING), `users/${APPROVED}`))));
+await check('[미승인] 타인 이메일 필드 읽기 거부', () => assertFails(get(ref(as(PENDING), `users/${APPROVED}/displayName`))));
+await check('[신규·프로필 없음] 본인 경로 읽기 허용 (null 수신 → 프로필 생성 흐름)', () => assertSucceeds(get(ref(as(NEWBIE), `users/${NEWBIE}`))));
+await check('[신규·프로필 없음] users 전체 읽기 거부', () => assertFails(get(ref(as(NEWBIE), 'users'))));
+await check('[승인] users 전체 읽기 허용 (조직도·채팅 목록)', () => assertSucceeds(get(ref(as(APPROVED), 'users'))));
+await check('[승인] 타인 프로필 읽기 허용', () => assertSucceeds(get(ref(as(APPROVED), `users/${OTHER}`))));
 
 // 3) 승인 사용자
 for (const p of BUSINESS_PATHS) {
@@ -133,6 +141,11 @@ await check('[승인] 타인 프로필 삭제 거부', () => assertFails(remove(
 // 8) 관리자
 await check('[관리자] 승인 허용 (main.js update 형태)', () => assertSucceeds(update(ref(as(ADMIN), `users/${PENDING}`), { approved: true })));
 await check('[관리자] 승인 해제 허용', () => assertSucceeds(update(ref(as(ADMIN), `users/${APPROVED}`), { approved: false })));
+await check('[승인 해제된 사용자] users 전체 읽기 거부', async () => {
+    await update(ref(as(ADMIN), `users/${APPROVED}`), { approved: false });
+    await assertFails(get(ref(as(APPROVED), 'users')));
+    await assertSucceeds(get(ref(as(APPROVED), `users/${APPROVED}`)));
+});
 await check('[관리자] 연차 총량 변경 허용 (leaveService update 형태)', () => assertSucceeds(update(ref(as(ADMIN), `users/${APPROVED}`), { leaveTotal: 20, totalLeave: 20 })));
 await check('[관리자] 타인 부서 변경 허용', () => assertSucceeds(update(ref(as(ADMIN), `users/${OTHER}`), { department: 'director' })));
 await check('[관리자] 사용자 삭제 허용', () => assertSucceeds(remove(ref(as(ADMIN), `users/${OTHER}`))));
@@ -144,6 +157,7 @@ await check('[관리자2 UID] 연차 총량 변경 허용', () => assertSucceeds
 await check('[관리자 이메일·인증됨] 승인 허용', () => assertSucceeds(update(ref(as(EMAIL_ADMIN_UID, verified), `users/${PENDING}`), { approved: true })));
 await check('[관리자 이메일·인증됨] 승인 해제 허용', () => assertSucceeds(update(ref(as(EMAIL_ADMIN_UID, verified), `users/${APPROVED}`), { approved: false })));
 await check('[관리자 이메일·인증됨] 신규 본인 프로필 approved:true 등록 허용', () => assertSucceeds(set(ref(as('uEmailAdminNew', verified), 'users/uEmailAdminNew'), { ...newProfile, approved: true })));
+await check('[관리자 이메일·인증됨] users 전체 읽기 허용', () => assertSucceeds(get(ref(as(EMAIL_ADMIN_UID, verified), 'users'))));
 await check('[관리자 이메일·미인증] 승인 거부', () => assertFails(update(ref(as('uFake', { email: ADMIN_EMAIL, email_verified: false }), `users/${PENDING}`), { approved: true })));
 await check('[관리자 이메일·미인증] 본인 프로필 approved:true 등록 거부', () => assertFails(set(ref(as('uFake2', { email: ADMIN_EMAIL, email_verified: false }), 'users/uFake2'), { ...newProfile, approved: true })));
 await check('[다른 인증 이메일] 승인 거부', () => assertFails(update(ref(as('uOtherMail', { email: 'someone@faww.co.kr', email_verified: true }), `users/${PENDING}`), { approved: true })));

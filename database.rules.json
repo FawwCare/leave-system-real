@@ -1,8 +1,9 @@
 {
   "rules": {
     "users": {
-      ".read": "auth != null",
+      ".read": "auth != null && (root.child('users/' + auth.uid + '/approved').val() === true || (auth.uid === 'jaGugunGReXytCgbqYwQUybxyJL2' || auth.uid === 'hiPMcfj1OvWuq6PjedfPFvOLxlp2' || (auth.token.email === 'contact@faww.co.kr' && auth.token.email_verified === true)))",
       "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
         ".write": "(auth.uid === 'jaGugunGReXytCgbqYwQUybxyJL2' || auth.uid === 'hiPMcfj1OvWuq6PjedfPFvOLxlp2' || (auth.token.email === 'contact@faww.co.kr' && auth.token.email_verified === true)) || (auth.uid === $uid && newData.exists())",
         ".validate": "(auth.uid === 'jaGugunGReXytCgbqYwQUybxyJL2' || auth.uid === 'hiPMcfj1OvWuq6PjedfPFvOLxlp2' || (auth.token.email === 'contact@faww.co.kr' && auth.token.email_verified === true)) || (newData.exists() && (!data.exists() ? (newData.hasChild('leaveTotal') && newData.child('leaveTotal').val() === 15 && newData.hasChild('approved') && newData.child('approved').val() === false && !newData.hasChild('totalLeave')) : ( (!data.hasChild('approved') || newData.hasChild('approved')) && (!data.hasChild('leaveTotal') || newData.hasChild('leaveTotal')) && (!data.hasChild('totalLeave') || newData.hasChild('totalLeave')) && (!newData.hasChild('totalLeave') || data.hasChild('totalLeave')) )))",
         "approved": {
