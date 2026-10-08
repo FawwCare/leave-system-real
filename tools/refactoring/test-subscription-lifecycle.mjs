@@ -234,8 +234,7 @@ const baselinePaths = activePaths().join('|');
 const onBefore = counters.on;
 await db.ref('users/uA').update({ displayName: 'A2' }); await settle();
 const reOn = counters.onPaths.slice(onBefore);
-check('[A 프로필 수정] 업무 구독 재등록 없음 (privateChats 알림 재등록 제외)', reOn.every(p => p.startsWith('privateChats/')), reOn.join(','));
-console.log('  INFO 프로필 수정으로 재등록된 경로:', reOn.join(', ') || '(없음)');
+check('[A 프로필 수정] 구독 재등록 없음 (on 증가 0, 개인채팅 알림 포함)', reOn.length === 0, reOn.join(','));
 check('[A 프로필 수정] 활성 리스너 수 불변', active().length === baselineApproved, `${baselineApproved} → ${active().length}`);
 
 // 늦은 콜백 시뮬레이션: 로그아웃 전 tasks_todo 의 실제 등록 콜백 확보
@@ -299,7 +298,21 @@ run("openPrivateChat('uB', 'B')"); await settle();
 run('closePrivateChat()'); await settle();
 const chatId = run("getPrivateChatId('uA','uB')");
 const notiAlive = active().some(r => r.query.path === 'privateChats/' + chatId);
-console.log('  INFO 1:1 채팅 닫은 직후 해당 채팅 알림 리스너 생존:', notiAlive, '(모의 off() 는 SDK 처럼 동일 쿼리 등록 전체 제거로 모델링)');
+check('[1:1 채팅 닫기] 같은 채팅의 알림 리스너 유지 (모의 off() 는 동일 쿼리 전체 제거로 모델링)', notiAlive);
+check('[1:1 채팅 닫기] 채팅창 리스너는 해제', active().filter(r => r.query.path === 'privateChats/' + chatId).length === 1);
+// 공지 상세: 다른 공지로 전환·닫기 시 이전 공지의 댓글·좋아요 리스너 해제
+await db.ref('notices/n2').set({ title: '공지2', content: 'y', timestamp: 2 }); await settle();
+run("viewNotice('n1')"); await settle();
+run("viewNotice('n2')"); await settle();
+check('[공지 전환] 이전 공지(n1) 댓글·좋아요 리스너 해제', !active().some(r => r.query.path.startsWith('notices/n1/')), activePaths().filter(p => p.startsWith('notices/')).join(','));
+check('[공지 전환] 현재 공지(n2) 댓글·좋아요 리스너 각 1건', active().filter(r => r.query.path.startsWith('notices/n2/')).length === 2);
+run('closeNoticeModal()'); await settle();
+check('[공지 닫기] 공지 상세 리스너 0건', !active().some(r => /^notices\/[^/]+\//.test(r.query.path)), activePaths().filter(p => p.startsWith('notices/')).join(','));
+// 소모품 이력: 열기 2회·닫기 후 리스너 0건
+await run('openConsumablesLogModal()'); await settle(); await run('openConsumablesLogModal()'); await settle();
+check('[소모품 이력 2회 열기] consumablesLog 리스너 1건', active().filter(r => r.query.path === 'consumablesLog').length === 1);
+run('closeConsumablesLogModal()'); await settle();
+check('[소모품 이력 닫기] consumablesLog 리스너 0건', !active().some(r => r.query.path === 'consumablesLog'));
 await authApi.signOut(); await settle();
 check('[최종 로그아웃] on 누적 = off 누적 + 서버취소 + 최초거부 (등록 추적 일관성), 활성 0', counters.on === counters.off + counters.revoked + counters.denied && active().length === 0, `on=${counters.on} off=${counters.off} revoked=${counters.revoked} denied=${counters.denied} active=${active().length}`);
 

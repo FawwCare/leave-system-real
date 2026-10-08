@@ -683,7 +683,8 @@ function openPrivateChat(targetUid, targetName) {
     ChatReadTracker.set(targetUid); // 열면 즉시 읽음 처리
     ChatUnreadCount.private[targetUid] = 0; saveUnreadCounts();
 
-    if (currentPrivateChatRef) currentPrivateChatRef.off();
+    // 무인자 query.off() 는 같은 쿼리로 등록된 알림 리스너(privateChats_list_*)까지 제거하므로 관리자 키로만 해제한다.
+    window.AppSubscriptionManager.unsubscribe('privateChat');
 
     currentPrivateChatRef = db.ref(`privateChats/${getPrivateChatId(auth.currentUser.uid, targetUid)}`).orderByChild('timestamp').limitToLast(50);
     window.AppSubscriptionManager.subscribe('privateChat', currentPrivateChatRef, (s) => {
@@ -714,7 +715,7 @@ function openPrivateChat(targetUid, targetName) {
         setTimeout(() => chatBody.scrollTop = chatBody.scrollHeight, 10);
     });
 }
-function closePrivateChat() { document.getElementById('private-chat-window').style.display = 'none'; if (currentPrivateChatRef) currentPrivateChatRef.off(); currentPrivateChatTargetUid = null; }
+function closePrivateChat() { document.getElementById('private-chat-window').style.display = 'none'; window.AppSubscriptionManager.unsubscribe('privateChat'); currentPrivateChatRef = null; currentPrivateChatTargetUid = null; }
 
 window.cleanupPrivateChatState = function() {
     closePrivateChat();
@@ -826,7 +827,7 @@ function setupPrivateChatNotificationListeners() {
     Object.keys(AppStore.getUsers()).forEach(targetUid => {
         if (targetUid === currentUid) return;
         const chatId = getPrivateChatId(currentUid, targetUid);
-        if (true) {
+        if (!window.AppSubscriptionManager.subs['privateChats_list_' + chatId]) {
             // 🔥 로컬 저장이 아닌, DB에서 실제로 내가 안 읽은 메시지만 정확히 카운트합니다.
             window.AppSubscriptionManager.subscribe('privateChats_list_' + chatId, db.ref(`privateChats/${chatId}`).orderByChild('timestamp').limitToLast(50), (s) => {
                 let unreadCount = 0;
@@ -897,6 +898,10 @@ function renderNotices() {
 function viewNotice(id) {
     const notice = AppStore.getNotices()[id];
     if (!notice) return;
+    if (currentNoticeId && currentNoticeId !== id) {
+        window.AppSubscriptionManager.unsubscribe('noticeComments_' + currentNoticeId);
+        window.AppSubscriptionManager.unsubscribe('noticeLikes_' + currentNoticeId);
+    }
     currentNoticeId = id;
     document.getElementById('noticeTitleInput').value = notice.title;
     document.getElementById('noticeContentInput').value = notice.content;
@@ -1182,7 +1187,10 @@ function openNoticeModal() {
 }
 function closeNoticeModal() {
     document.getElementById('noticeModal').style.display = 'none';
-    if (currentNoticeId) db.ref('noticeComments/' + currentNoticeId).off(); // 리스너 해제
+    if (currentNoticeId) { // 리스너 해제 (실제 구독 경로: notices/{id}/comments, notices/{id}/likes)
+        window.AppSubscriptionManager.unsubscribe('noticeComments_' + currentNoticeId);
+        window.AppSubscriptionManager.unsubscribe('noticeLikes_' + currentNoticeId);
+    }
     currentNoticeId = null;
 }
 async function saveNotice() {
@@ -3263,7 +3271,7 @@ async function openConsumablesLogModal() {
     
     document.getElementById('consumablesLogModal').style.display = 'flex';
     
-    if (consumablesLogListenerRef) consumablesLogListenerRef.off();
+    window.AppSubscriptionManager.unsubscribe('consumablesLog');
     
     consumablesLogListenerRef = db.ref('consumablesLog').orderByChild('timestamp').limitToLast(50);
     window.AppSubscriptionManager.subscribe('consumablesLog', consumablesLogListenerRef, (snapshot) => {
@@ -3320,10 +3328,8 @@ async function openConsumablesLogModal() {
 
 function closeConsumablesLogModal() {
     document.getElementById('consumablesLogModal').style.display = 'none';
-    if (consumablesLogListenerRef) {
-        consumablesLogListenerRef.off();
-        consumablesLogListenerRef = null;
-    }
+    window.AppSubscriptionManager.unsubscribe('consumablesLog');
+    consumablesLogListenerRef = null;
 }
 
 // ====================================================
