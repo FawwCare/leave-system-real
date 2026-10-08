@@ -1039,7 +1039,7 @@ function renderComments(comments) {
                     ${isReply ? '<span class="material-symbols-rounded" style="font-size:1.1rem; color:var(--text-muted); vertical-align:middle; margin-right:4px;">subdirectory_arrow_right</span>' : ''}
                     ${escapeHTML(c.author)}
                 </span>
-                <span style="font-size:0.7rem; color:var(--text-muted); margin-right: 25px;">${new Date(c.timestamp).toLocaleString([], { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                <span style="font-size:0.75rem; color:var(--text-muted); margin-right: 25px;">${new Date(c.timestamp).toLocaleString([], { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
             </div>
             <div style="font-size:0.9rem; color:var(--text-main); word-break:break-all; line-height:1.5; ${isReply ? 'margin-left:22px;' : ''}">${escapeHTML(c.content)}</div>
             <div style="display:flex; gap: 12px; margin-top: 4px; align-items:center; ${isReply ? 'margin-left:22px;' : ''}">

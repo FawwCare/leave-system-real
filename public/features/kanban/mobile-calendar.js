@@ -269,7 +269,7 @@
 
         var todayBtn = document.createElement('button');
         todayBtn.className = 'mcal-nav-btn';
-        todayBtn.style.cssText = 'font-size:0.7rem !important; font-weight:700 !important; padding:3px 8px !important; border-radius:var(--radius) !important; background:var(--primary,#4F46E5) !important; color:#fff !important;';
+        todayBtn.style.cssText = 'font-size:0.75rem !important; font-weight:700 !important; padding:3px 8px !important; border-radius:var(--radius) !important; background:var(--primary,#4F46E5) !important; color:#fff !important;';
         todayBtn.textContent = '오늘';
         todayBtn.onclick = function () {
             if (typeof jumpToToday === 'function') jumpToToday();

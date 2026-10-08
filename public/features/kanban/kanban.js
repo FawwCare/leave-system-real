@@ -882,9 +882,9 @@ function buildCalendarGrid(gridId, titleId, dateObj, isMyPage, renderCallback) {
                     moreBadge.style.setProperty('align-items', 'center', 'important');
                     const isMobileScreen = window.innerWidth <= 768;
                     if (isMobileScreen) {
-                        moreBadge.innerHTML = `<span class="task-mobile-capsule" style="color: #1E293B !important; font-weight: 800 !important; font-size: 0.68rem !important; display: inline-block !important;">+${count}</span>`;
+                        moreBadge.innerHTML = `<span class="task-mobile-capsule" style="color: #1E293B !important; font-weight: 800 !important; font-size: 0.75rem !important; display: inline-block !important;">+${count}</span>`;
                     } else {
-                        moreBadge.innerHTML = `<span class="task-desktop-title" style="color: #1E293B !important; font-weight: 800 !important; font-size: 0.72rem !important; display: inline-block !important;">+${count}개 더보기</span>`;
+                        moreBadge.innerHTML = `<span class="task-desktop-title" style="color: #1E293B !important; font-weight: 800 !important; font-size: 0.75rem !important; display: inline-block !important;">+${count}개 더보기</span>`;
                     }
                     
                     const cellDate = weekDates[c];
@@ -1982,9 +1982,9 @@ function renderTasks() {
         // 카테고리 배지 (칸반 보드용)
         const checkStr = t.category ? t.category : t.name;
         if (checkStr) {
-            if (checkStr.includes('텔러스헬스')) htmlBadges += `<span style="font-size:0.65rem; background-color:#EFF6FF; color:#2563EB; padding:2px 4px; border-radius:4px; margin-left:4px; font-weight:bold; vertical-align:middle; border:1px solid #BFDBFE;">🏥 텔러스헬스</span>`;
-            else if (checkStr.includes('휴노')) htmlBadges += `<span style="font-size:0.65rem; background-color:#F0FDF4; color:#16A34A; padding:2px 4px; border-radius:4px; margin-left:4px; font-weight:bold; vertical-align:middle; border:1px solid #BBF7D0;">🌿 휴노</span>`;
-            else if (t.category && t.category.toUpperCase().startsWith('VIP')) htmlBadges += `<span style="font-size:0.65rem; background-color:#FFFBEB; color:#F59E0B; padding:2px 4px; border-radius:4px; margin-left:4px; font-weight:bold; vertical-align:middle; border:1px solid #FEF3C7;">⭐ VIP</span>`;
+            if (checkStr.includes('텔러스헬스')) htmlBadges += `<span style="font-size:0.75rem; background-color:#EFF6FF; color:#2563EB; padding:2px 4px; border-radius:4px; margin-left:4px; font-weight:bold; vertical-align:middle; border:1px solid #BFDBFE;">🏥 텔러스헬스</span>`;
+            else if (checkStr.includes('휴노')) htmlBadges += `<span style="font-size:0.75rem; background-color:#F0FDF4; color:#16A34A; padding:2px 4px; border-radius:4px; margin-left:4px; font-weight:bold; vertical-align:middle; border:1px solid #BBF7D0;">🌿 휴노</span>`;
+            else if (t.category && t.category.toUpperCase().startsWith('VIP')) htmlBadges += `<span style="font-size:0.75rem; background-color:#FFFBEB; color:#F59E0B; padding:2px 4px; border-radius:4px; margin-left:4px; font-weight:bold; vertical-align:middle; border:1px solid #FEF3C7;">⭐ VIP</span>`;
         }
 
         const parsed = typeof parseTripDateRange === 'function' ? parseTripDateRange(t.date) : { startDate: t.date, endDate: t.date };
@@ -2026,7 +2026,7 @@ function renderTasks() {
 
         let priorityLabel = task.priority === 'high' ? '높음' : (task.priority === 'low' ? '낮음' : '보통');
         let priorityColor = task.priority === 'high' ? '#EF4444' : (task.priority === 'low' ? '#10B981' : '#F59E0B');
-        const descIcon = task.description ? '<span style="font-size: 0.7rem; margin-right: 6px; padding: 2px 4px; background-color: var(--col-bg); border-radius: 4px; color: var(--text-muted);">상세</span>' : '';
+        const descIcon = task.description ? '<span style="font-size: 0.75rem; margin-right: 6px; padding: 2px 4px; background-color: var(--col-bg); border-radius: 4px; color: var(--text-muted);">상세</span>' : '';
         let dueBadge = '';
         if (task.dueDate) {
             const taskDate = new Date(task.dueDate); taskDate.setHours(0, 0, 0, 0);
@@ -3146,7 +3146,7 @@ window.renderTeamStatusSidebar = function() {
         profileDiv.appendChild(nameSpan);
         
         const statusDiv = document.createElement('div');
-        statusDiv.style = `display: flex; align-items: center; gap: 3px; padding: 3px 6px; border-radius: var(--radius); background: ${statusColor}15; color: ${statusColor}; font-size: 0.72rem; font-weight: 700; white-space: nowrap;`;
+        statusDiv.style = `display: flex; align-items: center; gap: 3px; padding: 3px 6px; border-radius: var(--radius); background: ${statusColor}15; color: ${statusColor}; font-size: 0.75rem; font-weight: 700; white-space: nowrap;`;
         statusDiv.innerHTML = `<span class="material-symbols-rounded" style="font-size: 0.95rem;">${statusIcon}</span> ${status}`;
         
         card.appendChild(profileDiv);

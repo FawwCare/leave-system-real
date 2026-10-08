@@ -11,14 +11,14 @@
     --bg-gradient: radial-gradient(at 0% 0%, hsla(253,16%,7%,0.05) 0, transparent 50%), 
                    radial-gradient(at 50% 0%, hsla(225,39%,30%,0.05) 0, transparent 50%), 
                    radial-gradient(at 100% 0%, hsla(339,49%,30%,0.05) 0, transparent 50%);
-    --card-bg: rgba(255, 255, 255, 0.9);
-    --card-bg-hover: rgba(255, 255, 255, 1);
+    --card-bg: #ffffff;
+    --card-bg-hover: #ffffff;
     --text-main: #1e293b;
     --text-muted: #64748b;
     --border-color: rgba(0, 0, 0, 0.12);
     --border-strong: rgba(0, 0, 0, 0.24);
-    --col-bg: rgba(248, 250, 252, 0.8);
-    --glass-blur: blur(16px);
+    --col-bg: #f7f8fa;
+    --glass-blur: none; /* 평면 UI: 반투명 유리 효과 사용 안 함 */
     
     /* 遺꾨━媛먯씠 媛뺥솕????꾩슦 */
     /* 평면(플랫) UI: 카드·버튼은 그림자 대신 테두리, 떠 있는 레이어만 약한 그림자 */
@@ -39,9 +39,9 @@
     --bg-gradient: radial-gradient(circle at 15% 50%, rgba(79, 70, 229, 0.12), transparent 40%),
                    radial-gradient(circle at 85% 30%, rgba(236, 72, 153, 0.08), transparent 40%),
                    radial-gradient(circle at 50% 80%, rgba(14, 165, 233, 0.1), transparent 40%);
-    --card-bg: rgba(30, 41, 59, 0.8);
-    --card-bg-hover: rgba(30, 41, 59, 0.95);
-    --col-bg: rgba(15, 23, 42, 0.7); 
+    --card-bg: #1e293b;
+    --card-bg-hover: #233148;
+    --col-bg: #0e1526; 
     --text-main: #F8FAFC;
     --text-muted: #94A3B8;
     --border-color: rgba(255, 255, 255, 0.15); 
@@ -405,7 +405,7 @@ button:disabled {
         text-overflow: ellipsis !important;
         color: #1E293B !important;
         font-weight: 800 !important;
-        font-size: 0.72rem !important;
+        font-size: 0.75rem !important;
     }
 
     /* [?⑤벏??+N揶??遺얜궖疫?獄?퍔? 疫꿸퀡??CSS ????? */
@@ -432,7 +432,7 @@ button:disabled {
         color: #FFFFFF;
         border-radius: 3.5px;
         padding: 0px 4px;
-        font-size: 0.65rem;
+        font-size: 0.75rem;
         font-weight: 700;
         margin-right: 4px;
         line-height: 1.4;
@@ -504,7 +504,7 @@ button:disabled {
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
-            font-size: 0.68rem !important;
+            font-size: 0.75rem !important;
             font-weight: 800 !important;
             color: #1E293B !important;
             letter-spacing: -0.3px !important;
@@ -2342,11 +2342,11 @@ background: linear-gradient(to bottom,
 .chat-message { display: flex; flex-direction: column; max-width: 80%; }
 .chat-message.mine { align-self: flex-end; align-items: flex-end; }
 .chat-message.others { align-self: flex-start; align-items: flex-start; }
-.chat-sender { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.2rem; margin-left: 4px; margin-right: 4px; }
+.chat-sender { font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.2rem; margin-left: 4px; margin-right: 4px; }
 .chat-bubble { padding: 0.8rem 1.2rem; border-radius: var(--radius); font-size: 0.9rem; line-height: 1.4; word-break: break-word; box-shadow: var(--shadow-sm); }
 .chat-message.mine .chat-bubble { background-color: var(--primary); color: white; border-bottom-right-radius: 4px; }
 .chat-message.others .chat-bubble { background: var(--col-bg); color: var(--text-main); border: 1px solid var(--border-color); border-bottom-left-radius: 4px; }
-.chat-time { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem; }
+.chat-time { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
 .chat-footer {
     padding: 0.8rem; background-color: var(--card-bg); border-top: 1px solid var(--border-color); display: flex; gap: 0.5rem; align-items: center;
 }
@@ -2644,7 +2644,7 @@ background: linear-gradient(to bottom,
     color: var(--primary);
     padding: 2px 8px;
     border-radius: var(--radius);
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 700;
     border: 1px solid rgba(37, 99, 235, 0.12);
     box-shadow: none;
@@ -2773,7 +2773,7 @@ background: linear-gradient(to bottom,
 }
 
 .noti-item-time {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
     margin-top: 4px;
     display: block;
@@ -3051,13 +3051,13 @@ input[type="range"].premium-slider::-webkit-slider-thumb {
 }
 
 .comm-meta-right {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     color: var(--text-muted);
     font-weight: 500;
 }
 
 .comm-badge {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 700;
     padding: 4px 8px;
     border-radius: var(--radius);
@@ -3610,7 +3610,7 @@ color: #4B5563 !important;
     color: #fb7185;
 }
 .notif-date {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
     font-weight: 500;
     flex-shrink: 0;
@@ -3650,7 +3650,7 @@ color: #4B5563 !important;
     border-color: rgba(59, 130, 246, 0.15);
 }
 .fuel-station-tag {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 700;
     padding: 2px 6px;
     border-radius: 4px;
@@ -4149,7 +4149,7 @@ color: #4B5563 !important;
 }
 
 .consumable-badge {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 800;
     padding: 2px 8px;
     border-radius: var(--radius);
@@ -4443,7 +4443,7 @@ color: #4B5563 !important;
 }
 
 .search-dropdown-detail {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     color: var(--text-muted);
     background: none !important;
     border: 1px solid var(--border-color) !important;
@@ -4638,7 +4638,7 @@ color: #4B5563 !important;
 }
 
 .search-dropdown-detail {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
@@ -4790,7 +4790,7 @@ color: #4B5563 !important;
         align-items: center !important;
         justify-content: center !important;
         padding: 5px 10px !important;
-        font-size: 0.72rem !important;
+        font-size: 0.75rem !important;
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
@@ -5172,7 +5172,7 @@ color: #4B5563 !important;
     margin: 0.2rem 0;
 }
 .slim-gas-badge {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: #8b5cf6;
     font-weight: 600;
     background: #f3e8ff;
@@ -5285,7 +5285,7 @@ color: #4B5563 !important;
     line-height: 1.3;
 }
 .sleek-card-subtitle {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     color: #64748b;
     display: flex;
     align-items: center;
@@ -5359,7 +5359,7 @@ color: #4B5563 !important;
     word-break: keep-all;
 }
 .trip-card-meta {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     color: #64748b;
     display: flex;
     align-items: center;
@@ -5494,14 +5494,14 @@ color: #4B5563 !important;
     margin: 0 !important;
 }
 .trip-card-v3 .trip-card-meta {
-    font-size: 0.75rem !important;
+    font-size: 0.8125rem !important;
     color: var(--text-muted) !important;
     display: flex !important;
     align-items: center !important;
     gap: 6px !important;
 }
 .trip-card-v3 .trip-card-address {
-    font-size: 0.75rem !important;
+    font-size: 0.8125rem !important;
     color: #64748b !important;
     display: flex !important;
     align-items: center !important;
@@ -5640,7 +5640,7 @@ color: #4B5563 !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
-        font-size: 0.72rem !important;
+        font-size: 0.75rem !important;
         font-weight: 800 !important;
         color: #1E293B !important;
         white-space: nowrap !important;
@@ -5769,4 +5769,22 @@ input, select, textarea, [contenteditable] {
 /* 그림자에만 의존하던 큰 영역은 레이아웃 변화 없는 1px 윤곽선으로 구분 */
 .section {
     box-shadow: 0 0 0 1px var(--border-color);
+}
+
+/* ==================== 가독성 마감 ==================== */
+/* 배경 그라데이션 제거: 단색 배경 */
+body { background-image: none !important; }
+/* 숫자 폭 고정: 날짜·잔여 연차·재고 숫자가 세로로 반듯하게 정렬되도록 */
+body { font-variant-numeric: tabular-nums; }
+/* 반투명 유리(blur) 효과를 쓰던 요소는 불투명 배경으로 */
+.noti-panel,
+.briefing-card,
+.notification-drawer,
+.smart-fuel-cost-container,
+[data-theme='dark'] .notification-drawer,
+[data-theme='dark'] .briefing-card,
+[data-theme='dark'] .smart-fuel-cost-container {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background: var(--card-bg) !important;
 }

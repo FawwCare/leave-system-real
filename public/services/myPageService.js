@@ -46,9 +46,9 @@ function renderMyPage() {
         let categoryBadge = '';
         const checkStr = t.category ? t.category : t.name;
         if (checkStr) {
-            if (checkStr.includes('텔러스헬스')) categoryBadge = `<span style="font-size:0.7rem; background-color:#EFF6FF; color:#2563EB; padding:2px 4px; border-radius:4px; margin-left:4px; font-weight:bold; vertical-align:middle; border:1px solid #BFDBFE;">🏥 텔러스헬스</span>`;
-            else if (checkStr.includes('휴노')) categoryBadge = `<span style="font-size:0.7rem; background-color:#F0FDF4; color:#16A34A; padding:2px 4px; border-radius:4px; margin-left:4px; font-weight:bold; vertical-align:middle; border:1px solid #BBF7D0;">🌿 휴노</span>`;
-            else if (t.category && t.category.toUpperCase().startsWith('VIP')) categoryBadge = `<span style="font-size:0.7rem; background-color:#FFFBEB; color:#F59E0B; padding:2px 4px; border-radius:4px; margin-left:4px; font-weight:bold; vertical-align:middle; border:1px solid #FEF3C7;">⭐ VIP</span>`;
+            if (checkStr.includes('텔러스헬스')) categoryBadge = `<span style="font-size:0.75rem; background-color:#EFF6FF; color:#2563EB; padding:2px 4px; border-radius:4px; margin-left:4px; font-weight:bold; vertical-align:middle; border:1px solid #BFDBFE;">🏥 텔러스헬스</span>`;
+            else if (checkStr.includes('휴노')) categoryBadge = `<span style="font-size:0.75rem; background-color:#F0FDF4; color:#16A34A; padding:2px 4px; border-radius:4px; margin-left:4px; font-weight:bold; vertical-align:middle; border:1px solid #BBF7D0;">🌿 휴노</span>`;
+            else if (t.category && t.category.toUpperCase().startsWith('VIP')) categoryBadge = `<span style="font-size:0.75rem; background-color:#FFFBEB; color:#F59E0B; padding:2px 4px; border-radius:4px; margin-left:4px; font-weight:bold; vertical-align:middle; border:1px solid #FEF3C7;">⭐ VIP</span>`;
         }
 
         const li = document.createElement('li'); li.innerHTML = `<div style="font-weight:600;">${escapeHTML(t.name)}${categoryBadge}</div><div style="font-size:0.8rem;">날짜: ${escapeHTML(t.date || '미정')}</div>`; li.onclick = () => openTripModal(t.id, t.name, t.date, t.assignee, t.contact, t.address, t.scheduleUrl, t.schedulePath, t.qrUrl || '', t.qrPath || '', t.roomType, t.bookedHotel); tripsList.appendChild(li);
