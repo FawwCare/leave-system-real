@@ -1,0 +1,1 @@
+{ "name": "faww-icon-font", "private": true, "description": "아이콘 부분 글꼴 생성용 원본 글꼴", "dependencies": { "material-symbols": "0.27.0" } }

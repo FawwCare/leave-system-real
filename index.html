@@ -26,9 +26,8 @@
     <link rel="stylesheet" media="print" onload="this.media='all'" id="flatpickr-theme" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
     <!-- Material Symbols (모던 아이콘) 추가 -->
-    <!-- 아이콘 글꼴 서버에 미리 연결 (느린 모바일 환경에서 로딩 시간 단축) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- 아이콘 글꼴(자체 호스팅 부분 글꼴)을 가장 먼저 받기 시작 -->
+    <link rel="preload" href="/fonts/material-symbols-rounded-subset.woff2" as="font" type="font/woff2" crossorigin>
     <!-- 첫 화면: 로딩 화면 + 아이콘 글꼴 준비 전 아이콘 이름 글자(chevron_left 등) 숨김. 외부 CSS·글꼴 없이 바로 적용되도록 인라인 -->
     <!-- 위 비차단 스타일시트는 로드되면 media 를 all 로 바꿔 적용된다 -->
     <style id="boot-style">
@@ -53,9 +52,6 @@
         @keyframes boot-spin { to { transform: rotate(360deg); } }
         @media (prefers-reduced-motion: reduce) { #app-splash .boot-spinner { animation-duration: 2.4s; } }
     </style>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"
-        rel="stylesheet" media="print" onload="this.media='all'" />
 
     <!-- 카카오맵 API -->
 
