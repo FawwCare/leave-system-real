@@ -5,7 +5,7 @@ export const SRC = fs.readFileSync(process.env.GAS_SRC || path.join(ROOT, 'gmail
 export const Y = new Date().getFullYear();
 export const D = (md) => `${Y}-${md}`;
 export function world(opts = {}) {
-    const db = { businessTrips: {}, external_events: {}, leaves: {}, businessCommunications: {} };
+    const db = { businessTrips: {}, external_events: {}, leaves: {}, businessCommunications: {}, ...(opts.db || {}) };
     let seq = 0;
     const events = [];
     const mkEvent = (o) => { const e = { ...o, deleted: false,
@@ -15,27 +15,35 @@ export function world(opts = {}) {
     const cal = { getEvents: () => events.filter(e => !e.deleted),
         createAllDayEvent: (t, s, en, opt) => mkEvent({ id: 'ev' + (++seq) + '@google.com', title: t, start: s, end: en, desc: opt && opt.description, loc: opt && opt.location }) };
     const res = (code, body) => ({ getResponseCode: () => code, getContentText: () => (typeof body === 'string' ? body : JSON.stringify(body)) });
+    const getP = (parts) => parts.reduce((n, k) => (n == null ? undefined : n[k]), db);
+    const setP = (parts, v) => { let n = db; for (let i = 0; i < parts.length - 1; i++) { if (typeof n[parts[i]] !== 'object' || n[parts[i]] === null) n[parts[i]] = {}; n = n[parts[i]]; } if (v === null || v === undefined) delete n[parts[parts.length - 1]]; else n[parts[parts.length - 1]] = v; };
+    const fetchLog = [];
     const UrlFetchApp = { fetch: (url, opt = {}) => {
         const m = /firebaseio\.com\/(.+?)\.json/.exec(url); if (!m) return res(200, '{}');
-        const parts = m[1].split('/'); const top = parts[0]; const key = parts[1]; const method = (opt.method || 'get').toLowerCase();
-        db[top] = db[top] || {};
-        if (method === 'get') return res(200, key ? (db[top][key] ?? null) : db[top]);
-        if (method === 'post') { const k = '-K' + String(++seq).padStart(4, '0'); db[top][k] = JSON.parse(opt.payload); return res(200, { name: k }); }
-        if (method === 'delete') { delete db[top][key]; return res(200, 'null'); }
+        const parts = m[1].split('/'); const method = (opt.method || 'get').toLowerCase();
+        fetchLog.push({ path: m[1], method });
+        if (opts.failGet && opts.failGet.test(m[1]) && method === 'get') return res(500, 'err');
+        if (method === 'get') { const v = getP(parts); return res(200, v === undefined ? null : v); }
+        if (method === 'post') { const k = '-K' + String(++seq).padStart(4, '0'); setP([...parts, k], JSON.parse(opt.payload)); return res(200, { name: k }); }
+        if (method === 'delete') { setP(parts, null); return res(200, 'null'); }
+        if (method === 'put') { setP(parts, JSON.parse(opt.payload)); return res(200, opt.payload); }
         if (method === 'patch') { const p = JSON.parse(opt.payload);
-            if (key) { db[top][key] = Object.assign(db[top][key] || {}, p); }
-            else { for (const [pk, v] of Object.entries(p)) { const [a, f] = pk.split('/'); if (f) { db[top][a] = db[top][a] || {}; db[top][a][f] = v; } else if (v === null) delete db[top][a]; else db[top][a] = v; } }
+            for (const [pk, v] of Object.entries(p)) setP([...parts, ...pk.split('/')], v);
             return res(200, p); }
-        if (method === 'put') { if (key) db[top][key] = JSON.parse(opt.payload); else db[top] = JSON.parse(opt.payload); return res(200, '{}'); }
         return res(400, 'bad');
     } };
     // Gmail
     const threads = [];
     const label = { getName: () => '법원/성진' };
-    const addMessage = (threadId, parsed) => {
+    const userLabels = [label];
+    const searchCalls = [];
+    let msgSeq = 0;
+    const addMessage = (threadId, parsed, mopts = {}) => {
         let th = threads.find(t => t.id === threadId);
-        if (!th) { th = { id: threadId, msgs: [], getId: () => th.id, getLabels: () => [label], getMessages: () => th.msgs }; threads.push(th); }
-        const msg = { starred: false, parsed, isStarred: () => msg.starred, star: () => { msg.starred = true; }, getSubject: () => '교육 일정 협의', getPlainBody: () => 'body' };
+        if (!th) { th = { id: threadId, msgs: [], labels: [label], getId: () => th.id, getLabels: () => th.labels, getMessages: () => th.msgs, addLabel: (l) => { if (!th.labels.includes(l)) th.labels.push(l); } }; threads.push(th); }
+        const id = 'm' + String(++msgSeq).padStart(6, '0');
+        const date = mopts.date || new Date();
+        const msg = { id, starred: !!mopts.starred, parsed, getId: () => id, getDate: () => date, isStarred: () => msg.starred, star: () => { msg.starred = true; }, getSubject: () => mopts.subject || '교육 일정 협의', getPlainBody: () => 'body' };
         th.msgs.push(msg); return msg;
     };
     let currentParsed = null;
@@ -43,7 +51,8 @@ export function world(opts = {}) {
         console: { log() {} }, Logger: { log() {} }, JSON, Date, Math, Object, String, Array, Number, parseInt,
         PropertiesService: { getScriptProperties: () => ({ getProperty: () => 'TEST' }) },
         LockService: { getScriptLock: () => ({ tryLock: () => true, releaseLock() {} }) },
-        GmailApp: { getUserLabels: () => [label], search: () => threads },
+        GmailApp: { getUserLabels: () => userLabels, search: (q, start = 0, max = 500) => { searchCalls.push({ q, start, max }); return threads.slice(start, start + max); },
+            getUserLabelByName: (n) => userLabels.find(l => l.getName() === n) || null, createLabel: (n) => { const l = { getName: () => n }; userLabels.push(l); return l; } },
         CalendarApp: { getCalendarsByName: () => (opts.noFawwCalendar ? [] : [cal]), getDefaultCalendar: () => cal },
         Session: { getScriptTimeZone: () => 'Asia/Seoul' },
         Utilities: { formatDate: (d, tz, fmt) => { const k = new Date(d.getTime() + 9 * 3600e3); const p = (n) => String(n).padStart(2, '0');
@@ -52,10 +61,12 @@ export function world(opts = {}) {
     };
     vm.createContext(ctx); vm.runInContext(SRC, ctx);
     // ChatGPT 대체: 처리 중인 메일에 미리 지정한 분석 결과를 돌려준다
-    let pending = [];
-    vm.runInContext('parseEmailWithChatGPT = function(){ return __nextParsed(); };', Object.assign(ctx, { __nextParsed: () => pending.shift() }));
+    let pending = []; let aiCalls = 0;
+    const aiFn = typeof opts.ai === 'function' ? opts.ai : null;
+    vm.runInContext('parseEmailWithChatGPT = function(t){ return __nextParsed(t); };', Object.assign(ctx, { __nextParsed: (t) => { aiCalls++; return aiFn ? aiFn(t) : pending.shift(); } }));
     const run = (threadId, parsed) => { addMessage(threadId, parsed); pending.push(parsed); ctx.autoRegisterTripsWithChatGPT(); };
+    const runOnly = () => ctx.autoRegisterTripsWithChatGPT();
     const trips = () => Object.values(db.businessTrips);
     const calEvents = () => events.filter(e => !e.deleted);
-    return { run, trips, calEvents, db, ctx, events, cal };
+    return { run, runOnly, addMessage, trips, calEvents, db, ctx, events, cal, threads, userLabels, searchCalls, fetchLog, get aiCalls() { return aiCalls; }, queueAi: (p) => pending.push(p) };
 }

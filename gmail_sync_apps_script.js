@@ -16,6 +16,13 @@ const FIREBASE_DB_URL = `https://coworking-tool-default-rtdb.firebaseio.com/busi
 const COMMUNICATIONS_DB_URL = `https://coworking-tool-default-rtdb.firebaseio.com/businessCommunications.json?auth=${FIREBASE_DB_SECRET}`;
 const EXTERNAL_EVENTS_DB_URL = `https://coworking-tool-default-rtdb.firebaseio.com/external_events.json?auth=${FIREBASE_DB_SECRET}`;
 const LEAVES_DB_URL = `https://coworking-tool-default-rtdb.firebaseio.com/leaves.json?auth=${FIREBASE_DB_SECRET}`;
+// 메일 처리 기록 (메일 ID 단위). 앱(클라이언트)은 접근하지 않으며, 보안 규칙에 없는 경로라 앱에서는 읽기·쓰기가 거부된다.
+const GMAIL_STATE_DB_URL = `https://coworking-tool-default-rtdb.firebaseio.com/gmailSyncState.json?auth=${FIREBASE_DB_SECRET}`;
+const REVIEW_LABEL_NAME = 'FaWW-검토필요';   // '/' 를 넣으면 출장 라벨로 오인되므로 넣지 않는다
+const MAX_PARSE_ATTEMPTS = 3;                 // 같은 메일 분석·등록 실패 허용 횟수
+const SEARCH_NEWER_THAN = '90d';              // 검색 기간
+const MAX_THREADS_PER_RUN = 200;              // 한 번에 살펴볼 스레드 수 (50개씩 페이지)
+const MAX_AI_CALLS_PER_RUN = 30;              // 한 번 실행에서 AI 분석할 메일 수 (실행 시간 6분 제한 대비, 남은 메일은 다음 실행)
 
 const OPENAI_API_KEY = PropertiesService.getScriptProperties().getProperty('OPENAI_API_KEY') || "YOUR_OPENAI_API_KEY_HERE";
 
@@ -53,22 +60,39 @@ function autoRegisterTripsWithChatGPT() {
     return;
   }
 
-  // 2. 검색 Query 구성 (별표 여부와 관계없이 대상 라벨이 붙은 스레드를 일단 수집)
-  const searchQuery = `(${targetLabelNames.join(" OR ")})`;
+  // 처리 기록 불러오기 (실패하면 중복 처리를 막기 위해 이번 실행은 중단)
+  const syncState = loadGmailSyncState();
+  if (!syncState) {
+    Logger.log("❌ 메일 처리 기록을 불러오지 못해 이번 실행을 건너뜁니다 (중복 처리 방지).");
+    return;
+  }
+
+  // 2. 검색 Query 구성: 대상 라벨 + 최근 기간. 처리 여부는 메일별 처리 기록으로 판단
+  const searchQuery = `(${targetLabelNames.join(" OR ")}) newer_than:${SEARCH_NEWER_THAN}`;
   Logger.log(`생성된 지메일 검색 쿼리: ${searchQuery}`);
 
-  // 최근 스레드 최대 50개 검색
-  const threads = GmailApp.search(searchQuery, 0, 50);
+  // 최근 스레드를 50개씩 여러 페이지 검색 (최대 MAX_THREADS_PER_RUN)
+  const threads = [];
+  for (let start = 0; start < MAX_THREADS_PER_RUN; start += 50) {
+    const page = GmailApp.search(searchQuery, start, 50);
+    page.forEach(t => threads.push(t));
+    if (page.length < 50) break;
+  }
   Logger.log(`Found ${threads.length} potential threads to inspect.`);
+  let aiCalls = 0;
 
   for (let i = 0; i < threads.length; i++) {
+    if (aiCalls >= MAX_AI_CALLS_PER_RUN) {
+      Logger.log(`⏸️ 이번 실행의 AI 분석 한도(${MAX_AI_CALLS_PER_RUN}건)에 도달했습니다. 남은 메일은 다음 실행에서 처리합니다.`);
+      break;
+    }
     const thread = threads[i];
     let mailCategory = "일반출장";
     let labelAssignee = "";
 
     // 메일의 라벨을 파싱하여 출장 카테고리(회사명)와 담당 직원명 동적 추출
     const labels = thread.getLabels();
-    const tripLabel = labels.find(l => l.getName().indexOf('/') !== -1);
+    const tripLabel = labels.find(l => l.getName().indexOf('/') !== -1 && l.getName() !== REVIEW_LABEL_NAME);
 
     if (tripLabel) {
       const labelName = tripLabel.getName();
@@ -87,10 +111,12 @@ function autoRegisterTripsWithChatGPT() {
     for (let m = 0; m < messages.length; m++) {
       const msg = messages[m];
 
-      // 이미 이 개별 메일에 별표(*)가 붙어있다면 동기화 완료로 간주하고 패스
-      if (msg.isStarred()) {
+      // 이미 처리했거나(처리 기록) 검토 필요로 멈춘 메일은 건너뜀. 전환 이전 메일은 별표도 처리 완료로 인정.
+      if (isGmailMessageProcessed(msg, syncState)) {
         continue;
       }
+      if (aiCalls >= MAX_AI_CALLS_PER_RUN) break;
+      aiCalls++;
 
       const subject = msg.getSubject();
       const threadId = thread.getId();
@@ -105,6 +131,10 @@ function autoRegisterTripsWithChatGPT() {
       console.log(`🚀 [${mailCategory}/${labelAssignee}] 개별 메일 분석 중... [제목: ${subject}]`);
 
       let parsedData = parseEmailWithChatGPT(fullText);
+      if (!parsedData) {
+        markGmailMessageFailed(msg, thread, syncState, 'AI 분석 실패');
+        continue;
+      }
 
       if (parsedData) {
         // 1. 일반 업무 소통 메일인 경우 (출장이 아님)
@@ -153,9 +183,10 @@ function autoRegisterTripsWithChatGPT() {
             }
 
             console.log(`✅ 일반 메일 요약 등록 완료: ${communicationData.summary}`);
-            msg.star(); // 개별 메일에 별표(*)를 달아 중복 파싱 차단
+            markGmailMessageDone(msg, syncState);
           } else {
             console.log(`❌ Firebase 전송 실패 (일반 소통): ${responseText}`);
+            markGmailMessageFailed(msg, thread, syncState, 'Firebase 전송 실패 (일반 소통)');
           }
           continue;
         }
@@ -170,6 +201,7 @@ function autoRegisterTripsWithChatGPT() {
 
         if (tripsToRegister.length === 0) {
           console.log("⚠️ 추출된 출장 정보가 없습니다.");
+          markGmailMessageFailed(msg, thread, syncState, '출장 메일인데 날짜·장소를 추출하지 못함');
           continue;
         }
 
@@ -411,7 +443,9 @@ function autoRegisterTripsWithChatGPT() {
         }
 
         if (successfullyRegistered) {
-          msg.star(); // 개별 메일에 별표(*)를 부여하여 다음 동기화 시 스킵
+          markGmailMessageDone(msg, syncState);
+        } else {
+          markGmailMessageFailed(msg, thread, syncState, '출장 등록 실패');
         }
       }
     }
@@ -584,6 +618,66 @@ function getTodayString() {
 /**
  * Firebase Realtime Database에서 전체 출장 목록을 로드하는 헬퍼 함수
  */
+/**
+ * 메일 처리 기록 (Firebase gmailSyncState)
+ *  - messages/{메일ID} = { s: 'done' | 'failed' | 'review', n: 실패 횟수, t: 시각, r: 마지막 실패 사유 }
+ *  - cutover: 이 방식으로 바뀐 시각. 그 이전 메일은 별표도 '처리 완료'로 인정한다 (예전 별표 방식과 호환).
+ *  처리 완료 시에도 별표는 계속 달아 둔다 (화면 표시·이전 버전으로 되돌릴 때 호환). 다만 판단에는 쓰지 않는다.
+ */
+function loadGmailSyncState() {
+  try {
+    const res = UrlFetchApp.fetch(GMAIL_STATE_DB_URL, { method: 'get', muteHttpExceptions: true });
+    if (res.getResponseCode() !== 200) return null;
+    const state = JSON.parse(res.getContentText() || 'null') || {};
+    if (!state.messages) state.messages = {};
+    if (!state.cutover) {
+      state.cutover = Date.now();
+      const r = UrlFetchApp.fetch(GMAIL_STATE_DB_URL, { method: 'patch', contentType: 'application/json', payload: JSON.stringify({ cutover: state.cutover }), muteHttpExceptions: true });
+      if (r.getResponseCode() !== 200) return null;
+      Logger.log(`ℹ️ 메일 처리 기록 방식 시작 (이전 메일은 별표 기준으로 인정): ${new Date(state.cutover)}`);
+    }
+    return state;
+  } catch (e) {
+    Logger.log(`⚠️ 메일 처리 기록 조회 오류: ${e.message}`);
+    return null;
+  }
+}
+
+function isGmailMessageProcessed(msg, state) {
+  const rec = state.messages[msg.getId()];
+  if (rec && (rec.s === 'done' || rec.s === 'review')) return true;
+  if (!rec && msg.getDate().getTime() < state.cutover && msg.isStarred()) return true; // 전환 이전 별표 메일
+  return false;
+}
+
+function saveGmailMessageState(msgId, rec, state) {
+  state.messages[msgId] = rec;
+  const base = GMAIL_STATE_DB_URL.split('.json')[0];
+  const auth = GMAIL_STATE_DB_URL.split('?')[1] || '';
+  UrlFetchApp.fetch(`${base}/messages/${msgId}.json?${auth}`, { method: 'put', contentType: 'application/json', payload: JSON.stringify(rec), muteHttpExceptions: true });
+}
+
+function markGmailMessageDone(msg, state) {
+  saveGmailMessageState(msg.getId(), { s: 'done', t: Date.now() }, state);
+  try { msg.star(); } catch (e) { /* 표시용이므로 실패해도 무시 */ }
+}
+
+function markGmailMessageFailed(msg, thread, state, reason) {
+  const prev = state.messages[msg.getId()] || {};
+  const n = (prev.n || 0) + 1;
+  if (n >= MAX_PARSE_ATTEMPTS) {
+    saveGmailMessageState(msg.getId(), { s: 'review', n: n, t: Date.now(), r: reason }, state);
+    try {
+      const label = GmailApp.getUserLabelByName(REVIEW_LABEL_NAME) || GmailApp.createLabel(REVIEW_LABEL_NAME);
+      thread.addLabel(label);
+    } catch (e) { Logger.log(`⚠️ 검토 필요 라벨 부착 실패: ${e.message}`); }
+    Logger.log(`🛑 ${n}회 실패하여 자동 처리를 멈추고 '${REVIEW_LABEL_NAME}' 라벨을 붙였습니다: [${msg.getSubject()}] 사유: ${reason}`);
+  } else {
+    saveGmailMessageState(msg.getId(), { s: 'failed', n: n, t: Date.now(), r: reason }, state);
+    Logger.log(`⚠️ 처리 실패 ${n}/${MAX_PARSE_ATTEMPTS}회 (다음 실행에서 재시도): [${msg.getSubject()}] 사유: ${reason}`);
+  }
+}
+
 function fetchExistingTrips() {
   try {
     const response = UrlFetchApp.fetch(FIREBASE_DB_URL, {
