@@ -176,6 +176,8 @@ function autoRegisterTripsWithChatGPT() {
         // 실시간 중복 체크를 위해 기존 DB 출장 일정 가져오기
         const existingTrips = fetchExistingTrips();
         let successfullyRegistered = false;
+        // 한 메일에서 추출된 여러 날짜는 각각 독립 일정: 같은 기존 일정을 두 날짜가 함께 덮어쓰지 않도록 추적
+        const usedKeysInMessage = {};
 
         for (let j = 0; j < tripsToRegister.length; j++) {
           const trip = tripsToRegister[j];
@@ -212,14 +214,16 @@ function autoRegisterTripsWithChatGPT() {
           const baseDbUrl = FIREBASE_DB_URL.split('.json')[0];
           const authParam = FIREBASE_DB_URL.split('?')[1] || "";
 
-          const matchKeysByThread = findAllDuplicateTripsByThreadId(tripData, threadId, existingTrips);
-          const matchKeyByThread = matchKeysByThread && matchKeysByThread.length > 0 ? matchKeysByThread[0] : null;
+          // 같은 스레드의 기존 일정 중 '이 날짜'에 해당하는 일정만 매칭 (다른 날짜 일정은 별개 일정으로 유지)
+          const threadCandidates = findAllDuplicateTripsByThreadId(tripData, threadId, existingTrips);
+          const matchKeyByThread = pickThreadMatchForTrip(threadCandidates, tripData, parsedData, tripsToRegister.length, existingTrips, usedKeysInMessage);
 
           // [분기 1] 취소 메일인 경우
           if (parsedData.is_cancel === true) {
             console.log(`🚨 출장 취소 메일 감지. 삭제 시도: ${tripData.name} (${tripData.assignee})`);
-            const matchKey = matchKeyByThread || findDuplicateTripForCancelOrUpdate(tripData, parsedData.originalStartDate, existingTrips);
+            const matchKey = matchKeyByThread || findDuplicateTripForCancelOrUpdate(tripData, parsedData.originalStartDate, existingTrips, usedKeysInMessage);
             if (matchKey) {
+              usedKeysInMessage[matchKey] = true;
               const deleteUrl = `${baseDbUrl}/${matchKey}.json?${authParam}`;
               const deleteResponse = UrlFetchApp.fetch(deleteUrl, {
                 method: 'delete',
@@ -245,8 +249,9 @@ function autoRegisterTripsWithChatGPT() {
           // [분기 2] 수정/변경 메일이거나 동일 스레드 내의 답장인 경우
           if (parsedData.is_update === true || matchKeyByThread) {
             console.log(`🔄 출장 수정 메일 감지. 업데이트 시도: ${tripData.name} (${tripData.assignee})`);
-            const matchKey = matchKeyByThread || findDuplicateTripForCancelOrUpdate(tripData, parsedData.originalStartDate, existingTrips);
+            const matchKey = matchKeyByThread || findDuplicateTripForCancelOrUpdate(tripData, parsedData.originalStartDate, existingTrips, usedKeysInMessage);
             if (matchKey) {
+              usedKeysInMessage[matchKey] = true;
               const patchUrl = `${baseDbUrl}/${matchKey}.json?${authParam}`;
               const updateData = {
                 name: tripData.name,
@@ -274,18 +279,9 @@ function autoRegisterTripsWithChatGPT() {
               // [신규] 백엔드 기반 구글 캘린더 직통 수정 로직 추가 (Option 2 대응)
               findAndModifyGoogleCalendarEvent(matchKey, 'update', updateData);
               
-              // [핵심] 조율이 확정된 경우 나머지 떨거지 일정 삭제
-              if (tripData.status === "확정" && matchKeysByThread && matchKeysByThread.length > 1) {
-                console.log(`🧹 확정된 일정 외의 잔여 후보 일정 ${matchKeysByThread.length - 1}개 자동 삭제를 시작합니다.`);
-                for (let i = 1; i < matchKeysByThread.length; i++) {
-                  const extraKey = matchKeysByThread[i];
-                  const delUrl = `${baseDbUrl}/${extraKey}.json?${authParam}`;
-                  UrlFetchApp.fetch(delUrl, { method: 'delete', muteHttpExceptions: true });
-                  findAndModifyGoogleCalendarEvent(extraKey, 'delete', null);
-                  console.log(`✅ 불필요한 후보 일정 삭제 완료 (Key: ${extraKey})`);
-                }
-              }
-              
+              // (예전의 '확정 시 같은 스레드의 나머지 후보 일정 자동 삭제' 로직은 제거됨:
+              //  한 메일의 여러 날짜는 각각 독립된 출장이므로, 하나가 확정돼도 다른 날짜는 지우지 않는다)
+
               successfullyRegistered = true;
             } else {
                 console.log(`❌ 기존 출장 일정 수정 실패: ${patchResponse.getContentText()}`);
@@ -671,6 +667,32 @@ function findDuplicateTrip(newTrip, existingTrips) {
 /**
  * [신규] 스레드 ID 기반으로 매칭되는 모든 일정(다중 후보 날짜 포함)을 찾는 헬퍼 함수
  */
+/**
+ * 같은 스레드의 후보 일정(threadCandidates) 중 이번 출장(tripData)에 해당하는 기존 일정 1건을 고른다.
+ *  1) 시작 날짜가 같은 일정 → 같은 일정 (상태·세부 정보 갱신)
+ *  2) 날짜 변경 메일(originalStartDate)이고 이번 메일의 출장이 1건일 때 → 원래 날짜의 일정
+ *  3) 이번 메일의 출장이 1건이고 스레드 후보도 1건뿐일 때 → 그 일정 (단일 일정 스레드의 날짜 조정 답장)
+ *  그 외(여러 날짜 메일에서 날짜가 다른 경우)에는 매칭하지 않는다 → 다른 날짜 일정을 덮어쓰지 않음.
+ *  같은 메일에서 이미 매칭된 일정(usedKeys)은 다시 고르지 않는다.
+ */
+function pickThreadMatchForTrip(threadCandidates, tripData, parsedData, tripCountInMessage, existingTrips, usedKeys) {
+  const candidates = threadCandidates || [];
+  const free = candidates.filter(k => !(usedKeys && usedKeys[k]));
+  if (free.length === 0) return null;
+  const startOf = (k) => {
+    const t = existingTrips[k] || {};
+    return t.startDate || String(t.date || '').split(' to ')[0];
+  };
+  const sameDate = free.filter(k => startOf(k) === tripData.startDate);
+  if (sameDate.length > 0) return sameDate[0];
+  if (tripCountInMessage === 1 && parsedData && parsedData.originalStartDate) {
+    const orig = free.filter(k => startOf(k) === parsedData.originalStartDate);
+    if (orig.length > 0) return orig[0];
+  }
+  if (tripCountInMessage === 1 && candidates.length === 1 && free.length === 1) return free[0];
+  return null;
+}
+
 function findAllDuplicateTripsByThreadId(tripData, threadId, existingTrips) {
   if (!existingTrips || !threadId) return [];
   const keys = Object.keys(existingTrips);
@@ -696,7 +718,7 @@ function findAllDuplicateTripsByThreadId(tripData, threadId, existingTrips) {
 /**
  * 수정/취소 건 처리를 위해 기존 등록된 일정 목록 중에서 매칭 대상을 탐색하는 헬퍼 함수
  */
-function findDuplicateTripForCancelOrUpdate(newTrip, originalStartDate, existingTrips) {
+function findDuplicateTripForCancelOrUpdate(newTrip, originalStartDate, existingTrips, usedKeys) {
   const keys = Object.keys(existingTrips);
   const cleanStr = (str) => (str || '').replace(/\s+/g, '').toLowerCase();
 
@@ -726,10 +748,13 @@ function findDuplicateTripForCancelOrUpdate(newTrip, originalStartDate, existing
     }
   }
 
-  // 날짜가 정확히 떨어지지 않는 경우에 대비해 날짜 조건 없이 담당자와 목적지만 일치하는 최근 항목을 한 번 더 탐색
+  // 날짜가 정확히 떨어지지 않는 경우에 대비한 2차 탐색(날짜 조건 없음, 담당자+목적지).
+  // 같은 이름의 출장이 여러 날짜에 있으면 어느 것인지 알 수 없으므로, 후보가 정확히 1건일 때만 사용한다.
+  const looseMatches = [];
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
     const ext = existingTrips[key];
+    if (usedKeys && usedKeys[key]) continue;
 
     const assigneeMatch = ext.assignee && newTrip.assignee &&
       (cleanStr(ext.assignee) === cleanStr(newTrip.assignee));
@@ -739,10 +764,13 @@ function findDuplicateTripForCancelOrUpdate(newTrip, originalStartDate, existing
     const extName = cleanStr(ext.name);
     const newName = cleanStr(newTrip.name);
     if (extName === newName || extName.indexOf(newName) !== -1 || newName.indexOf(extName) !== -1) {
-      return key;
+      looseMatches.push(key);
     }
   }
-
+  if (looseMatches.length === 1) return looseMatches[0];
+  if (looseMatches.length > 1) {
+    console.log(`⚠️ 날짜가 다른 같은 이름의 출장이 ${looseMatches.length}건이라 대상을 특정할 수 없어 건드리지 않습니다: ${newTrip.name}`);
+  }
   return null;
 }
 
@@ -828,6 +856,19 @@ function findAndModifyGoogleCalendarEvent(matchKey, action, updateData) {
       }
       return true;
     } else {
+      // '조율중'일 때는 캘린더에 올리지 않으므로, '확정'으로 바뀐 일정은 이 시점에 새로 만든다 (모든 확정 날짜가 캘린더에 남도록)
+      if (action === 'update' && updateData && updateData.status === '확정' && (updateData.startDate || updateData.date)) {
+        const sDateStr = updateData.startDate || String(updateData.date).split(' to ')[0];
+        const eDateStr = updateData.endDate || String(updateData.date || '').split(' to ')[1] || sDateStr;
+        const gStart = new Date(sDateStr);
+        const gEnd = new Date(eDateStr);
+        gEnd.setDate(gEnd.getDate() + 1); // 종일 일정 종료일은 Exclusive(+1)
+        let descStr = `카테고리: ${updateData.category || '외부 연동'}\n담당자: ${updateData.assignee || '미지정'}\n연락처: ${updateData.contact || '없음'}\n주소: ${updateData.address || '없음'}\n[FaWW 출장연동 ID: ${matchKey}]`;
+        if (updateData.sourceThreadId) descStr += `\n[Gmail Thread ID: ${updateData.sourceThreadId}]`;
+        targetCal.createAllDayEvent(`[확정] ${updateData.name}`, gStart, gEnd, { description: descStr, location: updateData.address || '' });
+        console.log(`✅ [캘린더 연동] 확정된 일정이 캘린더에 없어 새로 생성: [확정] ${updateData.name} (ID: ${matchKey})`);
+        return true;
+      }
       console.log(`⚠️ 고유 ID 태그가 일치하는 구글 캘린더 일정이 없어 아무것도 수정/삭제하지 않았습니다. (Key: ${matchKey}) — ID 태그가 없는 예전·수동 일정은 직접 정리해 주세요.`);
       return false;
     }
