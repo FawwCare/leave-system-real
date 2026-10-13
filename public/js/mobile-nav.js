@@ -33,6 +33,20 @@
         var mo = new MutationObserver(syncActive);
         buttons.forEach(function (b) { mo.observe(b, { attributes: true, attributeFilter: ['class'] }); });
         syncActive();
+        syncNavHeight();
+        window.addEventListener('resize', syncNavHeight);
+        window.addEventListener('orientationchange', function () { setTimeout(syncNavHeight, 300); });
+        if (window.ResizeObserver) new ResizeObserver(syncNavHeight).observe(document.querySelector('.nav-sidebar') || menu);
+    }
+
+    // 아래 메뉴의 실제 높이(아이폰 홈 표시줄 영역 포함)를 측정해 페이지 아래 여백으로 쓴다
+    function syncNavHeight() {
+        var nav = document.querySelector('.nav-sidebar');
+        if (!nav) return;
+        var h = nav.getBoundingClientRect().height;
+        if (h > 0 && window.matchMedia('(max-width: 768px)').matches) {
+            document.documentElement.style.setProperty('--mnav-h', Math.ceil(h) + 'px');
+        }
     }
 
     function syncActive() {

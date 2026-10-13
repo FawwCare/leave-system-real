@@ -5818,7 +5818,10 @@ body { font-variant-numeric: tabular-nums; }
     #logout-btn::before { content: 'logout'; font-family: 'Material Symbols Rounded'; font-size: 22px; line-height: 1; font-feature-settings: 'liga'; }
 
     /* 2. 바깥 여백과 상자 겹침 줄이기 */
-    .main-layout { margin: 8px auto !important; padding: 0 8px !important; gap: 8px !important; }
+    /* 아래 메뉴에 가리지 않도록 메뉴 실제 높이(--mnav-h, mobile-nav.js 가 측정) + 여유만큼 아래 여백 확보 */
+    .main-layout { margin: 8px auto !important; padding: 0 8px calc(var(--mnav-h, 100px) + 16px) !important; gap: 8px !important; }
+    /* 캘린더(전체 화면 모드)의 날짜별 일정 목록도 메뉴 실제 높이만큼 아래 여백 (아이폰 홈 표시줄 영역 포함) */
+    html body.calendar-active #mobile-detail-list { padding-bottom: calc(var(--mnav-h, 90px) + 12px) !important; }
     .section { padding: 14px 12px !important; }
     .column { padding: 8px !important; background: transparent !important; border: none !important; }
     .task-card { padding: 12px !important; }
