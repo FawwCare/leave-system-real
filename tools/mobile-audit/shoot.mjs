@@ -5,7 +5,8 @@ const DIST = process.env.DIST || path.resolve(path.dirname(new URL(import.meta.u
 const W = +(process.env.W || 390), H = +(process.env.H || 844);
 fs.mkdirSync(OUT, { recursive: true });
 const types = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
-const server = http.createServer((req, res) => { let p = decodeURIComponent(req.url.split('?')[0]); if (p === '/') p = '/index.html';
+const BASE = process.env.BASE || '';
+const server = http.createServer((req, res) => { let p = decodeURIComponent(req.url.split('?')[0]); if (BASE && p.startsWith(BASE)) p = p.slice(BASE.length) || '/'; if (p === '/') p = '/index.html';
   const f = path.join(DIST, p); if (!fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); return res.end(); }
   res.writeHead(200, { 'content-type': types[path.extname(f)] || 'application/octet-stream' }); fs.createReadStream(f).pipe(res); }).listen(4173);
 const pretCss = fs.readFileSync(`${NM}/pretendard/dist/web/variable/pretendardvariable.css`, 'utf8').replace(/url\(['"]?\.\/woff2\/([^'")]+)['"]?\)/g, 'url(https://local.font/pret/$1)').replace(/,?\s*url\(['"]?\.\/woff\/[^)]*\)\s*format\([^)]*\)/g, '');
@@ -30,21 +31,25 @@ const page = await browser.newPage();
 await page.setViewport({ width: W, height: H, deviceScaleFactor: 2, isMobile: W < 700, hasTouch: W < 700 });
 await page.setRequestInterception(true);
 const blocked = new Set();
+const NET = process.env.NET === 'lte' ? { connect: 300, rtt: 90, bps: 1.2e6 } : null;
+const seenHosts = new Set();
+const netDelay = (u, bytes) => { if (!NET) return 0; let h; try { h = new URL(u).host; } catch (e) { return 0; } let d = NET.rtt + Math.round((bytes || 20000) / NET.bps * 1000); if (!seenHosts.has(h)) { seenHosts.add(h); d += NET.connect; } return d; };
+const timed = (r, u, resp, bytes) => { const d = netDelay(u, bytes); if (!d) return r.respond(resp); setTimeout(() => r.respond(resp), d); };
 page.on('request', (r) => { const u = r.url();
-  if (u.startsWith('http://localhost:4173')) return r.continue();
+  if (u.startsWith('http://localhost:4173')) { if (NET) { const p = u.replace('http://localhost:4173','').split('?')[0]; const f = path.join(DIST, p === '/' ? '/index.html' : p); const sz = fs.existsSync(f) && fs.statSync(f).isFile() ? fs.statSync(f).size : 2000; const d = netDelay('https://fawwcare.github.io/x', sz); return setTimeout(() => r.continue(), d); } return r.continue(); }
   if (u.startsWith('https://local.font/sym') && process.env.SLOW_ICON_MS) { const f = `${NM}/material-symbols/material-symbols-rounded.woff2`; return setTimeout(() => r.respond({ status: 200, contentType: 'font/woff2', body: fs.readFileSync(f) }), +process.env.SLOW_ICON_MS); }
-  if (u.startsWith('https://local.font/')) { const f = u.includes('/pret/') ? `${NM}/pretendard/dist/web/variable/woff2/${u.split('/pret/')[1]}` : `${NM}/material-symbols/material-symbols-rounded.woff2`; return r.respond({ status: 200, contentType: 'font/woff2', body: fs.readFileSync(f) }); }
-  for (const [re, kind, body] of local) if (re.test(u)) return r.respond({ status: 200, contentType: kind === 'js' ? 'application/javascript' : 'text/css', body });
+  if (u.startsWith('https://local.font/')) { const f = u.includes('/pret/') ? `${NM}/pretendard/dist/web/variable/woff2/${u.split('/pret/')[1]}` : `${NM}/material-symbols/material-symbols-rounded.woff2`; const fb = fs.readFileSync(f); return timed(r, u.includes('/pret/') ? 'https://cdn.jsdelivr.net/x' : 'https://fonts.gstatic.com/x', { status: 200, contentType: 'font/woff2', body: fb }, fb.length); }
+  for (const [re, kind, body] of local) if (re.test(u)) return timed(r, u, { status: 200, contentType: kind === 'js' ? 'application/javascript' : 'text/css', body }, body.length);
   if (r.resourceType() === 'image') return r.respond({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>' });
   blocked.add(u.split('?')[0].slice(0, 80)); r.abort(); });
 const errors = []; page.on('pageerror', e => errors.push(String(e.message).slice(0, 160)));
 await page.evaluateOnNewDocument((th) => { try { localStorage.setItem('theme', th); } catch (e) {} }, process.env.THEME || 'light');
 if (process.env.EARLY_SHOT) {
-  page.goto('http://localhost:4173/').catch(() => {});
+  page.goto('http://localhost:4173' + (BASE ? BASE + '/' : '/')).catch(() => {});
   for (const ms of process.env.EARLY_SHOT.split(',').map(Number)) { await new Promise(r => setTimeout(r, ms)); await page.screenshot({ path: `${OUT}/early-${(globalThis.__acc = (globalThis.__acc || 0) + ms)}.png` }); }
   await new Promise(r => setTimeout(r, +(process.env.SLOW_ICON_MS || 0) + 2000));
 } else {
-await page.goto('http://localhost:4173/', { waitUntil: 'networkidle0', timeout: 60000 });
+await page.goto('http://localhost:4173' + (BASE ? BASE + '/' : '/'), { waitUntil: 'networkidle0', timeout: 60000 });
 }
 await new Promise(r => setTimeout(r, 1500));
 await page.waitForFunction(() => !document.getElementById('app-splash'), { timeout: 15000 }).catch(() => console.log('로딩 화면이 15초 안에 사라지지 않음'));
