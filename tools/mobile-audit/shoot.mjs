@@ -32,17 +32,24 @@ await page.setRequestInterception(true);
 const blocked = new Set();
 page.on('request', (r) => { const u = r.url();
   if (u.startsWith('http://localhost:4173')) return r.continue();
+  if (u.startsWith('https://local.font/sym') && process.env.SLOW_ICON_MS) { const f = `${NM}/material-symbols/material-symbols-rounded.woff2`; return setTimeout(() => r.respond({ status: 200, contentType: 'font/woff2', body: fs.readFileSync(f) }), +process.env.SLOW_ICON_MS); }
   if (u.startsWith('https://local.font/')) { const f = u.includes('/pret/') ? `${NM}/pretendard/dist/web/variable/woff2/${u.split('/pret/')[1]}` : `${NM}/material-symbols/material-symbols-rounded.woff2`; return r.respond({ status: 200, contentType: 'font/woff2', body: fs.readFileSync(f) }); }
   for (const [re, kind, body] of local) if (re.test(u)) return r.respond({ status: 200, contentType: kind === 'js' ? 'application/javascript' : 'text/css', body });
   if (r.resourceType() === 'image') return r.respond({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>' });
   blocked.add(u.split('?')[0].slice(0, 80)); r.abort(); });
 const errors = []; page.on('pageerror', e => errors.push(String(e.message).slice(0, 160)));
-await page.evaluateOnNewDocument(() => { try { localStorage.setItem('theme', 'light'); } catch (e) {} });
+await page.evaluateOnNewDocument((th) => { try { localStorage.setItem('theme', th); } catch (e) {} }, process.env.THEME || 'light');
+if (process.env.EARLY_SHOT) {
+  page.goto('http://localhost:4173/').catch(() => {});
+  for (const ms of process.env.EARLY_SHOT.split(',').map(Number)) { await new Promise(r => setTimeout(r, ms)); await page.screenshot({ path: `${OUT}/early-${(globalThis.__acc = (globalThis.__acc || 0) + ms)}.png` }); }
+  await new Promise(r => setTimeout(r, +(process.env.SLOW_ICON_MS || 0) + 2000));
+} else {
 await page.goto('http://localhost:4173/', { waitUntil: 'networkidle0', timeout: 60000 });
+}
 await new Promise(r => setTimeout(r, 1500));
 await page.waitForFunction(() => !document.getElementById('app-splash'), { timeout: 15000 }).catch(() => console.log('로딩 화면이 15초 안에 사라지지 않음'));
 if (process.env.NOANIM) await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}' });
-const overflow = {};
+const overflow = {}; const contrast = {};
 const tabs = (process.env.TABS || 'tab-calendar,tab-tasks,tab-trips,tab-leaves,tab-notice,tab-docs,tab-members,tab-mypage,tab-meeting-feed,tab-admin').split(',');
 for (const t of tabs) {
   await page.evaluate((t) => { window.__curTab = t; const btn = document.querySelector(`[onclick*="switchTab('${t}'"]`); if (typeof switchTab === 'function') switchTab(t, btn); window.scrollTo(0, 0); }, t);
@@ -68,10 +75,32 @@ for (const t of tabs) {
     return { docW: document.documentElement.scrollWidth, list: out.slice(0, 12) };
   }, W);
   overflow[t] = ov;
+  if (process.env.CONTRAST) {
+    contrast[t] = await page.evaluate((t) => {
+      const lum = (c) => { const m = c.match(/[\d.]+/g); if (!m) return null; const [r, g, b] = m.slice(0, 3).map(Number).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return { L: 0.2126 * r + 0.7152 * g + 0.0722 * b, a: m.length > 3 ? Number(m[3]) : 1 }; };
+      const bgOf = (el) => { while (el) { const c = getComputedStyle(el).backgroundColor; const l = lum(c); if (l && l.a > 0.5) return { l, c }; if (getComputedStyle(el).backgroundImage !== 'none') return null; el = el.parentElement; } const pc = getComputedStyle(document.body).backgroundColor; const pl = lum(pc); return (pl && pl.a > 0.5) ? { l: pl, c: pc } : { l: lum('rgb(255,255,255)'), c: 'rgb(255,255,255)' }; };
+      const root = document.getElementById(t); const out = []; const seen = new Set();
+      const scope = [root, document.querySelector('.header'), document.querySelector('.nav-sidebar')].filter(Boolean);
+      scope.forEach(sc => sc.querySelectorAll('*').forEach(el => {
+        const txt = [...el.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent.trim()).join(' ').trim();
+        if (!txt || el.classList.contains('material-symbols-rounded')) return;
+        const cs = getComputedStyle(el); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) return;
+        const r = el.getBoundingClientRect(); if (!r.width || !r.height || r.bottom < 0) return;
+        const fg = lum(cs.color); const bg = bgOf(el); if (!fg || !bg) return;
+        const ratio = (Math.max(fg.L, bg.l.L) + 0.05) / (Math.min(fg.L, bg.l.L) + 0.05);
+        const size = parseFloat(cs.fontSize), bold = +cs.fontWeight >= 700;
+        const need = (size >= 24 || (size >= 18.66 && bold)) ? 3 : 4.5;
+        if (ratio < need) { const key = txt.slice(0, 20) + '|' + cs.color + '|' + bg.c; if (seen.has(key)) return; seen.add(key);
+          out.push({ text: txt.slice(0, 24), ratio: +ratio.toFixed(2), need, color: cs.color, bg: bg.c, cls: (el.className && typeof el.className === 'string' ? el.className.split(' ')[0] : el.tagName.toLowerCase()) }); }
+      }));
+      return out.sort((a, b) => a.ratio - b.ratio).slice(0, 40);
+    }, t);
+  }
   await page.screenshot({ path: `${OUT}/${t}.png`, fullPage: false });
   await page.screenshot({ path: `${OUT}/${t}-full.png`, fullPage: true });
 }
 fs.writeFileSync(`${OUT}/overflow.json`, JSON.stringify(overflow, null, 1));
+if (process.env.CONTRAST) fs.writeFileSync(`${OUT}/contrast.json`, JSON.stringify(contrast, null, 1));
 console.log('errors:', JSON.stringify(errors.slice(0, 8)));
 console.log('blocked:', JSON.stringify([...blocked].slice(0, 10)));
 await browser.close(); server.close();

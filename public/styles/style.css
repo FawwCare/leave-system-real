@@ -5911,3 +5911,22 @@ html[data-theme='dark'] #mobile-cal-header .mcal-nav-btn { color: var(--text-mai
 /* 문서 도구: 다크 모드에서도 밝게 고정되던 파일 업로드 영역·바둑판 설정 상자 */
 [data-theme='dark'] .upload-zone,
 [data-theme='dark'] #tile-settings { background: var(--col-bg) !important; }
+/* 모바일 칸반 탭 (mobile-tasks.js). PC 에서는 탭을 숨기고 세 칸을 모두 표시 */
+#mt-kanban-tabs { display: none; }
+@media (max-width: 768px) {
+    #mt-kanban-tabs { display: flex; gap: 4px; margin: 4px 0 8px; padding: 4px; background: var(--col-bg); border: 1px solid var(--border-color); border-radius: var(--radius); }
+    #mt-kanban-tabs .mt-tab {
+        flex: 1 1 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px;
+        background: transparent; border: none; border-radius: var(--radius-sm); color: var(--text-muted);
+        font-size: 0.875rem; font-weight: 600; font-family: inherit; cursor: pointer; padding: 0 4px;
+    }
+    #mt-kanban-tabs .mt-tab.active { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); }
+    #mt-kanban-tabs .mt-tab-count { font-size: 0.75rem; min-width: 20px; padding: 1px 6px; border-radius: 999px; background: var(--border-color); color: var(--text-main); }
+    #board-status .column.mt-hidden { display: none !important; }
+    #board-status .column > h3 { display: none !important; }   /* 탭에 제목·개수가 있으므로 칸 제목 줄은 숨김 */
+    #board-status #col-done > h3 { display: flex !important; justify-content: flex-end !important; }  /* 완료 칸의 '모두 보관·보관함' 버튼은 유지 */
+    #board-status #col-done > h3 > span:first-child { display: none !important; }
+}
+@media (max-width: 768px) {
+    .briefing-card.collapsed .briefing-body { display: none !important; }  /* 접힌 브리핑 아래 빈 여백 제거 */
+}
