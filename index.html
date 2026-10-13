@@ -115,7 +115,8 @@
             border-top: 1px solid var(--border-color, #e5e7eb) !important;
             z-index: 9999 !important;
         }
-        body[data-theme='dark'] .nav-sidebar {
+        /* data-theme 은 <html> 에 붙으므로 html 기준으로 써야 적용됨 (예전 body 기준 규칙은 적용되지 않았음) */
+        html[data-theme='dark'] .nav-sidebar {
             background: #1e293b !important; /* 다크모드 솔리드 배경 */
         }
         /* 기존 필터/내비 바 숨기기 (커스텀 헤더로 대체) */
@@ -148,7 +149,7 @@
             flex-shrink: 0 !important;
             gap: 8px !important;
         }
-        body[data-theme='dark'].calendar-active #mobile-cal-header {
+        html[data-theme='dark'] body.calendar-active #mobile-cal-header {
             background: #1e293b !important;
         }
         .mcal-nav {
@@ -902,7 +903,7 @@
                                     <div class="slim-row">
                                         <input type="text" id="mapStartDate" class="slim-input date-select-btn"
                                             placeholder="시작일">
-                                        <span style="color:#cbd5e1; font-size:12px;">~</span>
+                                        <span style="color:var(--text-muted); font-size:12px;">~</span>
                                         <input type="text" id="mapEndDate" class="slim-input date-select-btn"
                                             placeholder="종료일">
                                     </div>
@@ -1192,7 +1193,7 @@
                                     style="background-color: var(--primary); font-size: 0.8rem; padding: 0.4rem 0.8rem;">+
                                     관리자 직권 휴가 등록</button>
                                 <button onclick="downloadLeaveCSV()"
-                                    style="background-color: #10B981; font-size: 0.8rem; padding: 0.4rem 0.8rem;">엑셀
+                                    style="background-color: #047857; font-size: 0.8rem; padding: 0.4rem 0.8rem;">엑셀
                                     다운로드</button>
                             </div>
                         </div>

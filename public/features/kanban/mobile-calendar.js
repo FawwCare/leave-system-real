@@ -273,7 +273,8 @@
         todayBtn.textContent = '오늘';
         todayBtn.onclick = function () {
             if (typeof jumpToToday === 'function') jumpToToday();
-            setTimeout(syncHeaderTitle, 100);
+            window.__mcalSelectedDate = todayStr(); // '오늘'을 누르면 오늘 일정도 함께 표시
+            setTimeout(function () { syncHeaderTitle(); showSelectedDay(); }, 100);
         };
 
         nav.appendChild(prevBtn);
@@ -332,7 +333,44 @@
     }
 
     // ── 5. 초기화 ──
+    // ── 6. 캘린더를 열면 선택한 날짜(없으면 오늘)의 일정을 바로 표시 ──
+    function todayStr() {
+        var d = new Date();
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    var refreshTimer = null;
+    function showSelectedDay() {
+        if (!isMobile() || !document.body.classList.contains('calendar-active')) return;
+        if (typeof window.showDayDetail !== 'function') return;
+        window.showDayDetail(window.__mcalSelectedDate || todayStr());
+    }
+    function scheduleSelectedDayRefresh() {
+        clearTimeout(refreshTimer);
+        refreshTimer = setTimeout(showSelectedDay, 150);
+    }
+    function installAutoSelect() {
+        // 사용자가 고른 날짜 기억 (원본 showDayDetail 은 그대로 호출)
+        var origShow = window.showDayDetail;
+        if (typeof origShow === 'function' && !origShow.__mcalWrapped) {
+            var wrapped = function (dateString) {
+                window.__mcalSelectedDate = dateString;
+                return origShow.apply(this, arguments);
+            };
+            wrapped.__mcalWrapped = true;
+            window.showDayDetail = wrapped;
+        }
+        // 캘린더 탭에 들어올 때 표시
+        var wasActive = document.body.classList.contains('calendar-active');
+        new MutationObserver(function () {
+            var active = document.body.classList.contains('calendar-active');
+            if (active && !wasActive) scheduleSelectedDayRefresh();
+            wasActive = active;
+        }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+        if (wasActive) scheduleSelectedDayRefresh();
+    }
+
     function init() {
+        installAutoSelect();
         createMobileCalHeader();
         createMobileDetailPanel();
         installOverlayInterceptor();
@@ -351,6 +389,7 @@
             window.renderTabCalendar = function() {
                 origRender.apply(this, arguments);
                 syncHeaderTitle();
+                scheduleSelectedDayRefresh(); // 데이터가 늦게 도착해도 선택한 날짜의 일정 목록을 최신으로
             };
         }
     }

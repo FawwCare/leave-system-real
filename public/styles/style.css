@@ -5879,3 +5879,35 @@ body { font-variant-numeric: tabular-nums; }
 }
 #mnav-sheet .mnav-item.active { border-color: var(--primary); color: var(--primary); }
 body.mnav-open #mnav-sheet, body.mnav-open #mnav-sheet-backdrop { display: block; }
+
+/* ==================== 글자 대비 보완 (다크 모드 점검 결과) ==================== */
+/* 휴가 '취소' 버튼: 다른 규칙이 배경을 초록으로 덮어써 글자가 보이지 않던 문제 → 원래 의도(카드색 배경)로 고정 */
+button.cancel-btn { background-color: var(--card-bg) !important; color: var(--text-main) !important; border: 1px solid var(--border-color) !important; }
+button.cancel-btn:hover { background-color: #FEE2E2 !important; color: #B91C1C !important; border-color: #FCA5A5 !important; }
+/* 조직도: 대표 카드가 다크 모드에서도 흰색으로 고정되어 이름(흰 글자)이 보이지 않던 문제 */
+[data-theme='dark'] .org-col-ceo .org-card { background: var(--card-bg) !important; }
+[data-theme='dark'] .org-col-ceo .org-card img { background: var(--card-bg) !important; }
+/* 조직도 팀 제목(책임실장 등): 남색 글자가 어두운 배경에 묻히던 문제 (대표 제목의 금색 글자는 유지) */
+[data-theme='dark'] .org-column:not(.org-col-ceo) h3 { color: var(--text-main) !important; }
+/* 다크 모드 선택 상자 글자 */
+[data-theme='dark'] select { color: var(--text-main) !important; }
+/* 모바일 캘린더 제목: 다크 모드 헤더가 정상적으로 어두워지면서 고정된 진한 글자색이 보이지 않게 된 문제 */
+html[data-theme='dark'] #mobile-cal-header .mcal-title,
+html[data-theme='dark'] #mobile-cal-header .mcal-nav-btn { color: var(--text-main) !important; }
+/* 다크 모드에서도 흰색으로 고정되던 패널 (출장 동선 설정, 문서 도구 입력) */
+[data-theme='dark'] .map-controls-panel,
+[data-theme='dark'] .pdf-settings-panel { background: var(--card-bg) !important; }
+/* 사용자 승인 버튼: 밝은 초록 위 흰 글자 대비 부족 → 한 단계 진한 초록 */
+#user-approval-list button:not(.revoke-btn) { background-color: #047857 !important; }
+/* 위 패널을 어둡게 바꾸면서 드러난 진한 고정 글자색 보정 (밝은 모드 색상은 그대로) */
+[data-theme='dark'] .form-group label,
+[data-theme='dark'] .slim-label,
+[data-theme='dark'] .slim-checkbox-label,
+[data-theme='dark'] .sleek-card-address,
+[data-theme='dark'] .trip-card-address { color: var(--text-muted) !important; }
+[data-theme='dark'] .pdf-settings-panel [style*="#1e1b4b" i],
+[data-theme='dark'] .map-controls-panel [style*="#1e1b4b" i],
+[data-theme='dark'] #tab-docs [style*="#1e1b4b" i] { color: var(--text-main) !important; }
+/* 문서 도구: 다크 모드에서도 밝게 고정되던 파일 업로드 영역·바둑판 설정 상자 */
+[data-theme='dark'] .upload-zone,
+[data-theme='dark'] #tile-settings { background: var(--col-bg) !important; }

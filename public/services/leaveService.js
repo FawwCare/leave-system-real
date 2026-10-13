@@ -207,8 +207,8 @@ function renderAdminLeaves() {
                     <div style="font-size:0.85rem; color:var(--primary); font-weight:bold;">${escapeHTML(formatDateShort(l.date))}</div>
                 </div>
                 <div style="display:flex; gap:6px;">
-                    <button onclick="adminResolveLeave(${jsAttrArg(l.id)}, 'approved', ${jsAttrArg(l.status)})" style="background-color: #10B981; padding: 0.4rem 0.8rem; font-size: 0.8rem;">승인</button>
-                    <button onclick="adminResolveLeave(${jsAttrArg(l.id)}, 'rejected', ${jsAttrArg(l.status)})" style="background-color: #F59E0B; padding: 0.4rem 0.8rem; font-size: 0.8rem;">반려</button>
+                    <button onclick="adminResolveLeave(${jsAttrArg(l.id)}, 'approved', ${jsAttrArg(l.status)})" style="background-color: #047857; padding: 0.4rem 0.8rem; font-size: 0.8rem;">승인</button>
+                    <button onclick="adminResolveLeave(${jsAttrArg(l.id)}, 'rejected', ${jsAttrArg(l.status)})" style="background-color: #B45309; padding: 0.4rem 0.8rem; font-size: 0.8rem;">반려</button>
                     <button onclick="adminDeleteLeave(${jsAttrArg(l.id)})" style="background-color: var(--danger); padding: 0.4rem 0.8rem; font-size: 0.8rem;">삭제</button>
                 </div>
             </li>`;
@@ -252,8 +252,8 @@ function renderAdminLeaves() {
                         <div style="font-size:0.85rem; color:var(--primary); font-weight:bold;">${escapeHTML(formatDateShort(l.date))} ${l.rejectReason ? `<span style="font-size:0.75rem; color:var(--danger); font-weight:normal;">(사유: ${escapeHTML(l.rejectReason)})</span>` : ''}</div>
                     </div>
                     <div style="display:flex; gap:4px; align-items:center;">
-                        ${l.status !== 'approved' ? `<button onclick="adminResolveLeave(${jsAttrArg(l.id)}, 'approved', ${jsAttrArg(l.status)})" style="background-color: #10B981; padding: 0.3rem 0.6rem; font-size: 0.75rem;">승인</button>` : ''}
-                        ${l.status !== 'rejected' ? `<button onclick="adminResolveLeave(${jsAttrArg(l.id)}, 'rejected', ${jsAttrArg(l.status)})" style="background-color: #F59E0B; padding: 0.3rem 0.6rem; font-size: 0.75rem;">반려</button>` : ''}
+                        ${l.status !== 'approved' ? `<button onclick="adminResolveLeave(${jsAttrArg(l.id)}, 'approved', ${jsAttrArg(l.status)})" style="background-color: #047857; padding: 0.3rem 0.6rem; font-size: 0.75rem;">승인</button>` : ''}
+                        ${l.status !== 'rejected' ? `<button onclick="adminResolveLeave(${jsAttrArg(l.id)}, 'rejected', ${jsAttrArg(l.status)})" style="background-color: #B45309; padding: 0.3rem 0.6rem; font-size: 0.75rem;">반려</button>` : ''}
                         <button onclick="adminDeleteLeave(${jsAttrArg(l.id)})" style="background-color: var(--danger); padding: 0.3rem 0.6rem; font-size: 0.75rem;">강제삭제</button>
                     </div>
                 </li>`;
