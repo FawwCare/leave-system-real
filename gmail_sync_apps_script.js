@@ -779,6 +779,104 @@ function findDuplicateTripForCancelOrUpdate(newTrip, originalStartDate, existing
  * Firebase DB(businessTrips)가 아닌, 실제 구글 캘린더 연동(Option 2)의 삭제/수정을 담당합니다.
  */
 /**
+ * [캘린더 → 출장 DB] 구글 캘린더를 기준으로 확정 출장을 맞춘다. (단방향: 캘린더의 변경을 앱에 반영)
+ *  - 캘린더 일정 설명의 [FaWW 출장연동 ID: key] 로 출장 DB(businessTrips/key)와 연결한다.
+ *  - 연결된 일정이 있으면: 날짜·출장명·장소를 캘린더 값으로 맞추고, calendarLinked=true 표시를 남긴다.
+ *    (숙소·차량·인원 등 앱에서만 관리하는 정보는 건드리지 않음)
+ *  - calendarLinked 표시가 있는 확정 출장인데 캘린더에서 사라졌으면: 출장 DB에서도 삭제한다.
+ *  안전장치
+ *  - 조율중 등 '확정'이 아닌 출장, 캘린더에 연결된 적이 확인되지 않은 출장(앱에서 직접 만든 출장 등)은 삭제하지 않는다.
+ *  - 날짜를 멀리 옮긴 일정을 삭제로 오인하지 않도록 ID 는 넓은 기간(과거 6개월~미래 12개월)에서 찾는다.
+ *  - 삭제는 출장 날짜가 동기화 기간(syncStart~syncEnd) 안에 있을 때만 한다.
+ *  - 출장 DB 조회 실패 시 아무것도 하지 않는다. 한 번에 지울 건수가 비정상적으로 많으면 삭제를 건너뛴다.
+ */
+function syncCalendarChangesToTrips(targetCal, syncStart, syncEnd) {
+  try {
+    const tz = Session.getScriptTimeZone();
+    const fmt = (d) => Utilities.formatDate(d, tz, "yyyy-MM-dd");
+    const now = new Date();
+    const wideFrom = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+    const wideTo = new Date(now.getFullYear(), now.getMonth() + 13, 0);
+
+    // 1) 캘린더에서 ID 태그가 있는 일정 수집 (같은 ID 가 여러 건이면 첫 건 기준)
+    const calById = {};
+    const wideEvents = targetCal.getEvents(wideFrom, wideTo);
+    wideEvents.forEach(evt => {
+      const m = (evt.getDescription() || '').match(/\[FaWW 출장연동 ID:\s*([^\]\s]+)\]/);
+      if (!m || calById[m[1]]) return;
+      const startObj = evt.getStartTime();
+      let endObj = evt.getEndTime();
+      if (evt.isAllDayEvent()) {
+        const adj = new Date(endObj.getTime() - 24 * 60 * 60 * 1000);
+        endObj = adj >= startObj ? adj : startObj;
+      }
+      const name = String(evt.getTitle() || '').replace(/^(\s*\[(확정|조율중|출장|취소)\]\s*)+/, '').trim();
+      calById[m[1]] = { startDate: fmt(startObj), endDate: fmt(endObj), name: name, location: evt.getLocation() || '' };
+    });
+
+    // 2) 출장 DB 조회 (실패 시 중단)
+    const res = UrlFetchApp.fetch(FIREBASE_DB_URL, { method: 'get', muteHttpExceptions: true });
+    if (res.getResponseCode() !== 200) {
+      Logger.log(`❌ 출장 DB 조회 실패로 캘린더 → 출장 반영을 건너뜁니다: ${res.getContentText()}`);
+      return;
+    }
+    const trips = JSON.parse(res.getContentText() || 'null') || {};
+    const syncStartStr = fmt(syncStart), syncEndStr = fmt(syncEnd);
+
+    const updates = {};
+    const deleteKeys = [];
+    let changed = 0, linked = 0;
+    Object.keys(trips).forEach(key => {
+      const t = trips[key];
+      if (!t || typeof t !== 'object' || t.status !== '확정') return;
+      const cal = calById[key];
+      if (cal) {
+        const newDate = cal.startDate !== cal.endDate ? `${cal.startDate} to ${cal.endDate}` : cal.startDate;
+        let diff = false;
+        if (t.startDate !== cal.startDate) { updates[`${key}/startDate`] = cal.startDate; diff = true; }
+        if ((t.endDate || t.startDate) !== cal.endDate) { updates[`${key}/endDate`] = cal.endDate; diff = true; }
+        if (t.date !== newDate) { updates[`${key}/date`] = newDate; diff = true; }
+        if (cal.name && t.name !== cal.name) { updates[`${key}/name`] = cal.name; diff = true; }
+        if (cal.location && t.address !== cal.location) { updates[`${key}/address`] = cal.location; diff = true; }
+        if (t.calendarLinked !== true) { updates[`${key}/calendarLinked`] = true; linked++; }
+        if (diff) { changed++; Logger.log(`🔁 캘린더 변경을 출장에 반영: ${t.name} → ${cal.name} (${newDate})`); }
+        return;
+      }
+      // 캘린더에 연결된 적이 있는 확정 출장만 삭제 후보
+      if (t.calendarLinked !== true) return;
+      const s = String(t.startDate || String(t.date || '').split(' to ')[0] || '');
+      const e = String(t.endDate || s);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return;
+      if (s <= syncEndStr && e >= syncStartStr) deleteKeys.push(key);
+    });
+
+    // 3) 대량 삭제 방지: 일시 오류로 캘린더가 비어 보이는 경우 등을 막는다.
+    //    - 한 번에 10건 초과, 또는 5건 이상이면서 연결된 확정 출장의 절반 이상, 또는 캘린더 일정이 하나도 안 보이는 경우
+    const linkedTotal = Object.keys(trips).filter(k => trips[k] && trips[k].status === '확정' && trips[k].calendarLinked === true).length;
+    const looksBroken = deleteKeys.length > 10
+      || (deleteKeys.length >= 5 && deleteKeys.length * 2 >= linkedTotal)
+      || (deleteKeys.length > 0 && wideEvents.length === 0);
+    if (looksBroken) {
+      Logger.log(`🛑 캘린더에서 사라진 확정 출장이 ${deleteKeys.length}건(연결 ${linkedTotal}건 중)이라 비정상으로 판단, 출장 DB 삭제를 건너뜁니다. 캘린더를 확인해 주세요.`);
+    } else {
+      deleteKeys.forEach(k => { updates[k] = null; Logger.log(`🗑️ 캘린더에서 삭제된 확정 출장을 출장 DB에서도 삭제: ${trips[k].name} (${trips[k].date})`); });
+    }
+
+    if (Object.keys(updates).length === 0) return;
+    const patchRes = UrlFetchApp.fetch(FIREBASE_DB_URL, {
+      method: 'patch', contentType: 'application/json', payload: JSON.stringify(updates), muteHttpExceptions: true
+    });
+    if (patchRes.getResponseCode() === 200) {
+      Logger.log(`✅ 캘린더 → 출장 반영 완료: 변경 ${changed}건 / 연결 표시 ${linked}건 / 삭제 ${Object.keys(updates).filter(k => updates[k] === null).length}건`);
+    } else {
+      Logger.log(`❌ 캘린더 → 출장 반영 실패: ${patchRes.getContentText()}`);
+    }
+  } catch (e) {
+    Logger.log(`🔥 캘린더 → 출장 반영 중 오류: ${e.message}`);
+  }
+}
+
+/**
  * 구글 캘린더에서 Description 에 "[FaWW 출장연동 ID: id]" 태그가 정확히 들어 있는 일정 1건을 찾는다.
  * - 닫는 대괄호까지 포함해 비교하므로 ID 가 다른 일정(접두어만 같은 경우 포함)은 절대 매칭되지 않는다.
  * - 날짜가 바뀌었을 수 있으므로 넓은 기간(과거 6개월 ~ 미래 12개월)을 검색한다.
@@ -916,6 +1014,14 @@ function syncGoogleCalendarDirectlyToFirebase() {
 
     const events = targetCalendar.getEvents(startDate, endDate);
     Logger.log(`총 ${events.length}개의 구글 캘린더 일정을 가져왔습니다.`);
+
+    // 캘린더(기준) → 출장 DB 반영: 확정 출장의 날짜·제목·장소 변경과 삭제를 출장 DB에도 맞춘다.
+    // 기본 캘린더로 대체된 경우(FAWW 캘린더를 못 찾음)에는 잘못된 삭제를 막기 위해 실행하지 않는다.
+    if (calendars && calendars.length > 0) {
+      syncCalendarChangesToTrips(targetCalendar, startDate, endDate);
+    } else {
+      Logger.log("⚠️ 'FAWW' 캘린더를 찾지 못해 출장 DB 반영(수정·삭제)을 건너뜁니다.");
+    }
 
     const externalEventsMap = {};
 
