@@ -78,7 +78,28 @@
         }
     }
 
-    function init() { buildTabs(); collapseBriefingOnMobile(); }
+    // 3) 새 업무 입력: 휴대폰에서는 입력칸만 보이고, 입력칸을 누르면 담당자·중요도·추가 버튼이 펼쳐짐
+    function compactTaskInput() {
+        var area = document.querySelector('.task-input-area');
+        var input = document.getElementById('taskInput');
+        if (!area || !input || area.__mtCompact) return;
+        area.__mtCompact = true;
+        area.classList.add('mt-compact');
+        var open = function () { area.classList.add('mt-open'); };
+        var maybeClose = function () {
+            setTimeout(function () {
+                // 폼 안의 다른 칸(담당자·중요도)으로 이동 중이거나 입력 내용·담당자가 있으면 펼친 채로 둠
+                if (area.contains(document.activeElement)) return;
+                var hasAssignee = area.querySelectorAll('#assignee-tags-container .assignee-tag, #assignee-tags-container [class*="tag"]').length > 0;
+                if (!input.value.trim() && !hasAssignee) area.classList.remove('mt-open');
+            }, 150);
+        };
+        input.addEventListener('focus', open);
+        input.addEventListener('input', open);
+        area.addEventListener('focusout', maybeClose);
+    }
+
+    function init() { buildTabs(); collapseBriefingOnMobile(); compactTaskInput(); }
     if (MQ.addEventListener) MQ.addEventListener('change', apply); else if (MQ.addListener) MQ.addListener(apply);
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

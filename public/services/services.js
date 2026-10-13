@@ -704,7 +704,7 @@ function openPrivateChat(targetUid, targetName) {
             }
 
             const msgEl = document.createElement('div'); msgEl.className = `chat-message ${isMine ? 'mine' : 'others'}`;
-            const readMark = (isMine && !msg.read) ? `<span style="font-size:0.75rem; color:#F59E0B; font-weight:bold; margin:0 4px 2px 4px;">1</span>` : '';
+            const readMark = (isMine && !msg.read) ? `<span style="font-size:0.75rem; color:var(--warning-text); font-weight:bold; margin:0 4px 2px 4px;">1</span>` : '';
 
             const escapedText = escapeHTML(msg.text);
             const escapedSender = escapeHTML(msg.sender);
@@ -3296,13 +3296,13 @@ async function openConsumablesLogModal() {
             const changeText = String(log.change ?? ''); // 숫자 등으로 저장된 기록이 있어도 목록 전체가 멈추지 않도록
             const isPlus = changeText.startsWith('+') || changeText.includes('신규');
             const isDelete = changeText.includes('삭제');
-            let badgeColor = '#F59E0B'; 
+            let badgeColor = 'var(--warning-text)'; 
             let badgeBg = '#FEF3C7';
             if (isDelete) {
                 badgeColor = 'var(--danger)';
                 badgeBg = '#FDE8E8';
             } else if (isPlus) {
-                badgeColor = '#10B981'; 
+                badgeColor = 'var(--success-text)'; 
                 badgeBg = '#DEF7EC';
             }
             

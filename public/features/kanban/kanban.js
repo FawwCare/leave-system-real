@@ -1984,7 +1984,7 @@ function renderTasks() {
         if (checkStr) {
             if (checkStr.includes('텔러스헬스')) htmlBadges += `<span style="font-size:0.75rem; background-color:#EFF6FF; color:#2563EB; padding:2px 4px; border-radius:4px; margin-left:4px; font-weight:bold; vertical-align:middle; border:1px solid #BFDBFE;">🏥 텔러스헬스</span>`;
             else if (checkStr.includes('휴노')) htmlBadges += `<span style="font-size:0.75rem; background-color:#F0FDF4; color:#16A34A; padding:2px 4px; border-radius:4px; margin-left:4px; font-weight:bold; vertical-align:middle; border:1px solid #BBF7D0;">🌿 휴노</span>`;
-            else if (t.category && t.category.toUpperCase().startsWith('VIP')) htmlBadges += `<span style="font-size:0.75rem; background-color:#FFFBEB; color:#F59E0B; padding:2px 4px; border-radius:4px; margin-left:4px; font-weight:bold; vertical-align:middle; border:1px solid #FEF3C7;">⭐ VIP</span>`;
+            else if (t.category && t.category.toUpperCase().startsWith('VIP')) htmlBadges += `<span style="font-size:0.75rem; background-color:#FFFBEB; color:#B45309; padding:2px 4px; border-radius:4px; margin-left:4px; font-weight:bold; vertical-align:middle; border:1px solid #FEF3C7;">⭐ VIP</span>`;
         }
 
         const parsed = typeof parseTripDateRange === 'function' ? parseTripDateRange(t.date) : { startDate: t.date, endDate: t.date };
@@ -2054,7 +2054,7 @@ function renderTasks() {
             ${(descIcon || dueBadge) ? `<div style="display: flex; align-items: center; margin-top: -0.2rem;">${descIcon}${dueBadge}</div>` : ''}
             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem;">
                 <div style="display: flex; flex-wrap: wrap; gap: 2px;">${assigneeHtml}</div>
-                <span style="background-color: ${priorityColor}15; color: ${priorityColor}; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600;">${priorityLabel}</span>
+                <span style="background-color: ${priorityColor}15; color: ${priorityColor === '#F59E0B' ? 'var(--warning-text)' : (priorityColor === '#10B981' ? 'var(--success-text)' : priorityColor)}; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600;">${priorityLabel}</span>
             </div>
         </div>`;
 
@@ -2522,11 +2522,11 @@ async function generateAiBriefing() {
                         </div>
                     </div>
                     <div style="background: rgba(16, 185, 129, 0.05); padding: 12px 16px; border-radius: var(--radius); border: 1px solid rgba(16, 185, 129, 0.1);">
-                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 700; font-size: 0.85rem; color: #10B981;">
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 700; font-size: 0.85rem; color: var(--success-text);">
                             <span class="material-symbols-rounded" style="font-size: 1.15rem;">beach_access</span> 연차 사용 현황
                         </div>
                         <div style="font-size: 0.88rem; font-weight: 600;">
-                            올해 잔여 연차: <span style="color: #10B981;">${remainLeaves}</span>일<br>
+                            올해 잔여 연차: <span style="color: var(--success-text);">${remainLeaves}</span>일<br>
                             <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">• 총 ${window.parseTotalLeave(userProfile)}일 중 ${used.toFixed(1)}일 사용</span>
                         </div>
                     </div>

@@ -72,7 +72,7 @@ function renderLeaveUI() {
 
         const li = document.createElement('li');
         let statusText = l.status === 'approved' ? '승인됨' : (l.status === 'pending' ? '승인 대기중' : (l.status === 'cancel_requested' ? '취소 대기중' : (l.status === 'rejected' ? '반려됨' : '취소됨')));
-        let color = l.status === 'approved' ? '#10B981' : (l.status === 'rejected' || l.status === 'cancel_requested' ? 'var(--danger)' : '#F59E0B');
+        let color = l.status === 'approved' ? 'var(--success-text)' : (l.status === 'rejected' || l.status === 'cancel_requested' ? 'var(--danger)' : 'var(--warning-text)');
         let btnHtml = (l.status === 'pending' || l.status === 'approved') ? `<button class="cancel-btn" onclick="cancelLeave(${jsAttrArg(l.id)})">취소</button>` : '';
         li.innerHTML = `<div><div style="font-weight:600;">${escapeHTML(formatDateShort(l.date))}</div><div style="font-size:0.8rem; color:${color}">${statusText}</div></div>${btnHtml}`;
         listEl.appendChild(li);
@@ -235,9 +235,9 @@ function renderAdminLeaves() {
             allLeavesListEl.innerHTML = filteredLeaves.sort((a, b) => b.timestamp - a.timestamp).map(l => {
                 const typeText = l.type === 1 ? '연차(1일)' : (l.subType === '0.5am' ? '오전 반차' : '오후 반차');
                 let statusBadge = '';
-                let statusColor = '#F59E0B';
-                if (l.status === 'approved') { statusBadge = '승인 완료'; statusColor = '#10B981'; }
-                else if (l.status === 'pending') { statusBadge = '승인 대기중'; statusColor = '#F59E0B'; }
+                let statusColor = 'var(--warning-text)';
+                if (l.status === 'approved') { statusBadge = '승인 완료'; statusColor = 'var(--success-text)'; }
+                else if (l.status === 'pending') { statusBadge = '승인 대기중'; statusColor = 'var(--warning-text)'; }
                 else if (l.status === 'cancel_requested') { statusBadge = '취소 요청건'; statusColor = 'var(--danger)'; }
                 else if (l.status === 'rejected') { statusBadge = '반려됨'; statusColor = 'var(--text-muted)'; }
                 else { statusBadge = '취소됨'; statusColor = 'var(--text-muted)'; }
