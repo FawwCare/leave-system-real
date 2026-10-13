@@ -40,6 +40,7 @@ const errors = []; page.on('pageerror', e => errors.push(String(e.message).slice
 await page.evaluateOnNewDocument(() => { try { localStorage.setItem('theme', 'light'); } catch (e) {} });
 await page.goto('http://localhost:4173/', { waitUntil: 'networkidle0', timeout: 60000 });
 await new Promise(r => setTimeout(r, 1500));
+await page.waitForFunction(() => !document.getElementById('app-splash'), { timeout: 15000 }).catch(() => console.log('로딩 화면이 15초 안에 사라지지 않음'));
 if (process.env.NOANIM) await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}' });
 const overflow = {};
 const tabs = (process.env.TABS || 'tab-calendar,tab-tasks,tab-trips,tab-leaves,tab-notice,tab-docs,tab-members,tab-mypage,tab-meeting-feed,tab-admin').split(',');

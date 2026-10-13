@@ -326,6 +326,7 @@
         var ySelect = document.getElementById('calendar-year-select');
         var mSelect = document.getElementById('calendar-month-select');
         if (titleEl && ySelect && mSelect) {
+            if (!ySelect.value || mSelect.value === '') { titleEl.textContent = ''; return; } // 달력 초기화 전 '년 1월' 표시 방지
             titleEl.textContent = ySelect.value + '년 ' + (Number(mSelect.value) + 1) + '월'; // 월 값은 0(1월)~11(12월)
         }
     }

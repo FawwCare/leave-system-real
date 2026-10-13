@@ -223,6 +223,8 @@ initDashboardSortable();
 
         window.AppSubscriptionManager.subscribe('userProfile', db.ref('users/' + user.uid), (snapshot) => {
             const profile = snapshot.val();
+            // 프로필을 받으면 첫 화면을 그릴 수 있으므로 로딩 화면 해제 (구독 데이터가 그려질 시간을 조금 둠)
+            if (profile && typeof window.markAppReady === 'function') setTimeout(window.markAppReady, 300);
             
             // 신규 사용자 정보 자동 등록 (DB에 프로필이 없는 경우)
             if (!profile) {
@@ -295,10 +297,12 @@ initDashboardSortable();
                 
             }
         }, (dbError) => {
+            if (typeof window.markAppReady === 'function') window.markAppReady();
             alert("[DB 프로필 읽기 에러] " + dbError.message);
         });
 
     } else {
+        if (typeof window.markAppReady === 'function') window.markAppReady(); // 로그인 화면 표시
         // 로그아웃 시 로컬 상태만 초기화 (자동 파기는 logout 함수에서 명시적으로 처리)
         AppStore.setCurrentUser(null);
         window.isListenerInitialized = false;
