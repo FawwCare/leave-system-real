@@ -239,7 +239,7 @@ function autoRegisterTripsWithChatGPT() {
             author: "Gmail 자동 등록",
             category: mailCategory,
             sourceThreadId: threadId,
-            status: parsedData.status || "조율중",
+            status: trip.status || parsedData.status || "조율중", // 날짜마다 상태가 다를 수 있음
             timestamp: Date.now()
           };
 
@@ -442,6 +442,11 @@ function autoRegisterTripsWithChatGPT() {
           }
         }
 
+        // 스레드 최종 상태로 정리: 확정이 생긴 스레드에서, 최신 결과에 없는 '조율중' 후보만 정리 (확정 일정은 지우지 않음)
+        if (successfullyRegistered && parsedData.is_cancel !== true) {
+          reconcileThreadCandidates(threadId, tripsToRegister, parsedData);
+        }
+
         if (successfullyRegistered) {
           markGmailMessageDone(msg, syncState);
         } else {
@@ -505,6 +510,15 @@ function parseEmailWithChatGPT(emailContent) {
   * 'originalStartDate' (string, YYYY-MM-DD 또는 null): 일정 변경('is_update: true') 또는 취소('is_cancel: true') 시, 변경/취소되기 전 **원래의 출장 시작 날짜**. 메일에 기존 날짜 정보가 없다면 정황으로 추정하거나 알 수 없으면 null 로 지정.
   * 'status' (string): 현재 출장 일정의 확정 여부. 메일 맥락 상 날짜나 일정을 제안/조율/문의 중이거나 변경을 요청하는 단계면 "조율중"으로 설정하라. 반면 "좋습니다", "확인했습니다", "픽스하시죠", "진행하겠습니다" 등 확정 및 동의의 표현이 명확하면 "확정"으로 설정하라.
 
+  * 'thread_state_complete' (boolean): 아래 [스레드 최종 상태 규칙]에 따라 이 스레드에서 지금 유효한 출장 일정을 trips 에 빠짐없이 모두 담았으면 true.
+
+- **[스레드 최종 상태 규칙 (매우 중요)]**: 입력은 한 메일 스레드의 대화 전체(메일 1 ~ 메일 N)다. 마지막 메일만 보지 말고 대화 전체를 읽은 뒤, **가장 최근 메일까지 반영한 '지금 유효한 출장 일정 전체'**를 trips 에 담아라.
+  * 이미 확정된 일정은 마지막 메일에서 언급되지 않았더라도, 취소되지 않았다면 그대로 포함하라.
+  * 아직 조율 중인 후보 날짜도, 거절되거나 다른 날짜로 확정되면서 탈락하지 않았다면 포함하라.
+  * 상대가 불가하다고 했거나, 다른 날짜로 확정되면서 탈락한 후보 날짜는 제외하라.
+  * 각 trip 객체마다 개별 status("조율중" 또는 "확정")를 넣어라. 한 스레드 안에서도 날짜마다 상태가 다를 수 있다.
+  * 예외: 취소 메일('is_cancel': true)인 경우에만 trips 에 '취소되는 일정'만 담는다.
+
 - **trips 배열 내의 개별 출장 객체 추출 (⚠️ 절대 누락 금지)**:
   * [중요] 메일 본문이나 표(Table)에 여러 개의 지사, 장소가 나열되어 있고 각 장소별로 후보 날짜가 여러 개 제안된 경우, **단 한 건도 누락하지 말고 반드시 "각 장소 x 각 후보 날짜" 조합마다 1개의 개별 trip 객체로 완벽히 분리하여 추출하라**. (예: 12개 장소에 각각 3개씩 후보 날짜가 적혀있다면 배열에 총 36개의 객체가 들어가야 함)
   * name: 출장 목적지 이름 또는 기관명 (예: "부산 기장군청 피지컬상담실 방문"). 본문에서 파악된 정보가 없으면 제목을 참고하라.
@@ -515,6 +529,7 @@ function parseEmailWithChatGPT(emailContent) {
   * address: 실제 출장 목적지 주소. 본문 하단 서명란에 있는 발신자 사무실 주소는 무시하라. 구체적인 주소가 없으면 제목의 지명(예: "부산 기장군청")을 주소로 반환하라.
   * requiredPersonnel: 출장 총 인원수 (숫자 형식, 기본값 1).
   * requiredGender: 필요한 성별 요구사항 ("any", "male", "female" 중 하나).
+  * status: 이 일정의 상태 ("조율중" 또는 "확정").
 
 🔥 [2. 일반 업무 소통 메일인 경우 (is_trip: false) 추출 규칙] 🔥
 - is_trip: false로 설정.
@@ -533,6 +548,7 @@ function parseEmailWithChatGPT(emailContent) {
   "is_cancel": false,
   "originalStartDate": null,
   "status": "조율중",
+  "thread_state_complete": true,
   "trips": [
     {
       "name": "동대문구청 찾아가는 피지컬 상담실",
@@ -542,7 +558,8 @@ function parseEmailWithChatGPT(emailContent) {
       "contact": "",
       "address": "동대문구청",
       "requiredPersonnel": 1,
-      "requiredGender": "any"
+      "requiredGender": "any",
+      "status": "조율중"
     }
   ]
 }
@@ -554,6 +571,7 @@ function parseEmailWithChatGPT(emailContent) {
   "is_cancel": false,
   "originalStartDate": "${currentYear}-07-25",
   "status": "확정",
+  "thread_state_complete": true,
   "trips": [
     {
       "name": "동대문구청 찾아가는 피지컬 상담실",
@@ -563,12 +581,29 @@ function parseEmailWithChatGPT(emailContent) {
       "contact": "",
       "address": "동대문구청",
       "requiredPersonnel": 1,
-      "requiredGender": "any"
+      "requiredGender": "any",
+      "status": "확정"
     }
   ]
 }
 
-[응답 형식 예시 3 - 일반 소통 메일인 경우]
+[응답 형식 예시 3 - 후보 날짜 중 하나가 확정된 경우 (스레드 최종 상태)]
+(메일 1: "7/21, 7/22, 7/23 중 가능하신 날짜 알려주세요" → 메일 2: "7/22로 진행하겠습니다. 8/4도 추가로 검토 부탁드립니다")
+{
+  "is_trip": true,
+  "is_update": false,
+  "is_cancel": false,
+  "originalStartDate": null,
+  "status": "확정",
+  "thread_state_complete": true,
+  "trips": [
+    { "name": "동대문구청 찾아가는 피지컬 상담실", "startDate": "${currentYear}-07-22", "endDate": "${currentYear}-07-22", "assignee": "김하람", "contact": "", "address": "동대문구청", "requiredPersonnel": 1, "requiredGender": "any", "status": "확정" },
+    { "name": "동대문구청 찾아가는 피지컬 상담실", "startDate": "${currentYear}-08-04", "endDate": "${currentYear}-08-04", "assignee": "김하람", "contact": "", "address": "동대문구청", "requiredPersonnel": 1, "requiredGender": "any", "status": "조율중" }
+  ]
+}
+(7/21, 7/23 은 탈락한 후보이므로 포함하지 않는다)
+
+[응답 형식 예시 4 - 일반 소통 메일인 경우]
 {
   "is_trip": false,
   "summary": "준공검사보고서 작성이 완료되어 사인 및 확인 요청 건입니다.",
@@ -675,6 +710,55 @@ function markGmailMessageFailed(msg, thread, state, reason) {
   } else {
     saveGmailMessageState(msg.getId(), { s: 'failed', n: n, t: Date.now(), r: reason }, state);
     Logger.log(`⚠️ 처리 실패 ${n}/${MAX_PARSE_ATTEMPTS}회 (다음 실행에서 재시도): [${msg.getSubject()}] 사유: ${reason}`);
+  }
+}
+
+/**
+ * [스레드 최종 상태 정리] 스레드 대화 전체를 반영한 최신 분석 결과(validTrips)를 그 스레드의 정답으로 보고,
+ * 같은 스레드에서 등록된 '조율중' 후보 중 최신 결과에 없는 날짜를 삭제한다.
+ * 안전장치
+ *  - 최신 결과에 '확정' 일정이 하나 이상 있을 때만 정리 (조율이 진행 중일 때는 후보를 지우지 않음 → 대표님이 후보 날짜를 계속 볼 수 있음)
+ *  - AI 가 스레드 전체 상태를 담았다고 표시(thread_state_complete)한 경우에만 정리
+ *  - '확정' 일정은 절대 지우지 않음 (확정 일정 삭제는 명시적인 취소 메일로만)
+ *  - 한 번에 10건을 넘게 지우게 되면 이상으로 보고 건너뜀
+ */
+function reconcileThreadCandidates(threadId, validTrips, parsedData) {
+  try {
+    if (!threadId || !validTrips || validTrips.length === 0) return;
+    if (parsedData.thread_state_complete !== true) {
+      Logger.log('ℹ️ AI 가 스레드 전체 상태를 표시하지 않아 후보 정리를 건너뜁니다.');
+      return;
+    }
+    const hasConfirmed = validTrips.some(t => (t.status || parsedData.status) === '확정');
+    if (!hasConfirmed) return;
+
+    const validStarts = {};
+    validTrips.forEach(t => { if (t.startDate) validStarts[t.startDate] = true; });
+
+    const existing = fetchExistingTrips();
+    const staleKeys = Object.keys(existing).filter(k => {
+      const t = existing[k];
+      if (!t || t.sourceThreadId !== threadId) return false;
+      if (t.status === '확정') return false;
+      const s = t.startDate || String(t.date || '').split(' to ')[0];
+      return s && !validStarts[s];
+    });
+    if (staleKeys.length === 0) return;
+    if (staleKeys.length > 10) {
+      Logger.log(`🛑 스레드 후보 정리 대상이 ${staleKeys.length}건이라 비정상으로 판단해 건너뜁니다 (스레드: ${threadId}).`);
+      return;
+    }
+    const base = FIREBASE_DB_URL.split('.json')[0];
+    const auth = FIREBASE_DB_URL.split('?')[1] || '';
+    staleKeys.forEach(k => {
+      const r = UrlFetchApp.fetch(`${base}/${k}.json?${auth}`, { method: 'delete', muteHttpExceptions: true });
+      if (r.getResponseCode() === 200) {
+        findAndModifyGoogleCalendarEvent(k, 'delete', null); // 조율중은 보통 캘린더에 없지만, 있으면 함께 정리
+        Logger.log(`🧹 탈락한 후보 날짜 정리: ${existing[k].name} (${existing[k].startDate})`);
+      }
+    });
+  } catch (e) {
+    Logger.log(`⚠️ 스레드 후보 정리 중 오류: ${e.message}`);
   }
 }
 
@@ -1390,3 +1474,36 @@ function deleteTestTripsFromDB_v2() {
   }
   Logger.log(`✅ 완벽 청소 완료! 총 ${deleted}개의 꼬인 DB 데이터를 싹 다 지웠습니다. 이제 메인 함수를 돌리면 100% 신규 생성으로 깔끔하게 들어갈 겁니다!`);
 }
+
+/**
+ * [미리보기 도구 — DB·캘린더에 아무것도 쓰지 않음]
+ * Apps Script 편집기에서 실행: 아래 SEARCH 에 실제 메일 제목 일부를 넣고 previewThreadState 를 실행한 뒤 '실행 로그'를 확인.
+ * 스레드 대화 전체를 AI 에 보내 '지금 유효한 일정 전체'를 어떻게 판단하는지, 그리고 실제 실행 시 어떤 후보가 정리될지 보여준다.
+ */
+function previewThreadState() {
+  const SEARCH = 'subject:"여기에 메일 제목 일부"';
+  const threads = GmailApp.search(SEARCH, 0, 1);
+  if (threads.length === 0) { Logger.log('해당 메일을 찾지 못했습니다: ' + SEARCH); return; }
+  const thread = threads[0];
+  const messages = thread.getMessages();
+  let body = '';
+  messages.forEach((m, k) => { body += `\n--- [메일 ${k + 1}] ---\n${m.getPlainBody()}\n`; });
+  const parsed = parseEmailWithChatGPT(`[제목]: ${messages[messages.length - 1].getSubject()}\n[스레드 누적 본문]: ${body}`);
+  Logger.log('=== AI 분석 결과 ===\n' + JSON.stringify(parsed, null, 2));
+  if (!parsed || !parsed.is_trip) return;
+  const valid = {};
+  (parsed.trips || []).forEach(t => { valid[t.startDate] = t.status || parsed.status; });
+  const existing = fetchExistingTrips();
+  Logger.log('=== 이 스레드의 현재 출장 DB 와 비교 ===');
+  Object.keys(existing).forEach(k => {
+    const t = existing[k];
+    if (!t || t.sourceThreadId !== thread.getId()) return;
+    let action = '유지';
+    if (valid[t.startDate]) action = `유지 (AI 판단 상태: ${valid[t.startDate]})`;
+    else if (t.status === '확정') action = '유지 (확정 일정은 자동 정리하지 않음)';
+    else if (parsed.thread_state_complete === true && Object.values(valid).indexOf('확정') !== -1) action = '정리 대상 (탈락 후보)';
+    else action = '유지 (아직 확정 없음 → 후보 보존)';
+    Logger.log(`${t.startDate} [${t.status}] ${t.name} → ${action}`);
+  });
+}
+
