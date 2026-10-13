@@ -376,47 +376,23 @@ function autoRegisterTripsWithChatGPT() {
   
                         const statusPrefix = `[확정]`;
                         
-                        // 🌟 중복 방지: 동일 날짜에 이미 유사한 이름의 일정이 캘린더에 있는지 직접 확인 (스마트 키워드 매칭)
-                        const existingEvents = targetCal.getEvents(gStart, gEnd);
-                        let duplicateEvent = null;
-                        
-                        const extractWords = (str) => (str || '').split(/\s+/).filter(w => w.length >= 2).map(w => w.toLowerCase());
-                        const newNameWords = extractWords(tripData.name);
-                        
-                        for (let k = 0; k < existingEvents.length; k++) {
-                          const evtTitle = existingEvents[k].getTitle();
-                          const evtTitleWords = extractWords(evtTitle);
-                          
-                          let commonWordsCount = 0;
-                          newNameWords.forEach(nw => {
-                            if (evtTitleWords.some(ew => ew.includes(nw) || nw.includes(ew))) {
-                              commonWordsCount++;
-                            }
-                          });
-                          
-                          // 핵심 단어가 1개 이상 겹치면 대표님이 수동으로 만든 일정으로 간주!
-                          if (commonWordsCount >= 1) {
-                            duplicateEvent = existingEvents[k];
-                            break;
-                          }
-                        }
-  
-                        if (duplicateEvent) {
-                          console.log(`⚠️ 구글 캘린더에 이미 유사한 일정이 존재하여 기존 일정을 업데이트합니다: ${duplicateEvent.getTitle()}`);
-                          
-                          // 기존 제목 보존하면서 상태만 업데이트 (이미 확정이 있으면 냅둠)
-                          let originalTitle = duplicateEvent.getTitle();
-                          originalTitle = originalTitle.replace(/^\[조율중\]\s*/i, '').replace(/^\[확정\]\s*/i, '').replace(/^\[출장\]\s*/i, '');
-                          duplicateEvent.setTitle(`${statusPrefix} ${originalTitle}`);
-                          
-                          duplicateEvent.setDescription(descStr);
-                          if (tripData.address) duplicateEvent.setLocation(tripData.address);
+                        // 🌟 중복 판정은 오직 고유 ID 태그([FaWW 출장연동 ID: resObj.name])로만 한다.
+                        //    제목·장소가 비슷해도 ID 가 다르면 다른 일정이므로 절대 덮어쓰지 않고 새로 만든다.
+                        //    (같은 메일을 재처리하는 등 동일 ID 일정이 이미 있을 때만 그 일정을 갱신)
+                        const existingById = findCalendarEventByFawwId(targetCal, resObj.name);
+
+                        if (existingById) {
+                          console.log(`ℹ️ 동일 고유 ID 일정이 이미 있어 갱신합니다 (ID: ${resObj.name}): ${existingById.getTitle()}`);
+                          existingById.setTitle(`${statusPrefix} ${tripData.name}`);
+                          existingById.setDescription(descStr);
+                          existingById.setLocation(tripData.address || '');
+                          existingById.setAllDayDates(gStart, gEnd);
                         } else {
                           targetCal.createAllDayEvent(`${statusPrefix} ${tripData.name}`, gStart, gEnd, {
                             description: descStr,
                             location: tripData.address || ''
                           });
-                          console.log(`✅ 구글 캘린더 백엔드 직통 생성 완료: ${statusPrefix} ${tripData.name}`);
+                          console.log(`✅ 구글 캘린더 백엔드 직통 생성 완료: ${statusPrefix} ${tripData.name} (ID: ${resObj.name})`);
                         }
                       }
                     } else {
@@ -774,6 +750,28 @@ function findDuplicateTripForCancelOrUpdate(newTrip, originalStartDate, existing
  * [신규] 구글 캘린더 일정을 검색하여 취소(삭제) 또는 수정(업데이트)하는 헬퍼 함수
  * Firebase DB(businessTrips)가 아닌, 실제 구글 캘린더 연동(Option 2)의 삭제/수정을 담당합니다.
  */
+/**
+ * 구글 캘린더에서 Description 에 "[FaWW 출장연동 ID: id]" 태그가 정확히 들어 있는 일정 1건을 찾는다.
+ * - 닫는 대괄호까지 포함해 비교하므로 ID 가 다른 일정(접두어만 같은 경우 포함)은 절대 매칭되지 않는다.
+ * - 날짜가 바뀌었을 수 있으므로 넓은 기간(과거 6개월 ~ 미래 12개월)을 검색한다.
+ * - 같은 ID 가 여러 건이면(과거 중복 생성분) 첫 건을 돌려주고 로그를 남긴다.
+ */
+function findCalendarEventByFawwId(targetCal, fawwId) {
+  if (!targetCal || !fawwId) return null;
+  const tag = `[FaWW 출장연동 ID: ${fawwId}]`;
+  const now = new Date();
+  const from = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+  const to = new Date(now.getFullYear(), now.getMonth() + 13, 0);
+  const matches = targetCal.getEvents(from, to).filter(evt => {
+    const desc = evt.getDescription() || '';
+    return desc.indexOf(tag) !== -1;
+  });
+  if (matches.length > 1) {
+    console.log(`⚠️ 같은 고유 ID 를 가진 구글 캘린더 일정이 ${matches.length}건 있습니다 (ID: ${fawwId}). 첫 건만 처리합니다.`);
+  }
+  return matches.length > 0 ? matches[0] : null;
+}
+
 function findAndModifyGoogleCalendarEvent(matchKey, action, updateData) {
   try {
     let targetCal = null;
@@ -783,35 +781,13 @@ function findAndModifyGoogleCalendarEvent(matchKey, action, updateData) {
 
     if (!targetCal) return false;
 
-    // 검색 기간 설정 (과거 3개월 ~ 미래 6개월)
-    const now = new Date();
-    const startDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
-    const endDate = new Date(now.getFullYear(), now.getMonth() + 7, 0);
-
-    const events = targetCal.getEvents(startDate, endDate);
-    let targetEvent = null;
-
-    // 1순위: Description에 저장해둔 "[FaWW 출장연동 ID: matchKey]" 고유 아이디로 정확히 찾기
-    for (let i = 0; i < events.length; i++) {
-      const desc = events[i].getDescription();
-      if (desc && desc.includes(`[FaWW 출장연동 ID: ${matchKey}]`)) {
-        targetEvent = events[i];
-        break;
-      }
+    // 오직 Description 의 "[FaWW 출장연동 ID: matchKey]" 태그가 정확히 일치하는 일정만 수정/삭제한다.
+    // (예전의 제목·담당자 교차검증 백업 탐색은 다른 일정을 잘못 건드릴 수 있어 제거)
+    if (!matchKey) {
+      console.log('⚠️ 고유 ID(matchKey)가 없어 구글 캘린더 수정/삭제를 건너뜁니다.');
+      return false;
     }
-
-    // 2순위: 혹시 고유 아이디가 누락되었다면 제목과 담당자로 교차 검증 (백업 탐색)
-    if (!targetEvent && updateData && updateData.name) {
-      for (let i = 0; i < events.length; i++) {
-        const title = events[i].getTitle();
-        const desc = events[i].getDescription() || '';
-        const assignee = updateData.assignee || '';
-        if (title.includes(updateData.name) && (assignee === '' || desc.includes(assignee))) {
-          targetEvent = events[i];
-          break;
-        }
-      }
-    }
+    const targetEvent = findCalendarEventByFawwId(targetCal, matchKey);
 
     if (targetEvent) {
       if (action === 'delete') {
@@ -852,7 +828,7 @@ function findAndModifyGoogleCalendarEvent(matchKey, action, updateData) {
       }
       return true;
     } else {
-      console.log(`⚠️ 일치하는 구글 캘린더 일정을 찾지 못했습니다. (Key: ${matchKey})`);
+      console.log(`⚠️ 고유 ID 태그가 일치하는 구글 캘린더 일정이 없어 아무것도 수정/삭제하지 않았습니다. (Key: ${matchKey}) — ID 태그가 없는 예전·수동 일정은 직접 정리해 주세요.`);
       return false;
     }
   } catch (e) {
@@ -950,16 +926,62 @@ function syncGoogleCalendarDirectlyToFirebase() {
       };
     });
 
-    // 2. Firebase DB (external_events) 경로에 직통 덮어쓰기 (PATCH/PUT -> PUT으로 변경하여 삭제 동기화)
+    // 2. 현재 DB 의 external_events 를 먼저 읽는다. 읽기에 실패하면 아무것도 쓰지 않는다 (불완전 저장 방지).
+    const getResponse = UrlFetchApp.fetch(EXTERNAL_EVENTS_DB_URL, { method: 'get', muteHttpExceptions: true });
+    if (getResponse.getResponseCode() !== 200) {
+      Logger.log(`❌ external_events 조회 실패로 동기화를 중단합니다 (DB 는 변경하지 않음): ${getResponse.getContentText()}`);
+      return;
+    }
+    const existing = JSON.parse(getResponse.getContentText() || 'null') || {};
+
+    // 3. PUT(전체 덮어쓰기) 대신 PATCH(다중 경로 부분 갱신)
+    //  - 이미 있는 일정: 구글이 관리하는 필드만 갱신 → 앱에서 바꾼 담당자·진행 상태·우선순위는 보존
+    //  - 새 일정: 기본값과 함께 추가
+    //  - 동기화 기간 안에 있었는데 구글 캘린더에서 사라진 일정: null 로 삭제 (예전 PUT 의 삭제 동기화 역할 유지)
+    //  - 동기화 기간 밖의 기록: 건드리지 않음 (예전 PUT 은 기간 밖 기록까지 모두 지웠음)
+    const GOOGLE_FIELDS = ['id', 'title', 'description', 'location', 'startDate', 'dueDate', 'isExternal', 'category', 'colorId'];
+    const windowStartStr = Utilities.formatDate(startDate, Session.getScriptTimeZone(), "yyyy-MM-dd");
+    const windowEndStr = Utilities.formatDate(endDate, Session.getScriptTimeZone(), "yyyy-MM-dd");
+    const updates = {};
+    let added = 0, updated = 0, removed = 0;
+
+    Object.keys(externalEventsMap).forEach(key => {
+      const fresh = externalEventsMap[key];
+      const cur = existing[key];
+      if (cur && typeof cur === 'object') {
+        GOOGLE_FIELDS.forEach(f => { updates[`${key}/${f}`] = fresh[f]; });
+        updated++;
+      } else {
+        updates[key] = fresh;
+        added++;
+      }
+    });
+
+    Object.keys(existing).forEach(key => {
+      if (externalEventsMap[key]) return;
+      const rec = existing[key];
+      if (!rec || typeof rec !== 'object') return;
+      const s = String(rec.startDate || rec.dueDate || '');
+      const e = String(rec.dueDate || rec.startDate || '');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(s) || !/^\d{4}-\d{2}-\d{2}$/.test(e)) return; // 날짜를 알 수 없는 기록은 보존
+      const overlapsWindow = s <= windowEndStr && e >= windowStartStr;
+      if (overlapsWindow) { updates[key] = null; removed++; }
+    });
+
+    if (Object.keys(updates).length === 0) {
+      Logger.log('ℹ️ external_events 변경 사항 없음');
+      return;
+    }
+
     const patchResponse = UrlFetchApp.fetch(EXTERNAL_EVENTS_DB_URL, {
-      method: 'put',
+      method: 'patch',
       contentType: 'application/json',
-      payload: JSON.stringify(externalEventsMap),
+      payload: JSON.stringify(updates),
       muteHttpExceptions: true
     });
 
     if (patchResponse.getResponseCode() === 200) {
-      Logger.log(`✅ ${Object.keys(externalEventsMap).length}건의 일정이 Firebase DB에 365일 직통 저장 완료되었습니다.`);
+      Logger.log(`✅ external_events PATCH 완료: 추가 ${added}건 / 갱신 ${updated}건 / 기간 내 삭제 ${removed}건 (기간: ${windowStartStr} ~ ${windowEndStr})`);
     } else {
       Logger.log(`❌ Firebase DB 직통 저장 실패: ${patchResponse.getContentText()}`);
     }
