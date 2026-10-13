@@ -1,0 +1,12 @@
+{
+  "name": "faww-mobile-audit",
+  "private": true,
+  "type": "module",
+  "description": "모바일 화면 점검: 빌드된 dist 를 가짜 Firebase(메모리, 네트워크 없음)로 띄워 탭별 스크린샷과 화면 넘침을 측정",
+  "scripts": { "shoot": "node shoot.mjs" },
+  "dependencies": {
+    "@sparticuz/chromium": "131.0.1", "puppeteer-core": "23.11.1",
+    "pretendard": "1.3.9", "material-symbols": "0.27.0", "flatpickr": "4.6.13",
+    "sortablejs": "1.15.0", "tippy.js": "6.3.7", "@popperjs/core": "2.11.8"
+  }
+}
