@@ -19,13 +19,15 @@ const state = (w) => (w.db.gmailSyncState || {}).messages || {};
     w.runOnly();
     check('[기록] 다시 실행해도 같은 메일을 재분석하지 않음', w.aiCalls === 1, `AI ${w.aiCalls}회`);
 }
-// 2) 처음 실행: cutover 자동 기록, 이전 별표 메일 건너뜀
+// 2) 처음 실행: cutover 자동 기록, 이전 메일(별표 여부 무관) 건너뜀
 {
-    const w = world();
+    const w = world({ freshState: true });
     w.addMessage('T2', null, { starred: true, date: new Date(Date.now() - 3600e3) });
     w.runOnly();
     check('[첫 실행] cutover 시각이 기록됨', !!(w.db.gmailSyncState && w.db.gmailSyncState.cutover));
     check('[첫 실행] 기존 별표 메일은 다시 처리하지 않음 (예전 메일 재처리 폭주 방지)', w.aiCalls === 0, `AI ${w.aiCalls}회`);
+    w.addMessage('T2b', null, { starred: false, date: new Date(Date.now() - 86400e3) }); w.runOnly();
+    check('[첫 실행] 전환 이전의 별표 없는 메일도 다시 처리하지 않음 (켄싱턴 중복 재발 방지)', w.aiCalls === 0, `AI ${w.aiCalls}회`);
 }
 // 3) AI 실패 3회 → 검토 필요 라벨, 이후 재시도 안 함
 {

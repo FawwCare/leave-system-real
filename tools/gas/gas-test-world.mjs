@@ -5,7 +5,8 @@ export const SRC = fs.readFileSync(process.env.GAS_SRC || path.join(ROOT, 'gmail
 export const Y = new Date().getFullYear();
 export const D = (md) => `${Y}-${md}`;
 export function world(opts = {}) {
-    const db = { businessTrips: {}, external_events: {}, leaves: {}, businessCommunications: {}, ...(opts.db || {}) };
+    // 기본값: 메일 처리 기록 방식으로 이미 전환된 상태(오래전 cutover). 첫 실행 자체를 시험할 때만 opts.freshState 사용
+    const db = { businessTrips: {}, external_events: {}, leaves: {}, businessCommunications: {}, ...(opts.freshState ? {} : { gmailSyncState: { cutover: Date.UTC(2000, 0, 1), messages: {} } }), ...(opts.db || {}) };
     let seq = 0;
     const events = [];
     const mkEvent = (o) => { const e = { ...o, deleted: false,

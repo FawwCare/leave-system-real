@@ -336,8 +336,9 @@ function autoRegisterTripsWithChatGPT() {
               method: 'patch',
               contentType: 'application/json',
               payload: JSON.stringify({
-                contact: tripData.contact || existingTrips[duplicateKey].contact || "",
-                address: tripData.address || existingTrips[duplicateKey].address || "주소 미상",
+                // 기존 출장에 이미 있는 연락처·주소는 유지하고 비어 있을 때만 메일 정보로 채운다
+                contact: existingTrips[duplicateKey].contact || tripData.contact || "",
+                address: existingTrips[duplicateKey].address || tripData.address || "주소 미상",
                 status: newStatus
               }),
               muteHttpExceptions: true
@@ -346,9 +347,10 @@ function autoRegisterTripsWithChatGPT() {
               console.log(`✅ 중복 일정 보완 및 동기화 스킵 완료.`);
               
               if (newStatus) {
+                // 기존 출장 정보(담당자·이름 등)가 우선. 메일에서는 상태만 반영 (AI 가 뽑은 담당자로 덮어쓰지 않음)
                 const updateData = {
-                  ...existingTrips[duplicateKey],
                   ...tripData,
+                  ...existingTrips[duplicateKey],
                   status: newStatus
                 };
                 findAndModifyGoogleCalendarEvent(duplicateKey, 'update', updateData);
@@ -681,7 +683,9 @@ function loadGmailSyncState() {
 function isGmailMessageProcessed(msg, state) {
   const rec = state.messages[msg.getId()];
   if (rec && (rec.s === 'done' || rec.s === 'review')) return true;
-  if (!rec && msg.getDate().getTime() < state.cutover && msg.isStarred()) return true; // 전환 이전 별표 메일
+  // 전환 이전 메일은 별표 여부와 상관없이 처리된 것으로 본다.
+  // (예전엔 별표가 있을 때만 인정 → 검색 범위가 넓어지면서, 사람이 수동으로 처리해 별표가 없던 몇 달 전 메일이 다시 처리되어 중복 출장이 생겼음)
+  if (!rec && msg.getDate().getTime() < state.cutover) return true;
   return false;
 }
 
@@ -807,6 +811,13 @@ function findDuplicateTrip(newTrip, existingTrips) {
     // 1. 날짜가 동일한가?
     const dateMatch = (extDate === newDate) || (ext.startDate && newTrip.startDate && ext.startDate === newTrip.startDate);
     if (!dateMatch) continue;
+
+    // 2-0. 같은 날짜에 출장지 이름 또는 주소가 정확히 같으면 담당자가 달라도 같은 출장으로 본다.
+    //      (수동 등록 출장과 메일 자동 등록 출장의 담당자 표기가 달라 중복 생성되던 문제)
+    const isValidAddr0 = (addr) => addr && addr !== "주소미상";
+    if ((newName && extName === newName) || (isValidAddr0(newAddr) && extAddr === newAddr)) {
+      return key;
+    }
 
     // 2. 담당자가 동일한가? (또는 둘 다 동일 소속)
     const assigneeMatch = (extAssignee === newAssignee) || (extAssignee.includes(newAssignee) || newAssignee.includes(extAssignee));
@@ -1504,6 +1515,82 @@ function previewThreadState() {
     else if (parsed.thread_state_complete === true && Object.values(valid).indexOf('확정') !== -1) action = '정리 대상 (탈락 후보)';
     else action = '유지 (아직 확정 없음 → 후보 보존)';
     Logger.log(`${t.startDate} [${t.status}] ${t.name} → ${action}`);
+  });
+}
+
+/**
+ * [중복 출장 정리 도구] 편집기에서 실행
+ *  - previewDuplicateTrips(): 아무것도 바꾸지 않고, 같은 날짜·같은 장소(이름 또는 주소 일치) 출장 묶음을 로그로 보여줌
+ *  - cleanupDuplicateTrips(): 아래 규칙으로 실제 삭제
+ * 삭제 규칙 (안전 우선)
+ *  - 묶음마다 가장 먼저 만들어진 출장은 남긴다 (생성 시각은 Firebase 키에서 계산)
+ *  - 삭제 대상은 'Gmail 자동 등록' 출장 중 메일 처리 기록 전환 시각(cutover) 이후에 만들어진 것만.
+ *    (수동 등록 출장, 전환 이전 출장은 절대 지우지 않고 로그로만 알림)
+ *  - 해당 출장의 구글 캘린더 일정(고유 ID 태그 일치)도 함께 삭제
+ *  - 한 번에 30건을 넘으면 이상으로 보고 중단
+ */
+function previewDuplicateTrips() { runDuplicateTripCleanup_(true); }
+function cleanupDuplicateTrips() { runDuplicateTripCleanup_(false); }
+
+function pushIdTime_(key) {
+  const CH = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
+  if (!key || key.length < 8) return null;
+  let v = 0;
+  for (let i = 0; i < 8; i++) { const idx = CH.indexOf(key.charAt(i)); if (idx < 0) return null; v = v * 64 + idx; }
+  return v;
+}
+
+function runDuplicateTripCleanup_(dryRun) {
+  const stateRes = UrlFetchApp.fetch(GMAIL_STATE_DB_URL, { method: 'get', muteHttpExceptions: true });
+  const state = stateRes.getResponseCode() === 200 ? (JSON.parse(stateRes.getContentText() || 'null') || {}) : {};
+  const cutover = state.cutover || null;
+  if (!cutover) { Logger.log('ℹ️ 메일 처리 기록 전환 시각(cutover)이 없어, 자동 삭제 대상 없이 목록만 보여줍니다.'); }
+  const res = UrlFetchApp.fetch(FIREBASE_DB_URL, { method: 'get', muteHttpExceptions: true });
+  if (res.getResponseCode() !== 200) { Logger.log('❌ 출장 DB 조회 실패: ' + res.getContentText()); return; }
+  const trips = JSON.parse(res.getContentText() || 'null') || {};
+  const norm = (s) => String(s || '').replace(/\[.*?\]/g, '').replace(/\s+/g, '').toLowerCase();
+  const startOf = (t) => t.startDate || String(t.date || '').split(' to ')[0];
+  const groups = {};
+  Object.keys(trips).forEach(k => {
+    const t = trips[k]; if (!t || typeof t !== 'object') return;
+    const d = startOf(t); if (!d) return;
+    const keys = [];
+    if (norm(t.name)) keys.push(d + '|n|' + norm(t.name));
+    const a = norm(t.address); if (a && a !== '주소미상') keys.push(d + '|a|' + a);
+    keys.forEach(g => { (groups[g] = groups[g] || []).push(k); });
+  });
+  // 이름 묶음과 주소 묶음을 합쳐 출장별 하나의 묶음으로
+  const parent = {}; const find = (x) => (parent[x] === x ? x : (parent[x] = find(parent[x]))); const unite = (a, b) => { parent[find(a)] = find(b); };
+  Object.keys(trips).forEach(k => { parent[k] = k; });
+  Object.values(groups).forEach(ks => { for (let i = 1; i < ks.length; i++) unite(ks[0], ks[i]); });
+  const clusters = {};
+  Object.keys(parent).forEach(k => { const r = find(k); (clusters[r] = clusters[r] || []).push(k); });
+  const dupClusters = Object.values(clusters).filter(c => c.length > 1);
+
+  const toDelete = []; let reportOnly = 0;
+  dupClusters.forEach(c => {
+    c.sort((x, y) => (pushIdTime_(x) || 0) - (pushIdTime_(y) || 0));
+    const keep = c[0];
+    const lines = c.map(k => { const t = trips[k]; const ms = pushIdTime_(k); return `   ${k === keep ? '유지' : '    '} ${k} | ${t.date || t.startDate} | ${t.name} | 담당:${t.assignee || '-'} | ${t.author || '-'} | 생성:${ms ? new Date(ms).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }) : '?'}`; });
+    Logger.log(`🔎 중복 묶음 (${c.length}건)\n` + lines.join('\n'));
+    c.slice(1).forEach(k => {
+      const t = trips[k]; const ms = pushIdTime_(k);
+      if (cutover && ms && ms >= cutover && t.author === 'Gmail 자동 등록') toDelete.push(k); else reportOnly++;
+    });
+  });
+  Logger.log(`요약: 중복 묶음 ${dupClusters.length}개 / 자동 삭제 대상 ${toDelete.length}건 / 직접 확인 필요 ${reportOnly}건`);
+  if (toDelete.length === 0) return;
+  if (toDelete.length > 30) { Logger.log(`🛑 삭제 대상이 ${toDelete.length}건으로 너무 많아 중단합니다. 로그를 확인해 주세요.`); return; }
+  if (dryRun) { Logger.log('ℹ️ 미리보기라 아무것도 삭제하지 않았습니다. 삭제하려면 cleanupDuplicateTrips 를 실행하세요.'); return; }
+  const base = FIREBASE_DB_URL.split('.json')[0]; const auth = FIREBASE_DB_URL.split('?')[1] || '';
+  toDelete.forEach(k => {
+    const r = UrlFetchApp.fetch(`${base}/${k}.json?${auth}`, { method: 'delete', muteHttpExceptions: true });
+    if (r.getResponseCode() === 200) {
+      findAndModifyGoogleCalendarEvent(k, 'delete', null);
+      Logger.log(`🗑️ 삭제 완료: ${trips[k].name} (${trips[k].date}) [${k}]`);
+    } else {
+      Logger.log(`❌ 삭제 실패: ${k} ${r.getContentText()}`);
+    }
   });
 }
 
