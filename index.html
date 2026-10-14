@@ -321,6 +321,12 @@
         .mobile-cal-dot { display: none !important; }
     }
     </style>
+    <!-- 카카오 지도 SDK 는 <head> 에 있어야 함: sdk.js 가 문서 로딩 중 document.write 로 지도 스크립트를 추가로 불러오는 방식이라,
+         본문 끝으로 옮겼을 때 지도 API 로드가 실패했음 (다른 라이브러리는 본문 끝 유지) -->
+    <script type="text/javascript"
+        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=%VITE_KAKAO_APP_KEY%&libraries=services"></script>
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/v1/kakao.min.js"></script>
+    <script>if (window.Kakao) { Kakao.init("%VITE_KAKAO_JS_KEY%"); }</script>
 </head>
 
 <body>
@@ -2319,10 +2325,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/ko.js"></script>
-    <script type="text/javascript"
-        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=%VITE_KAKAO_APP_KEY%&libraries=services"></script>
-    <script src="https://t1.kakaocdn.net/kakao_js_sdk/v1/kakao.min.js"></script>
-    <script>if (window.Kakao) { Kakao.init("%VITE_KAKAO_JS_KEY%"); }</script>
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
