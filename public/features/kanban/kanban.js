@@ -536,6 +536,15 @@ const isSameEvent = (itemA, itemB) => {
         return false;
     }
 
+    // [버그 수정] 서로 다른 두 구글 캘린더 일정은 제목이 완전히 같을 때만 같은 일정으로 본다.
+    //  (같은 일정이 웹앱 연동·Apps Script 두 경로로 다른 키로 저장된 경우만 합침.
+    //   예전에는 '나주 사학 09:30~' 과 '여의도 사학 09:30~' 처럼 시간·단어 일부만 같아도 합쳐져 달력에서 사라졌음)
+    if (itemA.isExternal && itemB.isExternal && (itemA.id || '') !== (itemB.id || '')) {
+        const exactA = cleanStrForDup(itemA.title || itemA.name);
+        const exactB = cleanStrForDup(itemB.title || itemB.name);
+        return !!exactA && exactA === exactB;
+    }
+
     // 2. 제목 완전/부분 대조
     const titleA = cleanStrForDup(itemA.title || itemA.name);
     const titleB = cleanStrForDup(itemB.title || itemB.name);
@@ -552,6 +561,7 @@ const isSameEvent = (itemA, itemB) => {
     const keywordsA = rawA.match(/[가-힣0-9]{4,}/g) || [];
     let locationMatches = false;
     for (let kw of keywordsA) {
+        if (/^[0-9]+$/.test(kw)) continue; // 09:30 → '0930' 같은 숫자(시간·연도)는 장소 단서가 아님
         if (kw.length >= 4 && !ignoredKeywords.some(ig => kw.includes(ig)) && rawB.includes(kw)) {
             locationMatches = true;
             break;
@@ -563,7 +573,7 @@ const isSameEvent = (itemA, itemB) => {
         const getTitleKeywords = (str) => {
             let cleaned = (str || '').replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '');
             cleaned = cleaned.toLowerCase().replace(/[^a-z0-9가-힣\s]/g, ' ');
-            return cleaned.split(/\s+/).filter(w => w.length >= 2);
+            return cleaned.split(/\s+/).filter(w => w.length >= 2 && !/^[0-9]+$/.test(w)); // 숫자(시간 등) 제외
         };
 
         const keywordsTitleA = getTitleKeywords(itemA.title || itemA.name);
