@@ -15,6 +15,7 @@
     <link rel="stylesheet" media="print" onload="this.media='all'" as="style" crossorigin
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
     <link rel="stylesheet" href="/styles/style.css?v=2">
+    <link rel="stylesheet" href="/styles/automation.css">
 
     <!-- 스크립트 -->
     <!-- 1. Firebase Auth 라이브러리 추가 -->
@@ -432,6 +433,9 @@
                 <button id="tab-btn-admin" class="tab-btn" onclick="switchTab('tab-admin', this)"
                     style="display: none;"><span class="material-symbols-rounded">admin_panel_settings</span> 사용자
                     관리</button>
+                <!-- 자동화 관리 (관리자 전용, 표시 여부는 features/automation/trip-review-view.js) -->
+                <button id="tab-btn-automation" class="tab-btn" onclick="switchTab('tab-automation', this)"
+                    style="display: none;"><span class="material-symbols-rounded">auto_awesome</span> 자동화 관리</button>
                 <button class="tab-btn" onclick="switchTab('tab-members', this)"><span
                         class="material-symbols-rounded">group</span> 조직도</button>
                 <button class="tab-btn" onclick="switchTab('tab-mypage', this)"><span
@@ -1144,6 +1148,8 @@
             </div>
 
             <!-- 탭 4: 사용자 관리 (관리자 전용) -->
+            <!-- 자동화 관리 › 출장 배정 검토 (읽기 전용, 내용은 trip-review-view.js 가 그림) -->
+            <div id="tab-automation" class="tab-content" style="display: none;"></div>
             <div id="tab-admin" class="tab-content" style="display: none;">
                 <div class="section" id="admin-panel">
                     <h2>사용자 관리 (관리자 전용)</h2>
@@ -2340,6 +2346,13 @@
     <script src="/js/main.js"></script>
     <script src="/js/mobile-nav.js"></script>
     <script src="/js/mobile-tasks.js"></script>
+    <!-- 자동화 Phase 1A·1B (관리자 전용 출장 배정 검토, 읽기 전용) -->
+    <script src="/features/automation/staff-identity.js"></script>
+    <script src="/features/automation/trip-dates.js"></script>
+    <script src="/features/automation/conflict-engine.js"></script>
+    <script src="/features/automation/trip-review-data.js"></script>
+    <script src="/features/automation/trip-review-model.js"></script>
+    <script src="/features/automation/trip-review-view.js"></script>
     <div id="noti-panel" class="notification-drawer">
         <div class="drawer-header">
             <h3 style="display:flex; align-items:center; gap:4px; margin:0;"><span class="material-symbols-rounded"

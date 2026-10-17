@@ -3,11 +3,13 @@
  * 의존: FawwStaffIdentity (staff-identity.js), FawwTripDates (trip-dates.js)
  *
  * 검사 대상 출장 하나에 대해, 승인된 직원마다 충돌 등급과 근거를 돌려준다.
- * 등급 (높은 것이 우선)
- *   conflict  충돌 발견        승인된 종일 휴가, 다른 확정 출장과 날짜 겹침
- *   caution   주의·확인 필요   반차, 대기·취소대기 휴가, 조율중 출장, 외부 일정, 이름 해석 문제, 날짜 불명, 조회 범위 불완전
- *   info      참고             겹치는 기간의 업무, 업무 마감일
- *   clear     확인된 충돌 없음  필요한 데이터가 모두 확인됐고 근거가 하나도 없을 때만
+ * 직원별 판정 (verdict, 높은 것이 우선)
+ *   conflict    충돌 발견         승인된 종일 휴가, 다른 확정 출장과 날짜 겹침
+ *   caution     주의·확인 필요    반차, 대기·취소대기 휴가, 조율중 출장, 이름이 보이는 외부 일정, 동명이인, 날짜 불명
+ *   incomplete  검토 불완전       위 근거는 없지만 조회 범위가 불완전하거나, 겹치는 출장·휴가의 담당자를 특정하지 못함
+ *   clear       확인된 충돌 없음   모든 출처가 complete 이고 판정을 막는 근거가 없을 때만 (참고 항목은 있을 수 있음)
+ * 근거(reason)의 등급에는 info(참고: 업무 마감·기간 겹침)도 있으며, 판정을 바꾸지 않는다.
+ * 조회 범위 경고는 판정과 별개로 result.coverage 에 담긴다. 이미 확인된 충돌은 범위가 불완전해도 그대로 '충돌 발견'.
  * '배정 가능'이라는 판정은 없다. 실제 배정은 관리자가 결정한다.
  *
  * 브라우저: window.FawwConflictEngine.evaluateTripConflicts(input)
@@ -15,8 +17,17 @@
 (function (root) {
     'use strict';
 
-    var LEVELS = ['clear', 'info', 'caution', 'conflict'];
-    var LABELS = { conflict: '충돌 발견', caution: '주의·확인 필요', info: '참고', clear: '확인된 충돌 없음' };
+    var LEVELS = ['clear', 'info', 'caution', 'conflict'];          // 근거(reason) 등급 순서
+    var VERDICTS = ['clear', 'incomplete', 'caution', 'conflict'];  // 직원 판정 순서
+    var LABELS = { conflict: '충돌 발견', caution: '주의·확인 필요', incomplete: '검토 불완전', clear: '확인된 충돌 없음', info: '참고' };
+    var COVERAGE_STATES = ['complete', 'partial', 'failed'];
+    // true/false 도 받되, 명시되지 않은 출처는 complete 로 보지 않는다
+    function coverageState(v) {
+        if (v === true) return 'complete';
+        if (COVERAGE_STATES.indexOf(v) !== -1) return v;
+        if (v && typeof v === 'object' && COVERAGE_STATES.indexOf(v.status) !== -1) return v.status;
+        return 'partial';
+    }
     var SOURCES = ['trips', 'leaves', 'tasks', 'externalEvents'];
     var TRIP_ID_TAG = /\[FaWW 출장연동 ID:\s*([^\]\s]+)\]/;
     var LEAVE_ID_TAG = /\[FaWW 휴가연동 ID:\s*([^\]\s]+)\]/;
@@ -37,10 +48,10 @@
         var target = input.targetTrip || null;
         var coverage = input.coverage || {};
 
-        var result = { target: null, staff: [], unattributed: [], skippedDuplicates: [], coverage: {}, levels: LABELS };
+        var result = { target: null, staff: [], unattributed: [], reviewGaps: [], skippedDuplicates: [], coverage: {}, labels: LABELS };
         var byUid = {};
         idx.staff.forEach(function (s) {
-            var r = { uid: s.uid, displayName: s.displayName, level: 'clear', label: LABELS.clear, reasons: [] };
+            var r = { uid: s.uid, displayName: s.displayName, level: 'clear', verdict: 'clear', label: LABELS.clear, reasons: [] };
             byUid[s.uid] = r; result.staff.push(r);
         });
         var add = function (uid, level, code, message, ref) {
@@ -50,12 +61,13 @@
         };
         var addAll = function (level, code, message) { result.staff.forEach(function (r) { add(r.uid, level, code, message); }); };
         var unattributed = function (type, id, code, detail) { result.unattributed.push({ source: type, id: id, code: code, detail: detail || '' }); };
-        // 겹치는 출장·휴가인데 사람을 특정하지 못하면 누구든 해당될 수 있으므로 전원 '주의'
-        // (사람을 특정할 수 없는 외부 일정은 흔하고 대개 직원 일정과 무관해 목록으로만 제공)
-        var warnedUnknown = {};
+        // 겹치는 출장·휴가인데 사람을 특정하지 못하면 누가 해당되는지 모른다 → 판정을 '충돌'로 만들지 않고 검토 공백으로 기록.
+        // 공백이 있으면 다른 근거가 없는 직원은 '확인된 충돌 없음' 대신 '검토 불완전'.
+        // (사람을 특정할 수 없는 외부 일정은 흔하고 대개 직원 일정과 무관해 unattributed 목록으로만 제공 — 공백으로 보지 않음)
+        var gapSeen = {};
         var unknownPerson = function (type, id, name) {
-            var key = type + ':' + id; if (warnedUnknown[key]) return; warnedUnknown[key] = true;
-            addAll('caution', 'unattributed_' + type, '같은 기간 ' + (type === 'trip' ? '출장' : '휴가') + '의 담당자를 특정할 수 없음: ' + (name || id));
+            var key = type + ':' + id; if (gapSeen[key]) return; gapSeen[key] = true;
+            result.reviewGaps.push({ source: type, id: id, name: name || '', message: '같은 기간 ' + (type === 'trip' ? '출장' : '휴가') + '의 담당자를 특정할 수 없음' });
         };
 
         // 0) 같은 표시 이름의 승인 직원이 여럿 → 이름으로 연결된 데이터를 나눌 수 없음
@@ -65,10 +77,11 @@
             });
         });
 
-        // 1) 조회 범위: 호출하는 쪽이 출처별로 '전체를 확인했다'고 명시해야 함
-        var incomplete = SOURCES.filter(function (k) { return coverage[k] !== true; });
-        result.coverage = { complete: incomplete.length === 0, incomplete: incomplete };
-        if (incomplete.length) addAll('caution', 'coverage_incomplete', '조회 범위가 불완전함: ' + incomplete.join(', '));
+        // 1) 조회 범위: 호출하는 쪽이 출처별로 complete / partial / failed 를 알려야 함 (판정과 별개로 기록)
+        var sources = {};
+        SOURCES.forEach(function (k) { sources[k] = coverageState(coverage[k]); });
+        var incomplete = SOURCES.filter(function (k) { return sources[k] !== 'complete'; });
+        result.coverage = { complete: incomplete.length === 0, sources: sources, incomplete: incomplete };
 
         // 2) 검사 대상 출장
         if (!target) {
@@ -178,11 +191,19 @@
     }
 
     function finalize(result) {
-        result.staff.sort(function (a, b) { return LEVELS.indexOf(b.level) - LEVELS.indexOf(a.level) || String(a.displayName).localeCompare(String(b.displayName)); });
-        result.summary = { conflict: 0, caution: 0, info: 0, clear: 0 };
-        result.staff.forEach(function (r) { result.summary[r.level]++; });
+        var reviewComplete = !!(result.coverage && result.coverage.complete) && result.reviewGaps.length === 0;
+        result.reviewComplete = reviewComplete;
+        result.staff.forEach(function (r) {
+            r.hasInfo = r.reasons.some(function (x) { return x.level === 'info'; });
+            if (r.level === 'conflict' || r.level === 'caution') r.verdict = r.level;
+            else r.verdict = reviewComplete ? 'clear' : 'incomplete';
+            r.label = LABELS[r.verdict];
+        });
+        result.staff.sort(function (a, b) { return VERDICTS.indexOf(b.verdict) - VERDICTS.indexOf(a.verdict) || String(a.displayName).localeCompare(String(b.displayName)); });
+        result.summary = { conflict: 0, caution: 0, incomplete: 0, clear: 0 };
+        result.staff.forEach(function (r) { result.summary[r.verdict]++; });
         return result;
     }
 
-    root.FawwConflictEngine = { evaluateTripConflicts: evaluateTripConflicts, LEVELS: LEVELS, LABELS: LABELS };
+    root.FawwConflictEngine = { evaluateTripConflicts: evaluateTripConflicts, LEVELS: LEVELS, VERDICTS: VERDICTS, LABELS: LABELS, coverageState: coverageState };
 })(typeof window !== 'undefined' ? window : this);

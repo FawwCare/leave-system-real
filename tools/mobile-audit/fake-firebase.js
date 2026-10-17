@@ -104,18 +104,22 @@
     startAt() { return this; } endAt() { return this; }
     on(ev, cb) { const r = { q: this, cb }; regs.add(r); setTimeout(() => regs.has(r) && cb(snap(this)), 0); return cb; }
     off(ev, cb) { for (const r of [...regs]) if (r.q.path === this.path && (!cb || r.cb === cb)) regs.delete(r); }
-    once(ev, cb) { const s = snap(this); if (typeof cb === 'function') cb(s); return Promise.resolve(s); }
-    async set(v) { set(this.path, v); changed(this.path); }
-    async update(o) { for (const k of Object.keys(o)) set(this.path + '/' + k, o[k]); changed(this.path); }
-    async remove() { set(this.path, null); changed(this.path); }
+    once(ev, cb) { (window.__dbReads = window.__dbReads || []).push(this.path); if ((window.__fakeFail || []).some(p => this.path === p || this.path.startsWith(p + '/'))) return Promise.reject(new Error('permission_denied (테스트 주입)')); const s = snap(this); if (typeof cb === 'function') cb(s); return Promise.resolve(s); }
+    async set(v) { window.__dbWrites = (window.__dbWrites || 0) + 1; set(this.path, v); changed(this.path); }
+    async update(o) { window.__dbWrites = (window.__dbWrites || 0) + 1; for (const k of Object.keys(o)) set(this.path + '/' + k, o[k]); changed(this.path); }
+    async remove() { window.__dbWrites = (window.__dbWrites || 0) + 1; set(this.path, null); changed(this.path); }
     push(v) { const k = '-P' + Math.random().toString(36).slice(2, 10); const q = this.child(k); const p = v !== undefined ? q.set(v) : Promise.resolve(); q.then = (a, b) => p.then(a, b); return q; }
-    transaction(fn) { const nv = fn(clone(get(this.path))); if (nv !== undefined) set(this.path, nv); changed(this.path); return Promise.resolve({ committed: true, snapshot: snap(this) }); }
+    transaction(fn) { window.__dbWrites = (window.__dbWrites || 0) + 1; const nv = fn(clone(get(this.path))); if (nv !== undefined) set(this.path, nv); changed(this.path); return Promise.resolve({ committed: true, snapshot: snap(this) }); }
     onDisconnect() { return { set() {}, remove() {}, update() {} }; }
   }
-  const user = { uid: ADMIN, email: 'contact@faww.co.kr', emailVerified: true, displayName: '대장', photoURL: '', getIdToken: () => Promise.resolve('fake') };
+  const USERS = {
+    admin: { uid: ADMIN, email: 'contact@faww.co.kr', emailVerified: true, displayName: '대장', photoURL: '', getIdToken: () => Promise.resolve('fake') },
+    staff: { uid: 'uJY', email: 'jy@faww.co.kr', emailVerified: true, displayName: '박지영', photoURL: '', getIdToken: () => Promise.resolve('fake') },
+  };
+  const user = USERS[window.__fakeUserKey || 'admin'] || USERS.admin;
   const cbs = [];
-  const authObj = { currentUser: null, onAuthStateChanged(cb) { cbs.push(cb); setTimeout(() => { authObj.currentUser = user; cb(user); }, 30); return () => {}; },
-    setPersistence: () => Promise.resolve(), getRedirectResult: () => Promise.resolve({}), signInWithPopup: () => Promise.resolve({ user }), signInWithRedirect: () => Promise.resolve(), signOut: () => Promise.resolve() };
+  const authObj = { currentUser: null, __switch(key) { const u = key ? USERS[key] : null; authObj.currentUser = u; cbs.forEach(cb => cb(u)); }, onAuthStateChanged(cb) { cbs.push(cb); setTimeout(() => { authObj.currentUser = user; cb(user); }, 30); return () => {}; },
+    setPersistence: () => Promise.resolve(), getRedirectResult: () => Promise.resolve({}), signInWithPopup: () => Promise.resolve({ user }), signInWithRedirect: () => Promise.resolve(), signOut: () => { authObj.__switch(null); return Promise.resolve(); } };
   const dbObj = { ref: (p) => new Q(p || '') };
   const storageRef = { child() { return storageRef; }, put: () => Promise.resolve({ ref: storageRef }), getDownloadURL: () => Promise.resolve('https://example.com/x'), delete: () => Promise.resolve() };
   const fns = { httpsCallable: () => () => Promise.reject(new Error('offline')) };

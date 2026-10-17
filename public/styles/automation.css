@@ -1,0 +1,83 @@
+/* 자동화 관리 › 출장 배정 검토 (trip-review-view.js). 기존 디자인 변수만 사용 → 라이트·다크 모드 자동 대응 */
+#tab-automation .ar-wrap { display: flex; flex-direction: column; gap: 12px; }
+#tab-automation h2 { margin: 0; font-size: 1.15rem; color: var(--text-main); }
+#tab-automation h3 { margin: 0 0 4px; font-size: 1.05rem; color: var(--text-main); }
+.ar-title { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.ar-title .material-symbols-rounded { color: var(--primary); font-size: 28px; }
+.ar-sub, .ar-meta, .ar-muted, .ar-trip-meta { color: var(--text-muted); font-size: 0.8125rem; }
+.ar-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ar-filters input, .ar-filters select {
+    padding: 8px 10px; border: 1px solid var(--border-color); border-radius: var(--radius);
+    background: var(--card-bg); color: var(--text-main); font-family: inherit; font-size: 0.875rem; min-width: 0;
+}
+.ar-filters input[type="search"] { flex: 1 1 180px; }
+.ar-tilde { color: var(--text-muted); }
+.ar-btn {
+    display: inline-flex; align-items: center; gap: 4px; padding: 8px 12px; border: 1px solid var(--border-color);
+    border-radius: var(--radius); background: var(--card-bg); color: var(--text-main); font-family: inherit; font-size: 0.875rem; cursor: pointer;
+}
+.ar-btn .material-symbols-rounded { font-size: 18px; }
+.ar-btn:disabled { opacity: 0.6; cursor: default; }
+
+.ar-cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.ar-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 12px; }
+.ar-card-label { color: var(--text-muted); font-size: 0.8125rem; }
+.ar-card-value { color: var(--text-main); font-size: 1.25rem; font-weight: 700; margin-top: 4px; }
+.ar-tone-conflict .ar-card-value { color: var(--danger); }
+.ar-tone-caution .ar-card-value { color: var(--warning-text); }
+.ar-tone-clear .ar-card-value { color: var(--success-text); }
+
+.ar-banner { border: 1px solid var(--border-color); border-left: 4px solid var(--warning-text); border-radius: var(--radius); padding: 10px 12px; background: var(--card-bg); color: var(--text-main); font-size: 0.875rem; }
+.ar-banner-failed { border-left-color: var(--danger); }
+.ar-banner ul { margin: 6px 0 0; padding-left: 18px; }
+
+.ar-split { display: grid; grid-template-columns: minmax(280px, 38%) minmax(0, 1fr); gap: 12px; align-items: start; }
+.ar-list { display: flex; flex-direction: column; gap: 8px; max-height: 75vh; overflow-y: auto; }
+.ar-list-head { font-weight: 700; color: var(--text-main); }
+.ar-trip {
+    text-align: left; width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: var(--radius);
+    background: var(--card-bg); color: var(--text-main); font-family: inherit; cursor: pointer; display: flex; flex-direction: column; gap: 4px;
+}
+.ar-trip:hover { border-color: var(--border-strong, var(--primary)); }
+.ar-trip.selected { border-color: var(--primary); box-shadow: inset 3px 0 0 var(--primary); }
+.ar-trip-top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+.ar-trip-name { font-weight: 700; font-size: 0.9375rem; overflow-wrap: anywhere; }
+
+.ar-badge { display: inline-block; white-space: nowrap; padding: 2px 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid currentColor; }
+.ar-conflict { color: var(--danger); }
+.ar-caution, .ar-assignee_check, .ar-unassigned { color: var(--warning-text); }
+.ar-incomplete { color: var(--text-muted); }
+.ar-clear { color: var(--success-text); }
+
+.ar-detail { min-width: 0; }
+.ar-detail-head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.ar-assignees { font-size: 0.875rem; color: var(--text-main); display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.ar-chip { display: inline-block; padding: 1px 8px; border-radius: var(--radius); background: var(--col-bg); border: 1px solid var(--border-color); font-size: 0.75rem; color: var(--text-main); }
+.ar-chip-warn { color: var(--warning-text); }
+.ar-gaps { margin: 8px 0; font-size: 0.875rem; color: var(--text-main); }
+.ar-gaps summary, .ar-undated summary { cursor: pointer; color: var(--warning-text); font-weight: 600; }
+.ar-undated { font-size: 0.8125rem; color: var(--text-main); }
+.ar-table-wrap { overflow-x: auto; margin-top: 8px; }
+.ar-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.ar-table th, .ar-table td { text-align: left; vertical-align: top; padding: 8px; border-bottom: 1px solid var(--border-color); color: var(--text-main); }
+.ar-table th { color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+.ar-table ul { margin: 0; padding-left: 16px; }
+.ar-r-conflict { color: var(--danger); }
+.ar-ref { font-size: 0.75rem; color: var(--text-muted); }
+.ar-note { margin-top: 8px; }
+.ar-empty { color: var(--text-muted); padding: 16px 4px; }
+.ar-denied p { color: var(--text-muted); }
+
+@media (max-width: 1100px) { .ar-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 768px) {
+    .ar-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ar-split { grid-template-columns: minmax(0, 1fr); }   /* 목록 아래에 검토 결과 */
+    .ar-list { max-height: none; }
+    .ar-filters input[type="date"] { flex: 1 1 130px; }
+    .ar-filters select { flex: 1 1 45%; }
+}
+
+/* 화면 확인 후 보정 */
+.ar-detail-head .ar-badge { align-self: flex-start; }                   /* 상세 머리의 판정 배지가 가로로 늘어나지 않게 */
+#tab-automation h2, #tab-automation h3 { border: none; padding: 0; }   /* 전역 제목 테두리(모바일) 제거 */
+@media (max-width: 768px) { .ar-card:last-child { grid-column: 1 / -1; } }  /* 5번째 카드(조회 상태)는 한 줄 전체 */

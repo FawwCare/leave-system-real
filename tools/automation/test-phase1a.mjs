@@ -1,4 +1,4 @@
-// FaWW 자동화 Phase 1A 테스트 — 직원 식별 · 출장 기간 정규화 · 충돌 판정 (가짜 데이터, DB 접근 없음)
+// FaWW 자동화 Phase 1A(+1B 보완) 테스트 — 직원 식별 · 출장 기간 정규화 · 충돌 판정 (가짜 데이터, DB 접근 없음)
 // 실행: node tools/automation/test-phase1a.mjs
 import fs from 'node:fs'; import vm from 'node:vm'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -86,7 +86,7 @@ S('판정');
 { const r = run({ trips: { A: { name: '세종 특강', date: '2026-10-17', status: '확정', assignee: 'Sungjin' } } });
   check('9. 별칭으로 적힌 담당자 → 해당 직원 충돌', of(r, 'uSJ').level === 'conflict'); }
 { const r = run({ trips: { A: { name: '여의도 사학', date: '2026-10-16', status: '확정', assignee: '정호이사' } } });
-  check('10. 담당자 매칭 실패 → 전원 주의 + 미해석 목록', r.staff.every(s => s.level !== 'clear') && r.unattributed.some(u => u.code === 'assignee_unmatched' && u.detail === '정호이사')); }
+  check('10. 담당자 매칭 실패 → 충돌로 만들지 않고 검토 공백 + 미해석 목록, 근거 없는 직원은 "검토 불완전"', r.reviewGaps.some(g => g.id === 'A') && r.unattributed.some(u => u.code === 'assignee_unmatched' && u.detail === '정호이사') && of(r, 'uHR').verdict === 'incomplete' && !r.staff.some(x => x.verdict === 'conflict')); }
 { const r = run({ trips: { A: { name: '나주 사학', date: '2026-10-16', status: '확정', assignee: '장성진, 민홍' } } });
   check('11. 복수 담당자 → 각각 충돌', of(r, 'uSJ').level === 'conflict' && of(r, 'uMH').level === 'conflict' && of(r, 'uHR').level === 'clear'); }
 { const r = run({ trips: { A: { name: '날짜 없는 출장', status: '확정', assignee: '김하람' } } });
@@ -103,16 +103,23 @@ S('판정');
                            K2: { title: '강의안 준비', status: 'doing', assignee: '민홍', startDate: '2026-10-10', dueDate: '2026-10-30' },
                            K3: { title: '완료 업무', status: 'done', assignee: '박지영', dueDate: '2026-10-16' } } });
   check('14. 업무 마감일 겹침 → 참고(task_due), 기간 겹침 → 참고(task_overlap), 완료 업무 무시', of(r, 'uHR').level === 'info' && codes(of(r, 'uHR')).includes('task_due') && codes(of(r, 'uMH')).includes('task_overlap') && of(r, 'uJY').level === 'clear'); }
-{ const r = run({ coverage: { trips: true, leaves: false, tasks: true, externalEvents: true } });
+{ const r = run({ coverage: { trips: 'complete', leaves: 'partial', tasks: 'complete', externalEvents: 'complete' } });
   const r2 = run({ coverage: undefined });
-  check('15. 조회 범위 불완전 → 전원 주의, "충돌 없음" 없음', r.staff.every(s => s.level === 'caution' && codes(s).includes('coverage_incomplete')) && !r.coverage.complete);
-  check('15-2. 조회 범위를 명시하지 않으면 불완전으로 간주', r2.staff.every(s => codes(s).includes('coverage_incomplete'))); }
+  check('15. 조회 범위 불완전 → 근거 없는 직원은 "검토 불완전", "확인된 충돌 없음" 없음', !r.staff.some(x => x.verdict === 'clear') && r.staff.filter(x => !x.reasons.length).every(x => x.verdict === 'incomplete') && !r.coverage.complete && r.coverage.incomplete.join() === 'leaves');
+  check('15-2. 조회 범위를 명시하지 않으면 불완전으로 간주', !r2.staff.some(x => x.verdict === 'clear') && r2.coverage.sources.trips === 'partial');
+  check('15-3. 범위 경고는 근거(reasons)에 섞지 않고 coverage 로 따로', r.staff.every(x => !codes(x).includes('coverage_incomplete'))); }
+{ const r = run({ coverage: { trips: 'complete', leaves: 'complete', tasks: 'failed', externalEvents: 'partial' },
+                  leaves: { L1: { uid: 'uJY', date: '2026-10-17', type: 1, status: 'approved' } }, trips: { A: { name: '대전 상담', date: '2026-10-16', status: '조율중', assignee: '민홍' } } });
+  check('16. 데이터가 불완전해도 확인된 충돌은 "충돌 발견" 유지', of(r, 'uJY').verdict === 'conflict' && of(r, 'uJY').label === '충돌 발견');
+  check('16-2. 주의도 유지, 나머지는 검토 불완전', of(r, 'uMH').verdict === 'caution' && of(r, 'uHR').verdict === 'incomplete');
+  check('16-3. 실패한 출처 기록 (failed / partial 구분)', r.coverage.sources.tasks === 'failed' && r.coverage.sources.externalEvents === 'partial' && r.reviewComplete === false); }
 
 // ---------------------------------------------------------------- 정책·안전성
 S('정책');
 { const r = run({});
   const out = JSON.stringify(r);
   check('아무 근거 없는 직원 → "확인된 충돌 없음" (가능·배정 가능 표현 없음)', of(r, 'uJY').label === '확인된 충돌 없음' && !/배정 가능|"available"|가능합니다/.test(out));
+  check('판정 문구는 4가지만 사용', JSON.stringify(Object.values(CE.LABELS).filter(x => x !== '참고').sort()) === JSON.stringify(['검토 불완전', '주의·확인 필요', '충돌 발견', '확인된 충돌 없음'].sort()));
   check('미승인 직원은 판정 대상에서 제외', !r.staff.some(s => s.uid === 'uNEW'));
   check('결과 정렬: 높은 등급이 먼저', ['conflict', 'caution', 'info', 'clear'].indexOf(r.staff[0].level) <= ['conflict', 'caution', 'info', 'clear'].indexOf(r.staff[r.staff.length - 1].level)); }
 { const input = { users, aliases, coverage: FULL, targetTrip: target, trips: { A: { name: 'x', date: '2026-10-16', status: '확정', assignee: '장성진' } }, leaves: { L: { uid: 'uJY', date: '2026-10-16', type: 1, status: 'approved' } }, tasks: {}, externalEvents: {} };
