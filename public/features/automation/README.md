@@ -54,3 +54,15 @@ FawwConflictEngine.evaluateTripConflicts({
 - `index.html`에 위 3개 파일을 `kanban.js` 다음에 추가합니다 (전역 객체만 만들고 아무것도 실행하지 않음).
 - 관리자 전용 탭 스크립트가 버튼 클릭 시 위 조회 설계대로 데이터를 읽어 `evaluateTripConflicts`에 넘기고, 결과의 `staff[]`를 표로 그립니다. 사용자 문자열은 기존 `escapeHTML`로 출력합니다.
 - 별칭은 관리자 전용 경로(예: `staffDirectory/{uid}/aliases`, 관리자만 쓰기)를 새로 설계·규칙 테스트한 뒤 주입합니다. 그 전까지는 `aliases: {}`로 호출합니다.
+
+## 직원 추천 1차 (읽기 전용)
+
+| 파일 | 전역 객체 | 역할 |
+| --- | --- | --- |
+| `staff-roster.js` | `FawwStaffRoster` | 직원 9명·별칭 → 승인 계정 UID (별칭 정확 일치만, 부분 일치 없음) |
+| `schedule-parse.js` | `FawwScheduleParse` | 제목 해석(상태·호차·이름 묶음·미배정)과 키워드 규칙 분류 (AI 분류 아님) |
+| `staff-recommend.js` | `FawwStaffRecommend` | 오늘 이후 확정 출장의 추천 (순수 함수, 저장 없음) |
+| `recommend-view.js` | `FawwRecommendView` | 자동화 관리 › 직원 추천, 캘린더 상세(#tripModal·#taskModal) 추천 상자 |
+
+테스트: `node tools/automation/test-recommend.mjs` (규칙 44개), `node tools/automation/test-recommend-ui.mjs` (화면 22개, `tools/mobile-audit` 준비 필요).
+배정 확정·Calendar 수정은 다음 단계. 이번 화면의 버튼은 비활성입니다.

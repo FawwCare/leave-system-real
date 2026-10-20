@@ -12,6 +12,10 @@
     uHR: { displayName: '김하람', email: 'hr@faww.co.kr', approved: true, leaveTotal: 15, department: 'team2_leader' },
     uJY: { displayName: '박지영', email: 'jy@faww.co.kr', approved: true, leaveTotal: 15, department: 'team2_member' },
     uNEW: { displayName: '신입사원', email: 'new@faww.co.kr', approved: false, leaveTotal: 15, department: 'unassigned' },
+    // 관리자 판정 테스트용 계정 (이름은 일부러 가짜)
+    hiPMcfj1OvWuq6PjedfPFvOLxlp2: { displayName: '테스트관리자2', email: 'admin2@test.invalid', approved: true, leaveTotal: 15, department: 'unassigned' },
+    'u-test-admin3': { displayName: '테스트관리자3', email: 'contact@faww.co.kr', approved: true, leaveTotal: 15, department: 'unassigned' },
+    'u-test-admin3u': { displayName: '테스트미인증contact', email: 'contact@faww.co.kr', approved: true, leaveTotal: 15, department: 'unassigned' },
   };
   const trip = (id, name, s, e, assignee, status, address) => ({ id, name, date: e && e !== s ? `${s} to ${e}` : s, startDate: s, endDate: e || s, assignee, status, address, author: 'Gmail 자동 등록', requiredPersonnel: 1 });
   const data = {
@@ -115,6 +119,11 @@
   const USERS = {
     admin: { uid: ADMIN, email: 'contact@faww.co.kr', emailVerified: true, displayName: '대장', photoURL: '', getIdToken: () => Promise.resolve('fake') },
     staff: { uid: 'uJY', email: 'jy@faww.co.kr', emailVerified: true, displayName: '박지영', photoURL: '', getIdToken: () => Promise.resolve('fake') },
+    admin2: { uid: 'hiPMcfj1OvWuq6PjedfPFvOLxlp2', email: 'admin2@test.invalid', emailVerified: true, displayName: '테스트관리자2', photoURL: '', getIdToken: () => Promise.resolve('fake') },
+    admin3: { uid: 'u-test-admin3', email: 'contact@faww.co.kr', emailVerified: true, displayName: '테스트관리자3', photoURL: '', getIdToken: () => Promise.resolve('fake') },
+    admin3u: { uid: 'u-test-admin3u', email: 'contact@faww.co.kr', emailVerified: false, displayName: '테스트미인증contact', photoURL: '', getIdToken: () => Promise.resolve('fake') },
+    admin1u: { uid: ADMIN, email: 'contact@faww.co.kr', emailVerified: false, displayName: '대장', photoURL: '', getIdToken: () => Promise.resolve('fake') },
+    pending: { uid: 'uNEW', email: 'new@faww.co.kr', emailVerified: true, displayName: '신입사원', photoURL: '', getIdToken: () => Promise.resolve('fake') },
   };
   const user = USERS[window.__fakeUserKey || 'admin'] || USERS.admin;
   const cbs = [];

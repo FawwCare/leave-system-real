@@ -1149,7 +1149,15 @@
 
             <!-- 탭 4: 사용자 관리 (관리자 전용) -->
             <!-- 자동화 관리 › 출장 배정 검토 (읽기 전용, 내용은 trip-review-view.js 가 그림) -->
-            <div id="tab-automation" class="tab-content" style="display: none;"></div>
+            <div id="tab-automation" class="tab-content" style="display: none;">
+                <!-- 하위 메뉴: 관리자에게만 표시 (recommend-view.js) -->
+                <div id="auto-subnav" class="auto-subnav" hidden>
+                    <button type="button" data-auto-view="review" class="active">출장 배정 검토</button>
+                    <button type="button" data-auto-view="recommend">직원 추천</button>
+                </div>
+                <div id="ar-root"></div>
+                <div id="rec-root" hidden></div>
+            </div>
             <div id="tab-admin" class="tab-content" style="display: none;">
                 <div class="section" id="admin-panel">
                     <h2>사용자 관리 (관리자 전용)</h2>
@@ -2353,6 +2361,10 @@
     <script src="/features/automation/trip-review-data.js"></script>
     <script src="/features/automation/trip-review-model.js"></script>
     <script src="/features/automation/trip-review-view.js"></script>
+    <script src="/features/automation/staff-roster.js"></script>
+    <script src="/features/automation/schedule-parse.js"></script>
+    <script src="/features/automation/staff-recommend.js"></script>
+    <script src="/features/automation/recommend-view.js"></script>
     <div id="noti-panel" class="notification-drawer">
         <div class="drawer-header">
             <h3 style="display:flex; align-items:center; gap:4px; margin:0;"><span class="material-symbols-rounded"

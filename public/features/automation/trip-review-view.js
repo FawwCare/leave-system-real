@@ -17,19 +17,21 @@
 
     function esc(s) { return (typeof escapeHTML === 'function') ? escapeHTML(s) : String(s == null ? '' : s).replace(/[&<>"'`]/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); }
     function el(id) { return document.getElementById(id); }
+    // 탭 안의 '출장 배정 검토' 영역 (#ar-root). 없으면 탭 전체 (이전 구조 호환)
+    function contentRoot() { return el('ar-root') || el(TAB_ID); }
     function currentUser() { try { return (typeof auth !== 'undefined' && auth.currentUser) ? auth.currentUser : null; } catch (e) { return null; } }
 
-    // 기존 코드와 같은 관리자 판정식 (config.js·main.js·services.js 에 같은 식이 반복되어 있음)
+    // 관리자 판정: Firebase Rules 와 같게 — UID 2개는 그대로, 관리자 이메일(contact@)은 이메일 인증된 경우에만 (rules: email_verified === true)
     function isAutomationAdmin(user) {
         if (!user) return false;
         return (typeof ADMIN_UIDS !== 'undefined' && ADMIN_UIDS.includes(user.uid)) ||
-               (typeof ADMIN_EMAILS !== 'undefined' && !!user.email && ADMIN_EMAILS.includes(user.email));
+               (typeof ADMIN_EMAILS !== 'undefined' && !!user.email && user.emailVerified === true && ADMIN_EMAILS.includes(user.email));
     }
 
     function resetState(uid) {
         state.uid = uid || null; state.loaded = null; state.model = null; state.selectedId = null; state.loading = false; state.error = null;
         state.filters = { query: '', tripStatus: 'all', review: 'all' }; state.range = null;
-        var root = el(TAB_ID); if (root) root.innerHTML = '';
+        var root = contentRoot(); if (root) root.innerHTML = '';
     }
 
     function syncMenu() {
@@ -42,7 +44,7 @@
 
     // ---------------------------------------------------------------- 진입
     function open() {
-        var root = el(TAB_ID); if (!root) return;
+        var root = contentRoot(); if (!root) return;
         var user = currentUser();
         if (!isAutomationAdmin(user)) {
             root.innerHTML = '<div class="section ar-denied"><h2>자동화 관리</h2><p>관리자만 사용할 수 있는 화면입니다.</p></div>';
@@ -80,7 +82,7 @@
     function badge(kind, text) { return '<span class="ar-badge ar-' + esc(kind) + '">' + esc(text) + '</span>'; }
 
     function render() {
-        var root = el(TAB_ID); if (!root) return;
+        var root = contentRoot(); if (!root) return;
         var m = state.model, r = state.range || FawwTripReviewModel.defaultRange();
         var html = '<div class="ar-wrap">';
         html += '<div class="section ar-head"><div class="ar-title"><span class="material-symbols-rounded">auto_awesome</span><div><h2>자동화 관리</h2><div class="ar-sub">출장 배정 검토 · 읽기 전용 (데이터를 변경하지 않습니다)</div></div></div>' +

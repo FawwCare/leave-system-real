@@ -57,11 +57,11 @@ const text = (page, sel) => page.evaluate((sel) => (document.querySelector(sel) 
   check('페이지 오류 없음', page.__errors.length === 0, page.__errors.join(' | '));
   // 3. 로그아웃·계정 전환
   await page.evaluate(() => firebase.auth().__switch('staff')); await sleep(300);
-  const afterSwitch = await page.evaluate(() => ({ html: document.getElementById('tab-automation').innerHTML.length, menu: getComputedStyle(document.getElementById('tab-btn-automation')).display, loaded: !!FawwTripReview._state.loaded }));
+  const afterSwitch = await page.evaluate(() => ({ html: (document.getElementById('ar-root') || document.getElementById('tab-automation')).innerHTML.length + (document.getElementById('rec-root') ? document.getElementById('rec-root').innerHTML.length : 0) + (document.getElementById('auto-subnav') && !document.getElementById('auto-subnav').hidden ? 1 : 0), menu: getComputedStyle(document.getElementById('tab-btn-automation')).display, loaded: !!FawwTripReview._state.loaded }));
   check('3. 계정 전환(관리자→직원) → 조회 결과·화면 초기화, 메뉴 숨김', afterSwitch.html === 0 && afterSwitch.menu === 'none' && !afterSwitch.loaded, JSON.stringify(afterSwitch));
   await page.evaluate(() => firebase.auth().__switch('admin')); await sleep(300);
   await page.evaluate(() => firebase.auth().signOut()); await sleep(300);
-  const afterLogout = await page.evaluate(() => ({ html: document.getElementById('tab-automation').innerHTML.length, menu: getComputedStyle(document.getElementById('tab-btn-automation')).display, loaded: !!FawwTripReview._state.loaded }));
+  const afterLogout = await page.evaluate(() => ({ html: (document.getElementById('ar-root') || document.getElementById('tab-automation')).innerHTML.length + (document.getElementById('rec-root') ? document.getElementById('rec-root').innerHTML.length : 0) + (document.getElementById('auto-subnav') && !document.getElementById('auto-subnav').hidden ? 1 : 0), menu: getComputedStyle(document.getElementById('tab-btn-automation')).display, loaded: !!FawwTripReview._state.loaded }));
   check('3. 로그아웃 → 초기화, 메뉴 숨김', afterLogout.html === 0 && afterLogout.menu === 'none' && !afterLogout.loaded, JSON.stringify(afterLogout));
   await page.close();
 }
