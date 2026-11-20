@@ -81,57 +81,94 @@
 
     function badge(kind, text) { return '<span class="ar-badge ar-' + esc(kind) + '">' + esc(text) + '</span>'; }
 
+    // ---------------------------------------------------------------- 간결한 표시 (판정은 그대로, 전체 문구는 title 툴팁)
+    var REVIEW_SHORT = { conflict: '일정 겹침', assignee_check: '담당자 확인', unassigned: '미배정', caution: '확인', incomplete: '불완전', clear: '겹침 없음' };
+    var VERDICT_SHORT = { conflict: '일정 겹침', caution: '확인', incomplete: '불완전', clear: '겹침 없음' };
+    // 툴팁용 전체 설명 ('겹침 없음'도 가용성 보장이 아님을 명시)
+    var REVIEW_FULL = { conflict: '일정 겹침 — 배정된 직원에게 같은 기간 확정 출장·휴가·근무 불가 일정이 있음', assignee_check: '담당자 확인 — 제목의 이름이 내부 직원으로 확인되지 않거나 계정 문제가 있음',
+        unassigned: '미배정 — 제목에 직원 표기가 없음', caution: '확인 — 조율 중 출장·반차·대기 휴가 등 확인할 일정이 있음', incomplete: '불완전 — 조회 범위나 직원 식별이 불완전해 판단을 보장할 수 없음',
+        clear: '겹침 없음 — 현재 조회된 범위에서 겹치는 일정이 없음 (가용성 보장 아님)' };
+    var VERDICT_FULL = { conflict: '일정 겹침 — 같은 기간에 확정 출장·휴가·근무 불가 일정이 있음', caution: '확인 — 조율 중 출장·반차·대기 휴가 등 확인할 일정이 있음',
+        incomplete: '불완전 — 조회 범위가 불완전해 판단을 보장할 수 없음', clear: '겹침 없음 — 현재 조회된 범위에서 겹치는 일정이 없음 (가용성 보장 아님)' };
+    var TONE = { conflict: 'conflict', assignee_check: 'warn', unassigned: 'warn', caution: 'warn', incomplete: 'muted', clear: 'ok' };
+    function chipHtml(text, tone, full) { return '<span class="rec-chip rec-status rec-status-' + esc(tone) + '"' + (full ? ' title="' + esc(full) + '"' : '') + '>' + esc(text) + '</span>'; }
+    function shortTitle(raw) { return String(raw || '').replace(/^(\s*\[[^\]]*\]\s*)+/, '').replace(/\s*\([^)]*\)\s*$/, '').trim() || String(raw || ''); }
+    function shortDate(d) { return String(d || '').split('~').map(function (x) { var p = x.split('-'); return p.length === 3 ? (+p[1]) + '/' + (+p[2]) : x; }).join('~'); }
+    function shortPlace(p) { return String(p || '').split(/\s+/).slice(0, 2).join(' '); }
+    function shortKind(why) {
+        var w = String(why || '');
+        var m = /^근무 불가 일정\(([^)]*)\)/.exec(w); if (m) return m[1];
+        if (/반차/.test(w)) return '반차';
+        if (/승인 대기 휴가/.test(w)) return '휴가 대기';
+        if (/취소 대기 휴가/.test(w)) return '휴가 취소 대기';
+        if (/휴가/.test(w)) return '휴가';
+        if (/조율 중/.test(w)) return '조율 중';
+        if (/특수 강의/.test(w)) return '특강';
+        if (/출장/.test(w) && !/상태 표기 없는/.test(w)) return '출장';
+        if (/회의/.test(w)) return '회의';
+        return '일정 확인';
+    }
+    function reasonHtml(x) {
+        if (!x.why) return '<li class="ar-r-' + esc(x.level) + '">' + esc(x.message) + '</li>';   // 이전 방식(구조 정보 없음)
+        return '<li class="ar-r-' + esc(x.level) + '" title="' + esc(x.message) + '"><b>' + esc(shortKind(x.why)) + '</b> ' + esc(shortTitle(x.title)) + ' · ' + esc(shortDate(x.date)) + (x.dup ? ' · 같은 일정일 수 있음' : '') + '</li>';
+    }
+    function noteShort(n) {
+        return String(n).replace(/^메일 기록 담당자: (.*) \(고객사 담당자일 수 있어 배정으로 보지 않음\)$/, '메일 담당자 $1 (참고)')
+            .replace(/^연결 ID 없이 같은 날 같은 이름의 일정이 있음.*$/, '같은 날 같은 이름의 일정 있음 — 같은 일정인지 확인');
+    }
+    function limitShort(l) {
+        return String(l).replace(/^명부 중 계정 확인 필요 (.*)$/, '계정 확인 필요: $1').replace(/^캘린더 동기화 범위\((.*) 까지\) 밖 — 캘린더 일정 미반영$/, '캘린더 반영 범위($1) 밖').replace(/^같은 기간 근무 불가 일정 (\d+)건의 직원을 식별하지 못함$/, '직원 모를 근무 불가 일정 $1건');
+    }
+
     function render() {
         var root = contentRoot(); if (!root) return;
         var m = state.model, r = state.range || FawwTripReviewModel.defaultRange();
         var html = '<div class="ar-wrap">';
-        html += '<div class="section ar-head"><div class="ar-title"><span class="material-symbols-rounded">auto_awesome</span><div><h2>자동화 관리</h2><div class="ar-sub">출장 배정 검토 · 읽기 전용 (데이터를 변경하지 않습니다)</div></div></div>' +
+        html += '<div class="section ar-head"><div class="rec-head-title" style="margin-bottom:10px"><h2>출장 배정 검토</h2><span class="rec-chip rec-chip-plain">읽기 전용</span></div>' +
             '<div class="ar-filters">' +
-            '<input type="search" id="ar-q" placeholder="출장명·장소 검색" value="' + esc(state.filters.query) + '">' +
+            '<input type="search" id="ar-q" placeholder="출장명·장소 검색" aria-label="출장명·장소 검색" value="' + esc(state.filters.query) + '">' +
             '<input type="date" id="ar-start" value="' + esc(r.start) + '" aria-label="조회 시작일"><span class="ar-tilde">~</span><input type="date" id="ar-end" value="' + esc(r.end) + '" aria-label="조회 종료일">' +
-            '<select id="ar-trip-status" aria-label="출장 상태"><option value="all">출장 상태 전체</option><option value="조율중">조율중</option><option value="확정">확정</option></select>' +
-            '<select id="ar-review" aria-label="충돌 상태"><option value="all">충돌 상태 전체</option>' +
-            Object.keys(FawwTripReviewModel.REVIEW_LABELS).map(function (k) { return '<option value="' + k + '">' + esc(FawwTripReviewModel.REVIEW_LABELS[k]) + '</option>'; }).join('') + '</select>' +
+            '<select id="ar-trip-status" aria-label="출장 상태"><option value="all">상태 전체</option><option value="조율중">조율중</option><option value="확정">확정</option></select>' +
+            '<select id="ar-review" aria-label="판정"><option value="all">판정 전체</option>' +
+            Object.keys(FawwTripReviewModel.REVIEW_LABELS).map(function (k) { return '<option value="' + k + '">' + esc(REVIEW_SHORT[k] || FawwTripReviewModel.REVIEW_LABELS[k]) + '</option>'; }).join('') + '</select>' +
             '<button type="button" id="ar-refresh" class="ar-btn"' + (state.loading ? ' disabled' : '') + '><span class="material-symbols-rounded">refresh</span>새로고침</button>' +
             '</div></div>';
 
         if (state.loading) { html += '<div class="section ar-empty">불러오는 중…</div></div>'; root.innerHTML = html; restoreFilters(); return; }
-        if (state.error) { html += '<div class="section ar-banner ar-banner-failed">데이터를 불러오지 못했습니다: ' + esc(state.error) + '</div></div>'; root.innerHTML = html; restoreFilters(); return; }
+        if (state.error) { html += '<div class="section ar-banner ar-banner-failed">불러오기 실패: ' + esc(state.error) + '</div></div>'; root.innerHTML = html; restoreFilters(); return; }
         if (!m) { html += '</div>'; root.innerHTML = html; restoreFilters(); return; }
 
-        // 요약 카드
         var s = m.summary;
         html += '<div class="ar-cards">' +
-            card('조회 기간 출장', s.total + '건') + card('검토 필요', s.needsReview + '건') +
-            card('충돌 발견', s.conflicts + '건', s.conflicts ? 'conflict' : '') + card('담당자 확인 필요', s.assigneeCheck + '건', s.assigneeCheck ? 'caution' : '') +
-            card('데이터 조회 상태', STATUS_TEXT[m.dataStatus] || m.dataStatus, m.dataStatus === 'complete' ? 'clear' : (m.dataStatus === 'failed' ? 'conflict' : 'caution')) +
+            card('출장', s.total + '건') + card('검토', s.needsReview + '건') +
+            card('일정 겹침', s.conflicts + '건', s.conflicts ? 'conflict' : '') + card('담당자 확인', s.assigneeCheck + '건', s.assigneeCheck ? 'caution' : '') +
+            card('조회', STATUS_TEXT[m.dataStatus] || m.dataStatus, m.dataStatus === 'complete' ? 'clear' : (m.dataStatus === 'failed' ? 'conflict' : 'caution')) +
             '</div>';
-        html += '<div class="ar-meta">조회 기간 ' + esc(fmtRange(m.range.start, m.range.end)) + ' · 마지막 조회 ' + esc(m.fetchedAt && typeof formatDateTime === 'function' ? formatDateTime(m.fetchedAt) : '-') + '</div>';
-
-        // 조회 완전성 (판정과 별개로 표시)
+        html += '<div class="ar-meta">' + esc(fmtRange(m.range.start, m.range.end)) + ' · ' + esc(m.fetchedAt && typeof formatDateTime === 'function' ? formatDateTime(m.fetchedAt) : '-') + ' 조회 · 조회 범위 기준</div>';
         if (m.dataStatus !== 'complete') {
-            html += '<div class="ar-banner ar-banner-' + esc(m.dataStatus) + '"><strong>' + (m.dataStatus === 'failed' ? '일부 데이터를 불러오지 못했습니다.' : '일부 데이터만 조회되었습니다.') +
-                '</strong> 아래 판정은 확인된 내용만 반영하며, 근거가 없는 직원도 "확인된 충돌 없음"이 아니라 "검토 불완전"으로 표시됩니다.<ul>' +
-                Object.keys(m.sourceLabels).map(function (k) {
-                    var c = m.coverage[k] || { status: 'failed' };
-                    return '<li>' + esc(m.sourceLabels[k]) + ': ' + badge(c.status === 'complete' ? 'clear' : (c.status === 'failed' ? 'conflict' : 'caution'), STATUS_TEXT[c.status] || c.status) +
-                        (c.count !== undefined ? ' ' + esc(c.count) + '건' : '') + (c.message ? ' — ' + esc(c.message) : '') + '</li>';
-                }).join('') + '</ul></div>';
+            var bad = Object.keys(m.sourceLabels).filter(function (k) { return !m.coverage[k] || m.coverage[k].status !== 'complete'; });
+            html += '<div class="ar-banner ar-banner-' + esc(m.dataStatus) + '"><strong>' + (m.dataStatus === 'failed' ? '조회 실패' : '일부만 조회') + '</strong> — ' +
+                bad.map(function (k) { var c = m.coverage[k] || {}; return '<span title="' + esc(c.message || '') + '">' + esc(m.sourceLabels[k]) + ': ' + esc(STATUS_TEXT[c.status] || '조회 실패') + '</span>'; }).join(' · ') +
+                ' <span class="ar-muted">(근거 없는 직원은 "불완전"으로 표시)</span></div>';
         }
 
         var trips = FawwTripReviewModel.filterTrips(m.trips, state.filters);
-        html += '<div class="ar-split"><div class="section ar-list"><div class="ar-list-head">출장 ' + trips.length + '건' + (trips.length !== m.trips.length ? ' (전체 ' + m.trips.length + '건 중)' : '') + '</div>';
+        html += '<div class="ar-split"><div class="section ar-list"><div class="ar-list-head">출장 ' + trips.length + '건' + (trips.length !== m.trips.length ? ' / ' + m.trips.length : '') + '</div>';
         if (!trips.length) html += '<div class="ar-empty">조건에 맞는 출장이 없습니다.</div>';
         trips.forEach(function (t) {
-            html += '<button type="button" class="ar-trip' + (t.id === state.selectedId ? ' selected' : '') + '" data-trip-id="' + esc(t.id) + '">' +
-                '<div class="ar-trip-top"><span class="ar-trip-name">' + esc(t.name) + '</span>' + badge(t.review, t.reviewLabel) + '</div>' +
-                '<div class="ar-trip-meta">' + esc(fmtRange(t.start, t.end)) + (t.place ? ' · ' + esc(t.place) : '') + '</div>' +
-                '<div class="ar-trip-meta">담당 ' + esc(t.assigneeText || '미지정') + ' · 필요 ' + esc(t.requiredPersonnel || '-') + '명 · ' + esc(t.status || '상태 없음') + '</div>' +
-                '</button>';
+            var who = t.assigned.entries.length ? t.assigned.entries.map(function (e) { return e.token; }).join('·') : '미배정';
+            var bits = [shortDate(t.start === t.end ? t.start : t.start + '~' + t.end)];
+            if (t.place) bits.push(shortPlace(t.place));
+            bits.push(who);
+            if (t.requiredPersonnel) bits.push(t.requiredPersonnel + '명');
+            if (t.status && t.status !== '확정') bits.push(t.status);
+            html += '<button type="button" class="ar-trip' + (t.id === state.selectedId ? ' selected' : '') + '" data-trip-id="' + esc(t.id) + '" title="' + esc(t.name) + '">' +
+                '<div class="ar-trip-top"><span class="ar-trip-name">' + esc(shortTitle(t.name)) + '</span>' + chipHtml(REVIEW_SHORT[t.review] || t.reviewLabel, TONE[t.review] || 'muted', REVIEW_FULL[t.review] || t.reviewLabel) + '</div>' +
+                '<div class="ar-trip-meta">' + esc(bits.join(' · ')) + '</div></button>';
         });
         if (m.undatedTrips.length) {
-            html += '<details class="ar-undated"><summary>날짜를 해석할 수 없는 출장 ' + m.undatedTrips.length + '건 (조회 기간 포함 여부 확인 불가)</summary><ul>' +
-                m.undatedTrips.map(function (u) { return '<li><strong>' + esc(u.name) + '</strong> — 날짜 "' + esc(u.rawDate || '없음') + '" (' + esc(u.status) + (u.detail ? ': ' + esc(u.detail) : '') + ') · 담당 ' + esc(u.assignee || '-') + '</li>'; }).join('') + '</ul></details>';
+            html += '<details class="ar-undated"><summary>날짜 확인 필요 ' + m.undatedTrips.length + '건</summary><ul>' +
+                m.undatedTrips.map(function (u) { return '<li title="' + esc(u.detail || u.status) + '">' + esc(u.name) + (u.assignee ? ' · ' + esc(u.assignee) : '') + '</li>'; }).join('') + '</ul></details>';
         }
         html += '</div><div class="section ar-detail" id="ar-detail">' + renderDetail(m) + '</div></div></div>';
         root.innerHTML = html;
@@ -148,42 +185,44 @@
 
     function renderDetail(m) {
         var t = m.trips.find(function (x) { return x.id === state.selectedId; });
-        if (!t) return '<div class="ar-empty">왼쪽 목록에서 출장을 선택하면 직원별 검토 결과가 표시됩니다.</div>';
-        var res = t.result;
-        var assignedUids = t.assigned.uids;
-        var html = '<div class="ar-detail-head"><h3>' + esc(t.name) + '</h3>' + badge(t.review, t.reviewLabel) +
-            '<div class="ar-trip-meta">' + esc(fmtRange(t.start, t.end)) + (t.place ? ' · ' + esc(t.place) : '') + ' · ' + esc(t.status || '상태 없음') + ' · 필요 ' + esc(t.requiredPersonnel || '-') + '명</div>' +
-            '<div class="ar-assignees">현재 담당: ' + (t.assigned.entries.length ? t.assigned.entries.map(function (e) {
+        if (!t) return '<div class="ar-empty">출장을 선택하면 직원별 결과가 표시됩니다.</div>';
+        var res = t.result, assignedUids = t.assigned.uids;
+        var meta = [shortDate(t.start === t.end ? t.start : t.start + '~' + t.end)];
+        if (t.place) meta.push(shortPlace(t.place));
+        if (t.status) meta.push(t.status);
+        if (t.requiredPersonnel) meta.push(t.requiredPersonnel + '명');
+        var html = '<div class="ar-detail-head"><h3 title="' + esc(t.name) + '">' + esc(shortTitle(t.name)) + '</h3>' + chipHtml(REVIEW_SHORT[t.review] || t.reviewLabel, TONE[t.review] || 'muted', REVIEW_FULL[t.review] || t.reviewLabel) +
+            '<div class="ar-trip-meta">' + esc(meta.join(' · ')) + '</div>' +
+            '<div class="ar-assignees">담당 ' + (t.assigned.entries.length ? t.assigned.entries.map(function (e) {
                 if (e.status === 'matched') { var st = res.staff.find(function (x) { return x.uid === e.uid; }); return '<span class="ar-chip">' + esc(st ? st.displayName : e.token) + '</span>'; }
-                if (e.status === 'ambiguous') return '<span class="ar-chip ar-chip-warn">' + esc(e.token) + ' (여러 직원에 해당)</span>';
-                return '<span class="ar-chip ar-chip-warn">' + esc(e.token) + (e.note === 'unapproved' ? ' (미승인 계정)' : ' (직원과 연결 안 됨)') + '</span>';
-            }).join(' ') : '<span class="ar-chip ar-chip-warn">미지정</span>') + '</div></div>';
+                var why = e.status === 'ambiguous' ? '여러 명' : e.noteText === '내부 직원으로 확인되지 않음' ? '직원 아님' : (e.noteText || (e.note === 'unapproved' ? '미승인' : '직원 아님'));
+                return '<span class="ar-chip ar-chip-warn" title="' + esc(e.noteText || why) + '">' + esc(e.token) + ' (' + esc(why) + ')</span>';
+            }).join(' ') : '<span class="ar-chip ar-chip-warn">미배정</span>') + '</div></div>';
 
         if (!res.reviewComplete) {
-            var why = [];
-            if (!res.coverage.complete) why.push('조회 불완전: ' + res.coverage.incomplete.map(function (k) { return m.sourceLabels[k] || k; }).join(', '));
-            if (res.reviewGaps.length) why.push('담당자를 특정할 수 없는 같은 기간 출장·휴가 ' + res.reviewGaps.length + '건');
-            html += '<div class="ar-banner ar-banner-partial">검토 불완전 — ' + esc(why.join(' · ')) + '. 확인된 충돌·주의는 그대로 표시합니다.</div>';
+            var why = res.limits ? res.limits.filter(function (l) { return !/^명부 중 계정/.test(l); }).map(limitShort) : [];
+            if (!res.limits) {
+                if (!res.coverage.complete) why.push('조회 불완전: ' + res.coverage.incomplete.map(function (k) { return m.sourceLabels[k] || k; }).join(', '));
+                if (res.reviewGaps.length) why.push('담당자 모를 같은 기간 일정 ' + res.reviewGaps.length + '건');
+            }
+            html += '<div class="ar-banner ar-banner-partial">불완전 — ' + esc(why.join(' · ')) + '</div>';
         }
-        if (res.reviewGaps.length) {
-            html += '<details class="ar-gaps" open><summary>담당자 확인이 필요한 같은 기간 일정 ' + res.reviewGaps.length + '건</summary><ul>' +
-                res.reviewGaps.map(function (g) { return '<li>' + esc(g.source === 'trip' ? '출장' : '휴가') + ': ' + esc(g.name || g.id) + '</li>'; }).join('') + '</ul></details>';
-        }
-        if (t.externalUnattributed.length) {
-            html += '<details class="ar-gaps"><summary>담당자를 알 수 없는 같은 기간 캘린더 일정 ' + t.externalUnattributed.length + '건 — 외부 일정 검토 미완료</summary><ul>' +
-                t.externalUnattributed.map(function (u) { return '<li>' + esc(u.detail || u.id) + '</li>'; }).join('') + '</ul></details>';
-        }
+        if (res.reviewGaps.length) html += '<details class="ar-gaps"><summary>직원 모를 일정 ' + res.reviewGaps.length + '건</summary><ul>' + res.reviewGaps.map(function (g) { return '<li>' + esc(g.name || g.id) + '</li>'; }).join('') + '</ul></details>';
+        if (t.externalUnattributed.length) html += '<details class="ar-gaps"><summary>담당자 모를 캘린더 일정 ' + t.externalUnattributed.length + '건</summary><ul>' + t.externalUnattributed.map(function (u) { return '<li>' + esc(u.detail || u.id) + '</li>'; }).join('') + '</ul></details>';
 
         var rows = res.staff.slice().sort(function (a, b) { return (assignedUids.indexOf(b.uid) !== -1) - (assignedUids.indexOf(a.uid) !== -1); });
-        html += '<div class="ar-table-wrap"><table class="ar-table"><thead><tr><th>직원</th><th>판정</th><th>사유·연관 일정</th></tr></thead><tbody>';
+        html += '<div class="ar-table-wrap"><table class="ar-table"><thead><tr><th>직원</th><th>판정</th><th>사유</th></tr></thead><tbody>';
         rows.forEach(function (st) {
-            var reasons = st.reasons.length ? '<ul>' + st.reasons.map(function (x) {
-                return '<li class="ar-r-' + esc(x.level) + '">' + (x.level === 'info' ? '<span class="ar-ref">참고</span> ' : '') + esc(x.message) + '</li>';
-            }).join('') + '</ul>' : '<span class="ar-muted">' + (st.verdict === 'clear' ? '확인된 근거 없음' : '확인된 근거 없음 (데이터 불완전)') + '</span>';
-            html += '<tr><td><strong>' + esc(st.displayName) + '</strong>' + (assignedUids.indexOf(st.uid) !== -1 ? ' <span class="ar-chip">배정됨</span>' : '') + '</td><td>' + badge(st.verdict, st.label) + '</td><td>' + reasons + '</td></tr>';
+            var reasons = st.reasons.length ? '<ul>' + st.reasons.map(reasonHtml).join('') + '</ul>' : '<span class="ar-muted">—</span>';
+            html += '<tr><td><strong>' + esc(st.displayName) + '</strong>' + (assignedUids.indexOf(st.uid) !== -1 ? ' <span class="ar-chip">배정됨</span>' : '') + '</td><td>' +
+                chipHtml(VERDICT_SHORT[st.verdict] || st.label, TONE[st.verdict] || 'muted', VERDICT_FULL[st.verdict] || st.label) + '</td><td>' + reasons + '</td></tr>';
         });
         html += '</tbody></table></div>';
-        if (res.skippedDuplicates.length) html += '<div class="ar-muted ar-note">출장·휴가에서 복제된 캘린더 일정 ' + res.skippedDuplicates.length + '건은 중복으로 보고 제외했습니다.</div>';
+        var notes = (t.notes || []).map(noteShort);
+        if (res.skippedDuplicates.length) notes.push(res.limits ? '캘린더 연동 출장 (캘린더 제목의 직원 표기 사용)' : '복제된 캘린더 일정 ' + res.skippedDuplicates.length + '건 제외');
+        if (notes.length) html += '<div class="ar-muted ar-note">' + notes.map(esc).join('<br>') + '</div>';
+        // 계정 문제는 판정을 낮추지 않지만 위험 정보라 경고 색으로 유지
+        if (res.limits) res.limits.filter(function (l) { return /^명부 중 계정/.test(l); }).forEach(function (l) { html += '<div class="ar-note rec-warn-text" title="' + esc(l) + '">' + esc(limitShort(l)) + ' (판정 제외)</div>'; });
         return html;
     }
 

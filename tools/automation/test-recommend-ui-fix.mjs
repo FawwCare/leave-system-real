@@ -28,13 +28,13 @@ const optionChecks = (page, tid) => page.evaluate((tid) => {
 }, tid);
 
 { const page = await openPage({ userKey: 'admin' }); await seed(page); await openRec(page);
-  const o = (await optionChecks(page, 'trip:fx')).find(x => /류재진/.test(x.names) && /이동현/.test(x.names));
+  const o = (await optionChecks(page, 'trip:fx')).find(x => /재진/.test(x.names) && /동현/.test(x.names));
   const routeChecks = o ? o.checks.concat(o.more ? [o.more] : []) : [];
   const n = o ? o.checks.length + (o.more ? +((o.more.match(/\d+/) || [0])[0]) : 0) : -1;
   check('1. 서로 다른 출장(고객사A·B)의 이동 경로 경고는 따로 → 확인 칩 2개 이상, 각 출장명 표시', o && n >= 2 && /고객사A/.test(o.checks.join(' ') + o.more + o.detail) && /고객사B/.test(o.checks.join(' ') + o.more + o.detail) && o.checks.filter(c => /고객사A|고객사B/.test(c)).length === 2, JSON.stringify(o));
   check('1-2. 확인 칩 수(표시 + "+n") = 근거 보기의 전체 확인 항목 수', o && n === o.fullCount, JSON.stringify(o && { checks: o.checks, more: o.more, fullCount: o.fullCount }));
   check('1-3. 상세 근거에 두 출장 정보가 각각 남아 있음', o && /고객사A/.test(o.detail) && /고객사B/.test(o.detail));
-  const y = (await optionChecks(page, 'trip:fy')).find(x => /나강현/.test(x.names));
+  const y = (await optionChecks(page, 'trip:fy')).find(x => /강현/.test(x.names));
   const yAll = y ? y.checks.join(' ') + ' ' + y.detail : '';
   check('2. 도 단위 주소 → "지역 범위가 넓어 확인 필요" (지역 정보 부족 아님)', y && /지역 범위가 넓어 확인 필요/.test(yAll) && !/지역 정보 부족/.test(yAll), yAll.slice(0, 200));
   const x2 = (await optionChecks(page, 'trip:fx'))[0];

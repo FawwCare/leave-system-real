@@ -46,9 +46,63 @@
      * @param loaded  { data: {users, trips, leaves, tasks, externalEvents}, coverage, fetchedAt }
      * @param options { range: {start, end}, aliases }
      */
+    var VERDICT_LABELS = { conflict: '충돌 발견', caution: '주의·확인 필요', incomplete: '검토 불완전', clear: '확인된 충돌 없음' };
+
+    /**
+     * 직원 추천과 같은 규칙으로 검토 (직원 명부·제목 괄호 배정·캘린더 일정 분류).
+     * 메일의 assignee(고객사 담당자일 수 있음)는 배정으로 보지 않는다.
+     */
+    function buildAligned(loaded, options) {
+        var S = root.FawwStaffRecommend;
+        var range = options.range || defaultRange();
+        var data = (loaded && loaded.data) || {}, coverage = (loaded && loaded.coverage) || {};
+        var model = {
+            range: range, fetchedAt: loaded ? loaded.fetchedAt : null, coverage: coverage, dataStatus: overallStatus(coverage),
+            sourceLabels: SOURCE_LABELS, reviewLabels: REVIEW_LABELS, trips: [], undatedTrips: [], aligned: true,
+            summary: { total: 0, needsReview: 0, conflicts: 0, assigneeCheck: 0 }
+        };
+        var res = S.build({ users: data.users || {}, trips: data.trips || {}, leaves: data.leaves || {}, externalEvents: data.externalEvents || {},
+            coverage: coverage, today: options.today || defaultRange().start, review: range });
+        model.accountIssues = res.accountIssues; model.unrostered = res.unrostered;
+        model.undatedTrips = (res.undatedReviews || []).map(function (u) { return { id: u.id, name: u.name, rawDate: u.rawDate, status: u.status, detail: u.detail, assignee: u.assignee }; });
+        var incomplete = Object.keys(SOURCE_LABELS).filter(function (k) { return !coverage[k] || coverage[k].status !== 'complete'; });
+        (res.reviews || []).forEach(function (r) {
+            var labels = {}; r.staff.forEach(function (x) { labels[x.key] = x.label; });
+            var entries = r.assigned.map(function (k) { return { status: 'matched', uid: k, token: labels[k] || k }; })
+                .concat(r.problems.map(function (p) { return { status: 'unmatched', token: p.token, noteText: p.note }; }));
+            var notes = [];
+            if (r.mailAssignee) notes.push('메일 기록 담당자: ' + r.mailAssignee + ' (고객사 담당자일 수 있어 배정으로 보지 않음)');
+            if (r.possibleDup) notes.push('연결 ID 없이 같은 날 같은 이름의 일정이 있음 — 같은 일정일 수 있어 확인 필요');
+            model.trips.push({
+                id: r.id, name: r.raw, place: r.place || '', status: r.status, start: r.period.start, end: r.period.end,
+                assigneeText: entries.map(function (e) { return e.token; }).join(', '), requiredPersonnel: r.requiredPersonnel,
+                assigned: { uids: r.assigned, entries: entries, complete: !r.problems.length },
+                unresolved: entries.filter(function (e) { return e.status !== 'matched'; }),
+                review: r.review, reviewLabel: REVIEW_LABELS[r.review], notes: notes,
+                result: {
+                    staff: r.staff.map(function (x) { return { uid: x.key, displayName: x.label, verdict: x.verdict, label: VERDICT_LABELS[x.verdict], reasons: x.reasons }; }),
+                    reviewComplete: !r.blocking.length, limits: r.limits,
+                    coverage: { complete: incomplete.length === 0, incomplete: incomplete },
+                    reviewGaps: r.gaps.map(function (g) { return { source: 'unavailable', name: g }; }),
+                    skippedDuplicates: r.src === 'trip+calendar' ? [{ of: 'trip' }] : []
+                },
+                externalUnattributed: r.unattributed.map(function (t) { return { detail: t }; })
+            });
+        });
+        model.summary.total = model.trips.length;
+        model.trips.forEach(function (t) {
+            if (t.review !== 'clear') model.summary.needsReview++;
+            if (t.review === 'conflict') model.summary.conflicts++;
+            if (t.unresolved.length || t.review === 'unassigned') model.summary.assigneeCheck++;
+        });
+        return model;
+    }
+
     function build(loaded, options) {
         var SI = root.FawwStaffIdentity, TD = root.FawwTripDates, CE = root.FawwConflictEngine;
         options = options || {};
+        // 직원 추천 모듈이 함께 로드되어 있으면(운영 화면) 같은 규칙으로 검토. 없으면 Phase 1B 방식 그대로
+        if (!options.legacy && root.FawwStaffRecommend && root.FawwStaffRoster && root.FawwScheduleParse) return buildAligned(loaded, options);
         var range = options.range || defaultRange();
         var data = (loaded && loaded.data) || {};
         var coverage = (loaded && loaded.coverage) || {};

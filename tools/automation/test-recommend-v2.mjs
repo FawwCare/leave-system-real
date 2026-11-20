@@ -53,7 +53,7 @@ const X = { name: '[확정] 광주 교육 (직원 미배정)', date: '2026-10-22
   check('직원이 없는 안내 일정 → 아무도 제외하지 않고 "식별하지 못함" 표시', excludedKeys(tgt(m, 'trip:X')).length === 0 && tgt(m, 'trip:X').limits.some(l => /식별하지 못함/.test(l))); }
 { const m = run({ trips: { X, Y: { name: '[확정] (주)성진기업 방문 (재진)', date: '2026-10-23', status: '확정', requiredPersonnel: 2 }, Z: { name: '[확정] 특강 (김성진 강사)', date: '2026-10-24', status: '확정', requiredPersonnel: 2 } },
                  externalEvents: { e1: { title: '(고객사) 성진기업 시험 운영', startDate: '2026-10-22', dueDate: '2026-10-22' } } });
-  check('고객사명 "성진기업"·외부인 "김성진 강사"를 장성진으로 인식하지 않음', !excludedKeys(tgt(m, 'trip:X')).includes('장성진') && tgt(m, 'trip:Y').assigned.join() === '류재진' && !tgt(m, 'trip:Z').assigned.includes('장성진') && tgt(m, 'trip:Z').problems.some(p => /김성진/.test(p))); }
+  check('고객사명 "성진기업"·외부인 "김성진 강사"를 장성진으로 인식하지 않음', !excludedKeys(tgt(m, 'trip:X')).includes('장성진') && tgt(m, 'trip:Y').assigned.join() === '재진' && !tgt(m, 'trip:Z').assigned.includes('성진') && tgt(m, 'trip:Z').problems.some(p => /김성진/.test(p))); }
 
 // ---------------------------------------------------------------- 4. 지역·동선
 sec = '동선';

@@ -48,7 +48,7 @@ check('"(주)휴노" 같은 괄호는 이름 묶음으로 보지 않음', P.pars
 
 sec = '추천';
 { const m = run({ trips: { A: { name: '[확정] 부산 교육 (성진)', date: '2026-10-20', status: '확정', requiredPersonnel: 2, address: '부산' }, B: { name: '[확정] 수원 교육 (성진)', date: '2026-10-20', status: '확정', requiredPersonnel: 1 } } });
-  check('같은 직원 같은 날 확정 출장 2건(시간 무관) → 심각한 충돌', tgt(m, 'trip:A').category === 'serious' && /장성진: 확정 출장/.test(tgt(m, 'trip:A').serious[0])); }
+  check('같은 직원 같은 날 확정 출장 2건(시간 무관) → 심각한 충돌', tgt(m, 'trip:A').category === 'serious' && /성진: 확정 출장/.test(tgt(m, 'trip:A').serious[0])); }
 { const m = run({ trips: { A: { name: '[확정] 대구 교육 (성진)', date: '2026-10-20', status: '확정', requiredPersonnel: 2, address: '대구' }, B: { name: '[확정] 부산 교육 (성진)', date: '2026-10-21', status: '확정', requiredPersonnel: 2, address: '부산' } } });
   check('연속된 다른 날짜 출장은 충돌 아님', tgt(m, 'trip:A').category !== 'serious' && tgt(m, 'trip:B').category !== 'serious'); }
 { const m = run({ trips: { L: { name: '[확정] 장기 (동휘)', startDate: '2026-10-20', endDate: '2026-10-23', status: '확정', requiredPersonnel: 2 }, X: { name: '[확정] 광주 (동현)', date: '2026-10-22', status: '확정', requiredPersonnel: 2 } } });
@@ -63,7 +63,7 @@ sec = '추천';
   check('짧은 사내 회의 → 차단하지 않고 근거 부족 주의', cand('민홍') && /회의/.test(cand('민홍').cautions[0].why)); }
 { const m = run({ trips: { X: { name: '[확정][1호차] 광주 (동현,강현)', date: '2026-10-22', status: '확정', requiredPersonnel: 3 } } });
   const t = tgt(m, 'trip:X');
-  check('필요 3명 중 2명 배정 → 1명만 추천, 기존 2명 유지·중복 추천 없음', t.need === 1 && t.recommendations.length === 3 && t.recommendations.every(r => r.members.length === 1 && !['이동현', '나강현'].includes(r.members[0].key)) && t.assigned.join() === '이동현,나강현'); }
+  check('필요 3명 중 2명 배정 → 1명만 추천, 기존 2명 유지·중복 추천 없음', t.need === 1 && t.recommendations.length === 3 && t.recommendations.every(r => r.members.length === 1 && !['이동현', '나강현'].includes(r.members[0].key)) && t.assigned.join() === '동현,강현'); }
 { const m = run({ trips: { X: { name: '[확정] 광주 (동현)', date: '2026-10-22', status: '확정', requiredPersonnel: 1, author: 'Gmail 자동 등록' }, Y: { name: '[확정] 대전 (강현)', date: '2026-10-23', status: '확정' } },
                  externalEvents: { c1: { title: '[확정] 고객사 피지컬케어 (재진)', startDate: '2026-10-24', dueDate: '2026-10-24' } } });
   check('필요 인원 1 기록 → 미확인(기본값 가능성), 자동 1명 가정 안 함', tgt(m, 'trip:X').required.known === false && tgt(m, 'trip:X').need === null && tgt(m, 'trip:X').recommendations.length === 0 && /기본값/.test(tgt(m, 'trip:X').required.note));
@@ -80,7 +80,7 @@ sec = '추천';
 { const m = run({ trips: { A: { name: '부산 교육', date: '2026-10-20', status: '확정', requiredPersonnel: 2 } },
                  externalEvents: { e1: { title: '[확정] 부산 교육 (성진,동휘)', startDate: '2026-10-20', dueDate: '2026-10-20', description: '[FaWW 출장연동 ID: A]' }, e2: { title: '[확정] 수원 교육', startDate: '2026-10-21', dueDate: '2026-10-21' } },
                  trips2: null });
-  check('출장과 연결 ID 있는 캘린더 일정 → 하나로 합침 (캘린더 제목의 배정 사용)', m.targets.filter(t => /부산/.test(t.raw)).length === 1 && tgt(m, 'trip:A').src === 'trip+calendar' && tgt(m, 'trip:A').assigned.slice().sort().join() === '김동휘,장성진'); }
+  check('출장과 연결 ID 있는 캘린더 일정 → 하나로 합침 (캘린더 제목의 배정 사용)', m.targets.filter(t => /부산/.test(t.raw)).length === 1 && tgt(m, 'trip:A').src === 'trip+calendar' && tgt(m, 'trip:A').assigned.slice().sort().join() === '동휘,성진'); }
 { const m = run({ trips: { A: { name: '[확정] 수원 교육 (성진)', date: '2026-10-21', status: '확정', requiredPersonnel: 2 } }, externalEvents: { e2: { title: '[확정] 수원 교육 (성진)', startDate: '2026-10-21', dueDate: '2026-10-21' } } });
   const a = tgt(m, 'trip:A'), c = tgt(m, 'cal:e2');
   check('연결 ID 없는 같은 날 같은 이름 → 중복 확정하지 않고 둘 다 표시 + 확인 필요', a && c && a.notes.some(n => /같은 일정일 수/.test(n)) && c.notes.some(n => /같은 일정일 수/.test(n)));
@@ -93,7 +93,7 @@ sec = '추천';
 { const m = run({ trips: { A: { name: '[확정] 광주 (동현)', date: '2026-10-22', status: '확정', requiredPersonnel: 2 } }, externalEvents: { e: { title: '[휴가] 연차', startDate: '2026-10-22', dueDate: '2026-10-22' } } });
   check('근무 불가 일정의 직원 식별 불가 → 전체 검증 완료라고 하지 않음', !m.targets[0].reviewComplete && m.targets[0].limits.some(l => /식별하지 못함/.test(l))); }
 { const m = run({ trips: { A: { name: '[확정] 광주 (동현,김성진)', date: '2026-10-22', status: '확정', requiredPersonnel: 2 }, Y: { name: '[확정] 요가 클래스 (채이)', date: '2026-10-22', status: '확정' }, Z: { name: '[조율중] 대전 (강현)', date: '2026-10-23', status: '조율중', requiredPersonnel: 2 }, OLD: { name: '[확정] 지난 출장 (성진)', date: '2026-10-01', status: '확정', requiredPersonnel: 2 } } });
-  check('외부인 이름은 배정 인원에 넣지 않고 확인 필요', tgt(m, 'trip:A').assigned.join() === '이동현' && tgt(m, 'trip:A').problems.some(p => /김성진/.test(p)));
+  check('외부인 이름은 배정 인원에 넣지 않고 확인 필요', tgt(m, 'trip:A').assigned.join() === '동현' && tgt(m, 'trip:A').problems.some(p => /김성진/.test(p)));
   check('특수 강의·조율중·지난 출장은 추천 대상 아님, 특수 강의 배정 직원은 그날 제외', !tgt(m, 'trip:Y') && !tgt(m, 'trip:Z') && !tgt(m, 'trip:OLD') && tgt(m, 'trip:A').excluded.some(e => e.key === '문채이'));
   check('정렬: 심각한 충돌 → 미배정·부분 → 차량 미배정 → 정상', JSON.stringify(run({ trips: {
       a: { name: '[확정][1호차] 정상 (성진,동휘)', date: '2026-10-25', status: '확정', requiredPersonnel: 2 }, b: { name: '[확정] 차량없음 (재진,동현)', date: '2026-10-25', status: '확정', requiredPersonnel: 2 },

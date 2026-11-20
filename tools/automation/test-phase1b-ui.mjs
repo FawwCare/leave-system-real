@@ -9,9 +9,12 @@ async function seed(page) {   // 테스트 데이터 (가짜 DB 에만 기록)
   await page.evaluate(() => {
     const db = firebase.database(); const d = (n) => { const x = new Date(); x.setDate(x.getDate() + n); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`; };
     db.ref('businessTrips/x1').set({ name: '<img src=x onerror="window.__xss=1">테스트 출장', date: d(5), status: '확정', assignee: '민홍<script>window.__xss2=1</script>', address: '"><b>주소</b>' });
-    db.ref('businessTrips/x2').set({ name: '여의도 사학', date: d(6), status: '확정', assignee: '정호이사' });
+    db.ref('businessTrips/x2').set({ name: '[확정] 여의도 사학 (정호이사)', date: d(6), status: '확정', assignee: '고객사담당자' });
+    db.ref('users/u-t-dw').set({ displayName: '김동휘', approved: true }); db.ref('users/u-t-jj').set({ displayName: '류재진', approved: true });
+    db.ref('users/u-t-mh2').set({ displayName: '민홍', approved: true });   // 민홍 계정 2개 (운영과 같은 상황)
+    db.ref('businessTrips/x4').set({ name: '[확정] 광주 교육 (동휘)', date: d(9), status: '확정', requiredPersonnel: 1, assignee: '김유진' });
     db.ref('businessTrips/x3').set({ name: '날짜 미정 출장', date: '미정', status: '조율중', assignee: '민홍' });
-    db.ref('leaves/xl1').set({ id: 'xl1', uid: 'uJY', userName: '박지영', date: d(9), type: 1, subType: '1', status: 'approved', timestamp: 1 });
+    db.ref('leaves/xl1').set({ id: 'xl1', uid: 'u-t-dw', userName: '김동휘', date: d(9), type: 1, subType: '1', status: 'approved', timestamp: 1 });
   });
   await sleep(500);
 }
@@ -27,26 +30,30 @@ const text = (page, sel) => page.evaluate((sel) => (document.querySelector(sel) 
   const w0 = await page.evaluate(() => window.__dbWrites || 0);
   await openTab(page); await waitLoaded(page);
   const cards = await page.evaluate(() => [...document.querySelectorAll('#tab-automation .ar-card')].map(c => c.textContent.replace(/\s+/g, ' ').trim()));
-  check('4-1. 요약 카드 5개 (출장 수·검토 필요·충돌·담당자 확인·조회 상태)', cards.length === 5 && /데이터 조회 상태/.test(cards[4]), cards.join(' | '));
-  check('4-1. 조회 기간·마지막 조회 시각 표시', /조회 기간 .+ · 마지막 조회 .+/.test(await text(page, '#tab-automation .ar-meta')));
-  await selectTrip(page, 'b6');
+  check('4-1. 요약 카드 5개 (출장·검토·일정 겹침·담당자 확인·조회)', cards.length === 5 && /^일정 겹침/.test(cards[2]) && /^조회/.test(cards[4]), cards.join(' | '));
+  check('4-1. 조회 기간·마지막 조회 시각 표시', / · .+ 조회 · 조회 범위 기준/.test(await text(page, '#tab-automation .ar-meta')));
+  await selectTrip(page, 'x4');
   const b6 = await page.evaluate(() => [...document.querySelectorAll('#ar-detail tbody tr')].map(tr => tr.textContent.replace(/\s+/g, ' ').trim()));
-  check('7. 확정 출장 + 승인 휴가 → 박지영 "충돌 발견" (휴가 근거 표시)', b6.some(r => /박지영/.test(r) && /충돌 발견/.test(r) && /승인된 종일 휴가/.test(r)), b6.join(' / '));
-  check('4. 출장 선택 → 직원별 결과 렌더링 (직원·판정·사유)', b6.length >= 5 && await page.evaluate(() => document.querySelectorAll('#ar-detail thead th').length === 3));
+  check('7. 확정 출장 + 승인 휴가 → 배정된 김동휘 "일정 겹침" (휴가 근거 표시), 고객사 담당자는 배정 아님', b6.some(r => /동휘/.test(r) && /배정됨/.test(r) && /일정 겹침/.test(r) && /휴가/.test(r)) && !b6.some(r => /김유진/.test(r)), b6.join(' / '));
+  check('4. 출장 선택 → 직원별 결과 렌더링 (직원·판정·사유, 명부 직원만)', b6.length >= 4 && !b6.some(r => /박지영|김하람|신입사원|테스트관리자/.test(r)) && await page.evaluate(() => document.querySelectorAll('#ar-detail thead th').length === 3));
   await selectTrip(page, 'x2');
-  check('6. 이름 매칭 실패 → "담당자 확인 필요" + 연결 안 됨 표시', /담당자 확인 필요/.test(await text(page, '#ar-detail .ar-detail-head')) && /정호이사 \(직원과 연결 안 됨\)/.test(await text(page, '#ar-detail .ar-assignees')));
+  check('6. 제목의 이름이 내부 직원이 아님 → "담당자 확인 필요" + 확인되지 않음 표시', /담당자 확인/.test(await text(page, '#ar-detail .ar-detail-head')) && /정호이사 \(직원 아님\)/.test(await text(page, '#ar-detail .ar-assignees')));
   await selectTrip(page, 'b1');
-  check('8. 같은 일정의 캘린더 사본 제외 안내', /복제된 캘린더 일정 1건은 중복으로 보고 제외/.test(await text(page, '#ar-detail')));
+  check('8. 같은 일정의 캘린더 사본은 연동 ID로 합쳐 한 건으로 (안내 표시)', /캘린더 연동 출장/.test(await text(page, '#ar-detail')) && (await page.evaluate(() => document.querySelectorAll('#tab-automation .ar-trip').length)) === (await page.evaluate(() => new Set([...document.querySelectorAll('#tab-automation .ar-trip')].map(b => b.getAttribute('data-trip-id'))).size)));
   await selectTrip(page, 'x1');
-  const xss = await page.evaluate(() => ({ x1: window.__xss, x2: window.__xss2, img: document.querySelectorAll('#tab-automation img').length, b: document.querySelectorAll('#tab-automation b').length, shown: document.getElementById('tab-automation').textContent.includes('<img src=x') }));
+  const xss = await page.evaluate(() => ({ x1: window.__xss, x2: window.__xss2, img: document.querySelectorAll('#tab-automation img').length, b: [...document.querySelectorAll('#tab-automation b')].filter(x => x.textContent === '주소').length, shown: document.getElementById('tab-automation').textContent.includes('<img src=x') }));
   check('11. 사용자 입력 문자열 안전 처리 (스크립트 실행·태그 생성 없음, 글자로 표시)', !xss.x1 && !xss.x2 && xss.img === 0 && xss.b === 0 && xss.shown, JSON.stringify(xss));
-  check('날짜 해석 불가 출장 별도 표시', /날짜를 해석할 수 없는 출장/.test(await text(page, '#tab-automation .ar-undated')));
+  check('날짜 해석 불가 출장 별도 표시', /날짜 확인 필요/.test(await text(page, '#tab-automation .ar-undated')));
+  await selectTrip(page, 'x4');
+  check('계정 확인 필요(민홍 계정 2개)는 판정을 낮추지 않되 화면에 표시', /계정 확인 필요: [^\n]*홍[^\n]*\(판정 제외\)/.test(await text(page, '#ar-detail')));
   // 필터·검색·기간·새로고침
   await page.select('#ar-review', 'conflict'); await sleep(200);
-  const onlyConflict = await page.evaluate(() => [...document.querySelectorAll('#tab-automation .ar-trip .ar-badge')].every(b => b.textContent === '충돌 발견'));
+  const onlyConflict = await page.evaluate(() => (() => { const c = [...document.querySelectorAll('#tab-automation .ar-trip .rec-chip')]; return c.length > 0 && c.every(b => b.textContent === '일정 겹침'); })());
   await page.select('#ar-review', 'all'); await page.type('#ar-q', '사학'); await sleep(500);
   const searched = await page.evaluate(() => [...document.querySelectorAll('#tab-automation .ar-trip-name')].map(x => x.textContent));
-  check('4-4. 충돌 상태 필터·출장명 검색', onlyConflict && searched.length === 1 && searched[0] === '여의도 사학', JSON.stringify(searched));
+  const tips = await page.evaluate(() => [...document.querySelectorAll('#tab-automation .rec-chip[title]')].map(c => c.textContent + '=' + c.title));
+  check('판정 칩 툴팁: 전체 설명 + "겹침 없음"은 가용성 보장 아님, 옛 용어(충돌) 없음', tips.some(t => /^일정 겹침=일정 겹침 —/.test(t)) && tips.filter(t => /^겹침 없음=/.test(t)).every(t => /가용성 보장 아님/.test(t)) && !tips.some(t => /충돌/.test(t)), tips.slice(0, 4).join(' | '));
+  check('4-4. 판정 필터(일정 겹침)·출장명 검색', onlyConflict && searched.length === 1 && /여의도 사학/.test(searched[0]), JSON.stringify(searched));
   await page.evaluate(() => { const q = document.getElementById('ar-q'); q.value = ''; q.dispatchEvent(new Event('input', { bubbles: true })); }); await sleep(400);
   const reads0 = await page.evaluate(() => (window.__dbReads || []).length);
   await page.evaluate(() => document.getElementById('ar-refresh').click()); await waitLoaded(page); await sleep(300);
@@ -83,10 +90,10 @@ const text = (page, sel) => page.evaluate((sel) => (document.querySelector(sel) 
   const page = await openPage({ userKey: 'admin', fail: ['leaves'] });
   await openTab(page); await waitLoaded(page);
   const banner = await text(page, '#tab-automation .ar-banner'); const card = await page.evaluate(() => [...document.querySelectorAll('#tab-automation .ar-card')].pop().textContent);
-  check('5. 조회 실패 안내 (휴가 조회 실패, 상태 카드)', /일부 데이터를 불러오지 못했습니다/.test(banner) && /휴가: 조회 실패/.test(banner) && /조회 실패/.test(card), banner.slice(0, 120));
+  check('5. 조회 실패 안내 (휴가 조회 실패, 상태 카드)', /조회 실패/.test(banner) && /휴가: 조회 실패/.test(banner) && /조회 실패/.test(card), banner.slice(0, 120));
   await selectTrip(page, 'b6');
-  const verdicts = await page.evaluate(() => [...document.querySelectorAll('#ar-detail tbody .ar-badge')].map(b => b.textContent));
-  check('5. 데이터 불완전 → "확인된 충돌 없음" 표시 안 함 ("검토 불완전")', !verdicts.includes('확인된 충돌 없음') && verdicts.includes('검토 불완전'), verdicts.join(','));
+  const verdicts = await page.evaluate(() => [...document.querySelectorAll('#ar-detail tbody .rec-chip')].map(b => b.textContent));
+  check('5. 데이터 불완전 → "겹침 없음" 표시 안 함 ("불완전")', !verdicts.includes('겹침 없음') && verdicts.includes('불완전'), verdicts.join(','));
   await page.close();
 }
 // 9 — PC·모바일 화면 + 모바일 내비게이션

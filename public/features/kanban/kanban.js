@@ -338,7 +338,7 @@ function openModal(taskId, title, description, dueDate, startDate, type = 'task'
         const isAdmin = auth.currentUser && (ADMIN_UIDS.includes(auth.currentUser.uid) || (typeof ADMIN_EMAILS !== 'undefined' && auth.currentUser.email && ADMIN_EMAILS.includes(auth.currentUser.email)));
         const isAuthor = task && task.author === (AppStore.getCurrentUser() ? AppStore.getCurrentUser().displayName : '');
         const isExternal = !!(AppStore.getExternalEvents() && AppStore.getExternalEvents()[taskId]);
-        delBtn.style.display = (isAdmin || isAuthor || isExternal) ? 'inline-block' : 'none';
+        delBtn.style.display = ((isAdmin || isAuthor) && !isExternal) ? 'inline-block' : 'none';   // 구글 캘린더 일정은 앱에서 삭제 불가
     }
 
     // [신규] 설명에서 URL을 추출하여 클릭 가능한 링크 버튼 생성
@@ -370,14 +370,43 @@ function openModal(taskId, title, description, dueDate, startDate, type = 'task'
         linksContainer.style.display = 'none';
     }
 
+    // 구글 캘린더 일정은 캘린더가 원본이므로 앱에서는 보기만 (수정·삭제 불가)
+    setTaskModalReadOnly(type === 'external' || !!(AppStore.getExternalEvents() && AppStore.getExternalEvents()[taskId]));
     document.getElementById('taskModal').style.display = 'flex';
 }
 
 function closeModal() { document.getElementById('taskModal').style.display = 'none'; currentModalTaskId = null; }
 
+// 업무 모달을 보기 전용으로 전환 (구글 캘린더 일정). 일반 업무를 열면 원래대로 되돌린다
+function setTaskModalReadOnly(on) {
+    ['modalTitleInput', 'modalTaskType', 'modalStartDate', 'modalDueDate', 'modalAssigneeInput', 'modalDescription'].forEach(function (id) {
+        const el = document.getElementById(id); if (el) el.disabled = !!on;
+    });
+    document.querySelectorAll('#taskModal .status-chip').forEach(function (b) { b.disabled = !!on; });
+    // 날짜 상자·담당자 태그(×)도 보기 전용 모양으로 (클릭해도 바뀌지 않게)
+    if (!document.getElementById('taskModalReadOnlyStyle')) {
+        const st = document.createElement('style'); st.id = 'taskModalReadOnlyStyle';
+        st.textContent = '#taskModal.tm-readonly .date-select-btn{opacity:.6;cursor:default;pointer-events:none}' +
+            '#taskModal.tm-readonly .assignee-tag{pointer-events:none}#taskModal.tm-readonly .assignee-tag .material-symbols-rounded{display:none}';
+        document.head.appendChild(st);
+    }
+    const modalEl = document.getElementById('taskModal'); if (modalEl) modalEl.classList.toggle('tm-readonly', !!on);
+    const saveBtn = document.querySelector('#taskModal button[onclick="saveDescription()"]');
+    if (saveBtn) saveBtn.style.display = on ? 'none' : '';
+    if (on) { const del = document.getElementById('modalDeleteBtn'); if (del) del.style.display = 'none'; }
+    let note = document.getElementById('modalReadOnlyNote');
+    if (!note) {
+        const footer = document.querySelector('#taskModal .modal-footer');
+        if (footer) { note = document.createElement('div'); note.id = 'modalReadOnlyNote'; note.style.cssText = 'font-size:0.8125rem; color:var(--text-muted); margin-right:auto;'; footer.insertBefore(note, footer.firstChild); }
+    }
+    if (note) { note.textContent = on ? '구글 캘린더 일정은 보기만 가능합니다. 변경·취소는 구글 캘린더에서 해 주세요.' : ''; note.style.display = on ? '' : 'none'; }
+}
+function isCalendarEventId(id) { return !!(id && AppStore.getExternalEvents() && AppStore.getExternalEvents()[id]); }
+
 async function saveDescription() {
     if (!(await checkAuth('승인된 사용자만 저장할 수 있습니다.'))) return;
     if (!currentModalTaskId) return;
+    if (isCalendarEventId(currentModalTaskId)) { await customAlert('구글 캘린더 일정은 앱에서 수정할 수 없습니다. 구글 캘린더에서 변경해 주세요.'); return; }
 
     const newTitle = document.getElementById('modalTitleInput').value.trim();
     if (!newTitle) return await customAlert('업무 제목을 입력해주세요.');
@@ -452,6 +481,7 @@ document.getElementById('taskModal').addEventListener('keydown', (e) => {
 
 async function deleteCurrentTask() {
     if (!currentModalTaskId) return;
+    if (isCalendarEventId(currentModalTaskId)) { await customAlert('구글 캘린더 일정은 앱에서 삭제·취소할 수 없습니다. 구글 캘린더에서 변경해 주세요.'); return; }
     const isExternal = !!(AppStore.getExternalEvents() && AppStore.getExternalEvents()[currentModalTaskId]);
     if (await customConfirm(isExternal ? '이 연동 일정을 완전히 삭제하시겠습니까?' : '이 업무를 완전히 삭제하시겠습니까?')) {
         const refPath = isExternal ? 'external_events/' : 'tasks/';

@@ -280,7 +280,53 @@
             };
         });
         targets.sort(function (a, b) { return CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category) || (a.period.start < b.period.start ? -1 : a.period.start > b.period.start ? 1 : 0); });
-        return { today: today, calendarHorizonEnd: horizon, targets: targets, accounts: acc, accountIssues: accountIssues, unrostered: acc.unrostered,
+
+        // ---- 출장 배정 검토용: 기간 안의 모든 출장(조율중 포함)을 같은 규칙으로 직원별 판정 (추천 순위와 무관)
+        var reviews = null, undated = [];
+        if (input.review && input.review.start && input.review.end) {
+            var range = { start: input.review.start, end: input.review.end };
+            reviews = [];
+            items.forEach(function (it) {
+                if (it.kind !== 'trip' && it.kind !== 'special_lecture') return;
+                if (it.status === '취소') return;
+                if (it.period.status !== 'ok') { undated.push({ id: it.tripId || it.calendarId || it.id, name: it.raw, rawDate: '', status: it.period.status, detail: it.period.detail || '', assignee: it.people.keys.map(function (k) { return acc.byKey[k] ? acc.byKey[k].label : k; }).join(', ') }); return; }
+                if (!TD.overlaps(range, it.period)) return;
+                var period = it.period;
+                var assigned = it.people.keys.filter(function (k) { return acc.byKey[k] && acc.byKey[k].status === 'ok'; });
+                var problems = [];
+                it.people.keys.filter(function (k) { return assigned.indexOf(k) === -1; }).forEach(function (k) { problems.push({ token: acc.byKey[k].label, note: acc.byKey[k].status === 'ambiguous' ? '계정 여러 개' : '계정 없음/미승인' }); });
+                it.people.unknown.forEach(function (u) { problems.push({ token: u, note: '내부 직원으로 확인되지 않음' }); });
+                it.people.ambiguous.forEach(function (u) { problems.push({ token: u, note: '여러 직원에 해당' }); });
+                var limits = [];
+                if (sourcesIncomplete.length) limits.push('조회 불완전: ' + sourcesIncomplete.join(', '));
+                if (period.end > horizon) limits.push('캘린더 동기화 범위(' + horizon + ' 까지) 밖 — 캘린더 일정 미반영');
+                var gaps = items.filter(function (x) { return (x.kind === 'leave' || x.kind === 'unavailable') && x.period.status === 'ok' && TD.overlaps(period, x.period) && !x.people.keys.length; });
+                if (gaps.length) limits.push('같은 기간 근무 불가 일정 ' + gaps.length + '건의 직원을 식별하지 못함');
+                if (accountIssues.length) limits.push('명부 중 계정 확인 필요 ' + accountIssues.map(function (p) { return p.label; }).join(', '));
+                // 명부 계정 문제는 그 직원만 판정에서 빠질 뿐, 다른 직원의 일정 확인을 막지 않으므로 판정을 낮추는 한계에서 제외 (표시는 유지)
+                var blocking = limits.filter(function (l) { return !/^명부 중 계정/.test(l); });
+                var staff = acc.people.filter(function (p) { return p.status === 'ok'; }).map(function (p) {
+                    var b = blockers(p.key, period, it.id), reasons = [];
+                    // message: 전체 문장 / why·title·date: 화면의 짧은 표시용 (판정에는 쓰지 않음)
+                    b.hard.forEach(function (x) { reasons.push({ level: 'conflict', why: x.why, title: x.title, date: x.date, dup: it.possibleDup === x.id, message: x.why + ' — ' + x.title + ' (' + x.date + ')' + (it.possibleDup === x.id ? ' — 같은 일정일 수 있음(연결 ID 없음), 확인 필요' : '') }); });
+                    b.caution.forEach(function (x) { reasons.push({ level: 'caution', why: x.why, title: x.title, date: x.date, message: x.why + ' — ' + x.title + ' (' + x.date + ')' }); });
+                    var verdict = b.hard.length ? 'conflict' : (b.caution.length ? 'caution' : (blocking.length ? 'incomplete' : 'clear'));
+                    return { key: p.key, label: p.label, assigned: assigned.indexOf(p.key) !== -1, verdict: verdict, reasons: reasons };
+                });
+                var mine = staff.filter(function (x) { return x.assigned; });
+                var review = mine.some(function (x) { return x.verdict === 'conflict'; }) ? 'conflict'
+                    : problems.length ? 'assignee_check'
+                    : !assigned.length ? 'unassigned'
+                    : mine.some(function (x) { return x.verdict === 'caution'; }) ? 'caution'
+                    : blocking.length ? 'incomplete' : 'clear';
+                var unattributed = items.filter(function (x) { return x.src === 'calendar' && (x.kind === 'meeting' || x.kind === 'unknown') && x.period.status === 'ok' && TD.overlaps(period, x.period) && !x.people.keys.length; }).map(function (x) { return x.raw; });
+                reviews.push({ id: it.tripId || ('cal:' + it.calendarId), src: it.src, raw: it.raw, status: it.status || '', place: it.place, period: period, requiredPersonnel: it.requiredPersonnel || null,
+                    vehicles: it.parsed.vehicles, assigned: assigned, problems: problems, explicitUnassigned: it.parsed.explicitUnassigned, mailAssignee: it.mailAssignee || '',
+                    possibleDup: !!it.possibleDup, staff: staff, review: review, limits: limits, blocking: blocking, gaps: gaps.map(function (x) { return x.raw; }), unattributed: unattributed });
+            });
+            reviews.sort(function (a, b) { return a.period.start < b.period.start ? -1 : a.period.start > b.period.start ? 1 : String(a.raw).localeCompare(String(b.raw)); });
+        }
+        return { today: today, calendarHorizonEnd: horizon, targets: targets, reviews: reviews, undatedReviews: undated, linkedCalendarCopies: Object.keys(linked).length, accounts: acc, accountIssues: accountIssues, unrostered: acc.unrostered,
                  sourcesIncomplete: sourcesIncomplete, excludedSpecial: items.filter(function (x) { return x.kind === 'special_lecture' && x.status === '확정'; }).length };
     }
 

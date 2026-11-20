@@ -7,17 +7,18 @@
  */
 (function (root) {
     'use strict';
-    // accountNames: 계정 표시 이름 후보 / aliases: 캘린더·메일 제목에서 쓰이는 표기
+    // label: 화면 표시 이름(성을 뺀 이름, 2글자 이름은 뒤 한 글자) / fullName: 전체 이름
+    // accountNames: 계정 표시 이름 후보 / aliases: 캘린더·메일 제목에서 쓰이는 표기 ('홍' = 민홍, 2026-10 확인)
     var ROSTER = [
-        { key: '대장', label: '대장(대표님)', accountNames: ['대장', '대표님', 'min suk kim'], aliases: ['대장', '대표님'] }, // 'min suk kim' 은 기존 화면(팀 현황)에서 추정
-        { key: '민홍', label: '민홍', accountNames: ['민홍', '민 홍'], aliases: ['민홍', '민 홍'] },
-        { key: '이지희', label: '이지희', accountNames: ['이지희'], aliases: ['지희', '이지희'] },
-        { key: '이동현', label: '이동현', accountNames: ['이동현'], aliases: ['동현', '이동현'] },
-        { key: '류재진', label: '류재진', accountNames: ['류재진'], aliases: ['재진', '류재진'] },
-        { key: '나강현', label: '나강현', accountNames: ['나강현'], aliases: ['강현', '나강현'] },
-        { key: '김동휘', label: '김동휘', accountNames: ['김동휘'], aliases: ['동휘', '김동휘'] },
-        { key: '문채이', label: '문채이', accountNames: ['문채이'], aliases: ['채이', '문채이'] },
-        { key: '장성진', label: '장성진', accountNames: ['장성진'], aliases: ['성진', '장성진'] }
+        { key: '대장', label: '대장', fullName: '대장(대표님)', accountNames: ['대장', '대표님', 'min suk kim'], aliases: ['대장', '대표님'] }, // 'min suk kim' 은 기존 화면(팀 현황)에서 추정
+        { key: '민홍', label: '홍', fullName: '민홍', accountNames: ['민홍', '민 홍', 'Hong Min'], aliases: ['홍', '민홍', '민 홍'] },   // 'Hong Min': 실제 계정 표시 이름 (운영 화면에서 확인)
+        { key: '이지희', label: '지희', fullName: '이지희', accountNames: ['이지희'], aliases: ['지희', '이지희'] },
+        { key: '이동현', label: '동현', fullName: '이동현', accountNames: ['이동현'], aliases: ['동현', '이동현'] },
+        { key: '류재진', label: '재진', fullName: '류재진', accountNames: ['류재진'], aliases: ['재진', '류재진'] },
+        { key: '나강현', label: '강현', fullName: '나강현', accountNames: ['나강현'], aliases: ['강현', '나강현'] },
+        { key: '김동휘', label: '동휘', fullName: '김동휘', accountNames: ['김동휘'], aliases: ['동휘', '김동휘'] },
+        { key: '문채이', label: '채이', fullName: '문채이', accountNames: ['문채이'], aliases: ['채이', '문채이'] },
+        { key: '장성진', label: '성진', fullName: '장성진', accountNames: ['장성진', 'sungjin J'], aliases: ['성진', '장성진'] }   // 'sungjin J': 실제 계정 표시 이름 (운영 화면에서 확인)
     ];
     function norm(s) { return String(s == null ? '' : s).replace(/\s+/g, '').toLowerCase(); }
 

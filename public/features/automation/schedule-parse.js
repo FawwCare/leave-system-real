@@ -34,7 +34,9 @@
             var content = g[1].trim();
             if (/미배정|미정|배정\s*전/.test(content)) { out.explicitUnassigned = true; continue; }
             var tokens = content.split(/[,，/·、\s]+/).map(function (x) { return x.trim(); }).filter(Boolean);
-            if (tokens.length && tokens.every(function (t) { return NAME_TOKEN.test(t.replace(/님$/, '')); })) out.groups.push({ kind: 'paren', text: g[0], tokens: tokens });
+            // 이름 묶음: 2~4글자 이름들. 두 명 이상 묶음에서는 한 글자 약칭('홍')도 허용 — 단독 '(주)' 같은 괄호는 제외
+            var nameLike = function (t) { t = t.replace(/님$/, ''); return NAME_TOKEN.test(t) || (tokens.length >= 2 && /^[가-힣]$/.test(t)); };
+            if (tokens.length && tokens.every(nameLike)) out.groups.push({ kind: 'paren', text: g[0], tokens: tokens });
         }
         // 슬래시 묶음 (괄호 밖): 강현/성진/채이
         var outside = out.body.replace(/\([^()]*\)/g, ' ');

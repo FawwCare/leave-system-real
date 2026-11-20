@@ -27,13 +27,13 @@ const txt = (page, sel) => page.evaluate((s) => (document.querySelector(s) || {}
   const w0 = await page.evaluate(() => window.__dbWrites || 0);
   await openRec(page);
   const items = await page.evaluate(() => [...document.querySelectorAll('#rec-root .rec-item > summary')].map(s => s.textContent.replace(/\s+/g, ' ').trim()));
-  check('오늘 이후 확정 출장 목록 + 정렬 (심각한 충돌 먼저)', items.length >= 4 && /^충돌/.test(items[0]) && /광주광역시도시공사/.test(items[0]), items.join(' | '));
+  check('오늘 이후 확정 출장 목록 + 정렬 (일정 겹침 먼저)', items.length >= 4 && /^일정 겹침/.test(items[0]) && /광주광역시도시공사/.test(items[0]), items.join(' | '));
   check('범위 안내는 문제가 없어도 항상 표시 ("조회 범위 기준", 펼치지 않아도 보임)', /조회 범위 기준/.test(await page.evaluate(() => document.querySelector('#rec-root .rec-top > strong').textContent)));
   await page.evaluate(() => document.querySelector('#rec-root .rec-item[data-target-id="trip:r1"]').open = true); await sleep(100);
   const r1 = await txt(page, '#rec-root .rec-item[data-target-id="trip:r1"]');
   const r1opt = await page.evaluate(() => [...document.querySelectorAll('#rec-root .rec-item[data-target-id="trip:r1"] .rec-option')].map(o => ({ names: o.querySelector('.rec-names').textContent, keep: (o.querySelector('.rec-keep') || {}).textContent || '' })));
-  check('부분 배정 2/3명 + 1명만 추천 + 기존 2명 유지 표기', /2\/3명/.test(r1) && r1opt.length && r1opt.every(o => !o.names.includes('·') && o.keep === '기존 배정 유지: 김동휘 · 장성진'), JSON.stringify(r1opt.slice(0, 2)));
-  check('배정된 김동휘 학교 시험 → 심각한 충돌 사유 표시', /김동휘: 근무 불가 일정\(학교 시험\)/.test(r1));
+  check('부분 배정 2/3명 + 1명만 추천 + 기존 2명 유지 표기', /2\/3명/.test(r1) && r1opt.length && r1opt.every(o => !o.names.includes('·') && o.keep === '기존 배정 유지: 동휘 · 성진'), JSON.stringify(r1opt.slice(0, 2)));
+  check('배정된 김동휘 학교 시험 → 심각한 충돌 사유 표시', /동휘: 근무 불가 일정\(학교 시험\)/.test(r1));
   check('배정 버튼은 비활성 (다음 단계)', await page.evaluate(() => [...document.querySelectorAll('#rec-root button')].filter(b => /배정/.test(b.textContent)).every(b => b.disabled)));
   await page.evaluate(() => document.querySelector('#rec-root .rec-item[data-target-id="trip:r2"]').open = true);
   const r2 = await txt(page, '#rec-root .rec-item[data-target-id="trip:r2"]');
@@ -57,7 +57,7 @@ const txt = (page, sel) => page.evaluate((s) => (document.querySelector(s) || {}
       reasons, checks, maxLines: opts.every(o => o.querySelectorAll('.rec-line-reason').length === 1 && o.querySelectorAll('.rec-line-check').length <= 3),
       detailsClosed: opts.every(o => !o.querySelector('.rec-detail').open), detailText: o1.querySelector('.rec-detail').textContent };
   });
-  check('추천 1 = 연속 출장 직원(류재진·이동현), 1순위 강조 표시', ux.top && /류재진/.test(ux.names) && /이동현/.test(ux.names), JSON.stringify(ux).slice(0, 200));
+  check('추천 1 = 연속 출장 직원(류재진·이동현), 1순위 강조 표시', ux.top && /재진/.test(ux.names) && /동현/.test(ux.names), JSON.stringify(ux).slice(0, 200));
   check('두 직원 공통 출장 근거는 한 줄로 (반복 없음, "전날 … 출장 팀")', ux.reasons.length === 1 && /^전날 .+ 출장 팀$/.test(ux.reasons[0]), JSON.stringify(ux.reasons));
   check('공통 차량·이동 경로 확인 칩도 한 번만', ux.checks.filter(c => /2호차/.test(c)).length === 1 && ux.checks.filter(c => /경로 확인/.test(c)).length === 1, JSON.stringify(ux.checks));
   check('기본 화면은 근거 한 줄 + 확인 칩 최대 3개, 상세 근거는 접힘', ux.maxLines && ux.detailsClosed);

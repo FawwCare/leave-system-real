@@ -93,7 +93,7 @@
         return '지역 정보 부족';
     }
     function statusOf(t) {
-        if (t.category === 'serious') return { key: 'conflict', text: '충돌' };
+        if (t.category === 'serious') return { key: 'conflict', text: '일정 겹침' };
         if (t.category === 'staffing') {
             if (t.problems.length) return { key: 'warn', text: '직원 확인' };
             if (!t.required.known) return { key: 'warn', text: '인원 미확인' };
@@ -169,7 +169,7 @@
         var fd = h('details', { className: 'rec-filter' }); if (state.filters.cat !== 'all' || state.filters.staff !== 'all') fd.open = true;
         fd.appendChild(h('summary', { text: '필터' + ((state.filters.cat !== 'all' ? 1 : 0) + (state.filters.staff !== 'all' ? 1 : 0) ? ' ' + ((state.filters.cat !== 'all' ? 1 : 0) + (state.filters.staff !== 'all' ? 1 : 0)) : '') }));
         var cat = h('select', { attrs: { id: 'rec-cat', 'aria-label': '상태' } }, h('option', { text: '상태 전체', attrs: { value: 'all' } }));
-        [['serious', '충돌'], ['staffing', '인원·직원 확인'], ['vehicle', '차량 없음'], ['ok', '정상'], ['req-unknown', '인원 미확인'], ['match', '직원 확인']].forEach(function (o) { cat.appendChild(h('option', { text: o[1], attrs: { value: o[0] } })); });
+        [['serious', '일정 겹침'], ['staffing', '인원·직원 확인'], ['vehicle', '차량 없음'], ['ok', '정상'], ['req-unknown', '인원 미확인'], ['match', '직원 확인']].forEach(function (o) { cat.appendChild(h('option', { text: o[1], attrs: { value: o[0] } })); });
         cat.value = state.filters.cat; fd.appendChild(cat);
         var staff = h('select', { attrs: { id: 'rec-staff', 'aria-label': '직원' } }, h('option', { text: '직원 전체', attrs: { value: 'all' } }));
         FawwStaffRoster.ROSTER.forEach(function (p) { staff.appendChild(h('option', { text: p.label, attrs: { value: p.key } })); });
